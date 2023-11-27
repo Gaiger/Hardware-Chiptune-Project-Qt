@@ -29,6 +29,7 @@ public:
 	void SetStartPlaySong(int song_index)
 	{
 		startplaysong(song_index);
+		//startplaytrack(1);
 	}
 
 public:
@@ -39,16 +40,21 @@ public:
 
 /**********************************************************************************/
 
+WaveGenerator::WaveGenerator(QObject *parent)
+	: QObject(parent),
+	m_p_private(nullptr)
+{
+	m_p_private = new WaveGeneratorPrivate();
+	m_p_private->m_generate_data_length = 0;
+}
+
+/**********************************************************************************/
 
 WaveGenerator::WaveGenerator(QString filename, QObject *parent)
 	: QObject(parent),
 	m_p_private(nullptr)
 {
-	QMutexLocker locker(&m_mutex);
-
-
-	m_p_private = new WaveGeneratorPrivate();
-	m_p_private->m_generate_data_length = 0;
+	new (this)WaveGenerator(parent);
 	m_p_private->LoadFile(filename);
 	m_p_private->SetStartPlaySong(0);
 }

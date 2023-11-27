@@ -12,6 +12,7 @@ class WaveGenerator : public QObject
 {
 	Q_OBJECT
 public:
+	explicit WaveGenerator(QObject *parent = nullptr);
 	explicit WaveGenerator(QString filename, QObject *parent = nullptr);
 	~WaveGenerator() Q_DECL_OVERRIDE;
 

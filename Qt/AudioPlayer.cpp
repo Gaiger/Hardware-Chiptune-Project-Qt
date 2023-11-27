@@ -70,16 +70,15 @@ AudioPlayer::~AudioPlayer(void)
 
 /**********************************************************************************/
 
-void AudioPlayer::Play(int seconds)
+void AudioPlayer::Play(int song)
 {
-	Q_UNUSED(seconds)
-
+	m_p_wave_generator->SetStartPlaySong(song);
 	AudioPlayer::Initialize();
 }
 
 /**********************************************************************************/
 
-void AudioPlayer::Initialize(int const sampling_rate, int const sampling_size, int const channel_counts,  double const volume)
+void AudioPlayer::Initialize(int const sampling_rate, int const sampling_size, int const channel_counts)
 {
 	QAudioFormat format;
 	format.setSampleRate(sampling_rate);
@@ -113,8 +112,6 @@ void AudioPlayer::Initialize(int const sampling_rate, int const sampling_size, i
 	QObject::connect(m_p_audio_output, &QAudioOutput::notify, this, &AudioPlayer::HandleAudioNotify);
 	QObject::connect(m_p_audio_output, &QAudioOutput::stateChanged, this, &AudioPlayer::HandleAudioStateChanged);
 	m_p_audio_output->setVolume(0.40);
-
-
 
 	int notify_interval = 100;
 	int audio_buffer_size = 2 * notify_interval * format.sampleRate() * format.channelCount() * format.sampleSize()/8/1000;

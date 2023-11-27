@@ -35,7 +35,7 @@ public:
 
 	~AudioPlayer()  Q_DECL_OVERRIDE;
 
-	void Play(int seconds = -1);
+	void Play(int song = 0);
 	void Stop(void);
 
 private slots:
@@ -44,8 +44,7 @@ private slots:
 
 private :
 
-	void Initialize(int const sampling_rate = 16000, int const sampling_size = 1, int const channel_counts = 1,
-					double const volume = 1.0);
+	void Initialize(int const sampling_rate = 16000, int const sampling_size = 1, int const channel_counts = 1);
 	void AppendAudioData(QByteArray data_bytearray);
 
 

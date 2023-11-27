@@ -70,8 +70,7 @@ int main(int argc, char *argv[])
 
 
 	WaveGenerator wave_generator("../test2.song");
-	wave_generator.SetStartPlaySong(0);
 	AudioPlayer player(&wave_generator, &a);
-	player.Play();
+	player.Play(1);
 	return a.exec();
 }
