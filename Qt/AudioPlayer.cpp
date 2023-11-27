@@ -11,7 +11,6 @@ extern "C"{
 
 #include "AudioPlayer.h"
 
-
 class AudioIODevice: public QIODevice
 {
 public :
@@ -41,12 +40,15 @@ private:
 
 /**********************************************************************************/
 
-AudioPlayer::AudioPlayer(QObject *parent)
+AudioPlayer::AudioPlayer(WaveGenerator *p_wave_generator, QObject *parent)
 	: QObject(parent),
 	m_p_audio_output(nullptr),
 	m_p_audio_io_device(nullptr)
 {
+	m_p_wave_generator = p_wave_generator;
 
+	m_p_wave_generator->moveToThread(&m_wave_generator_working_thread);
+	m_wave_generator_working_thread.start(QThread::HighPriority);
 }
 
 /**********************************************************************************/
@@ -62,6 +64,8 @@ AudioPlayer::~AudioPlayer(void)
 		delete m_p_audio_io_device;
 	}
 	m_p_audio_io_device = nullptr;
+
+	m_p_wave_generator = nullptr;
 }
 
 /**********************************************************************************/
@@ -71,21 +75,6 @@ void AudioPlayer::Play(int seconds)
 	Q_UNUSED(seconds)
 
 	AudioPlayer::Initialize();
-}
-
-/**********************************************************************************/
-
-QByteArray FetchData(int size) {
-
-	QByteArray audio_bytearray;
-	int i;
-	for(i = 0; i < size; i++) {
-		uint8_t value = interrupthandler();
-		audio_bytearray += value;
-		//qDebug() << "value" << value;
-	}
-	qDebug() << "audio_bytearray.size() = " << audio_bytearray.size();
-	return audio_bytearray;
 }
 
 /**********************************************************************************/
@@ -136,7 +125,7 @@ void AudioPlayer::Initialize(int const sampling_rate, int const sampling_size, i
 
 	m_p_audio_io_device = new AudioIODevice();
 	m_p_audio_io_device->open(QIODevice::ReadWrite);
-	AudioPlayer::AppendAudioData(FetchData(audio_buffer_size));
+	AudioPlayer::AppendAudioData(m_p_wave_generator->FetchData(audio_buffer_size));
 	m_p_audio_output->start(m_p_audio_io_device);
 }
 
@@ -171,7 +160,7 @@ void AudioPlayer::HandleAudioNotify(void)
 	}
 
 	QByteArray append_bytearray
-			= FetchData(remain_audio_buffer_size);
+			= m_p_wave_generator->FetchData(remain_audio_buffer_size);
 	AudioPlayer::AppendAudioData(append_bytearray);
 }
 

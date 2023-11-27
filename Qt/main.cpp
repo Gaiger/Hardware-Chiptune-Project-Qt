@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include <QCoreApplication>
+#include "WaveGenerator.h"
 #include "AudioPlayer.h"
 
 #ifndef _STUFF_H_
@@ -67,11 +68,10 @@ int main(int argc, char *argv[])
 {
 	QCoreApplication a(argc, argv);
 
-	char *p_input_filename = (char*) "../test2.song";
 
-	loadfile(p_input_filename);
-	startplaysong(5);
-	AudioPlayer player(&a);
+	WaveGenerator wave_generator("../test2.song");
+	wave_generator.SetStartPlaySong(0);
+	AudioPlayer player(&wave_generator, &a);
 	player.Play();
 	return a.exec();
 }

@@ -11,6 +11,7 @@ CONFIG -= app_bundle
 SOURCES += \
         ../chip.c \
         AudioPlayer.cpp \
+        WaveGenerator.cpp \
         main.cpp \
         song_manager.c
 
@@ -22,4 +23,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     ../stuff.h \
     AudioPlayer.h \
+    WaveGenerator.h \
     song_manager.h
