@@ -17,7 +17,7 @@ public:
 			generate_bytearray += value;
 			//qDebug() << "value" << value;
 		}
-		qDebug() << "generate_bytearray.size() = " << generate_bytearray.size();
+		//qDebug() << "generate_bytearray.size() = " << generate_bytearray.size();
 		m_wave_bytearray += generate_bytearray;
 	}
 
@@ -57,6 +57,7 @@ WaveGenerator::WaveGenerator(QString filename, QObject *parent)
 	new (this)WaveGenerator(parent);
 	m_p_private->LoadFile(filename);
 	m_p_private->SetStartPlaySong(0);
+
 }
 
 /**********************************************************************************/

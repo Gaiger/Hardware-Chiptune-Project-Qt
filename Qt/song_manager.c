@@ -266,7 +266,21 @@ void initgui() {
 
 	atexit(exitgui);
 }
+#endif
+void get_song_data(int *p_songx, int *p_songy, int *p_songoffs, int *p_songlen, void** pp_songlines,
+				   int *p_playsong, int *p_songpos)
+{
+	*p_songx = songx; *p_songy = songx; *p_songoffs = songoffs; *p_songlen = songlen;
+	*pp_songlines = (void**)&song[0];
+	return;
+}
 
+void get_song_playing(int *p_playsong, int *p_songpos)
+{
+	*p_playsong = playsong; *p_songpos = songpos;
+}
+
+#if(0)
 void drawsonged(int x, int y, int height) {
 	int i, j;
 	char buf[1024];

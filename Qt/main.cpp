@@ -3,9 +3,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <QCoreApplication>
+#include <QApplication>
 #include "WaveGenerator.h"
 #include "AudioPlayer.h"
+
+#include "HardwareChiptunePanelWidget.h"
 
 #ifndef _STUFF_H_
 #define _STUFF_H_
@@ -66,11 +68,16 @@ const struct track trackdata = {
 #endif
 int main(int argc, char *argv[])
 {
-	QCoreApplication a(argc, argv);
+	QApplication a(argc, argv);
 
-
+	//hardware_chiptune_panel_widget.
 	WaveGenerator wave_generator("../test2.song");
 	AudioPlayer player(&wave_generator, &a);
+
+	HardwareChiptunePanelWidget hardware_chiptune_panel_widget;
+
 	player.Play(1);
+
+	hardware_chiptune_panel_widget.show();
 	return a.exec();
 }

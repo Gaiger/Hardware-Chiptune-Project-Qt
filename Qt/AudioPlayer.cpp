@@ -65,6 +65,13 @@ AudioPlayer::~AudioPlayer(void)
 	}
 	m_p_audio_io_device = nullptr;
 
+	m_wave_generator_working_thread.quit();
+	do
+	{
+		if(false == m_wave_generator_working_thread.isRunning()){
+			break;
+		}
+	}while(1);
 	m_p_wave_generator = nullptr;
 }
 
@@ -147,9 +154,9 @@ void AudioPlayer::Stop(void)
 void AudioPlayer::HandleAudioNotify(void)
 {
 
-	qDebug() << Q_FUNC_INFO  << "elapsed " <<
-				m_p_audio_output->elapsedUSecs()/1000.0/1000.0
-			 << "seconds";
+	//qDebug() << Q_FUNC_INFO  << "elapsed " <<
+	//			m_p_audio_output->elapsedUSecs()/1000.0/1000.0
+	//		 << "seconds";
 
 	int remain_audio_buffer_size = m_p_audio_output->bytesFree();
 	if(0 == m_p_audio_output->bytesFree()){
