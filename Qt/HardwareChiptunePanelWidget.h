@@ -4,6 +4,7 @@
 #include <QWidget>
 
 #include "SongPlainTextEdit.h"
+#include "TrackPlainTextEdit.h"
 
 namespace Ui {
 class HardwareChiptunePanelWidget;
@@ -21,7 +22,8 @@ private :
 	void timerEvent(QTimerEvent *p_event) Q_DECL_OVERRIDE;
 
 private:
-	SongPlainTextEdit *m_p_song_plain_text_edit;
+	SongPlainTextEdit *m_p_song_plaintextedit;
+	TrackPlainTextEdit *m_p_track_plaintextedit;
 private:
 	Ui::HardwareChiptunePanelWidget *ui;
 };

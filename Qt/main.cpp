@@ -70,14 +70,12 @@ int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
 
-	//hardware_chiptune_panel_widget.
 	WaveGenerator wave_generator("../test2.song");
 	AudioPlayer player(&wave_generator, &a);
 
 	HardwareChiptunePanelWidget hardware_chiptune_panel_widget;
+	hardware_chiptune_panel_widget.show();
 
 	player.Play(1);
-
-	hardware_chiptune_panel_widget.show();
 	return a.exec();
 }

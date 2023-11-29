@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 //#include <ncurses.h>
 #include <math.h>
 //#include <err.h?
@@ -267,17 +268,21 @@ void initgui() {
 	atexit(exitgui);
 }
 #endif
-void get_song_data(int *p_songx, int *p_songy, int *p_songoffs, int *p_songlen, void** pp_songlines,
-				   int *p_playsong, int *p_songpos)
+void get_songlines(void** pp_songlines, int *p_song_length)
 {
-	*p_songx = songx; *p_songy = songx; *p_songoffs = songoffs; *p_songlen = songlen;
 	*pp_songlines = (void**)&song[0];
+	*p_song_length = songlen;
 	return;
 }
 
-void get_song_playing(int *p_playsong, int *p_songpos)
+bool is_song_playing(int *p_playing_song_index)
 {
-	*p_playsong = playsong; *p_songpos = songpos;
+	if(0 == playsong){
+		return false;
+	}
+
+	*p_playing_song_index = songpos;
+	return true;
 }
 
 #if(0)
@@ -304,7 +309,27 @@ void drawsonged(int x, int y, int height) {
 		}
 	}
 }
+#endif
 
+void get_tracks(struct track ** pp_track, int *p_track_number, int *p_track_length)
+{
+	*pp_track = &track[0];
+	*p_track_number = sizeof(track)/sizeof(struct track);
+	*p_track_length = tracklen;
+}
+
+bool is_track_playing(int *p_playing_track_index)
+{
+	if(0 == playtrack){
+		return false;
+	}
+
+	*p_playing_track_index = trackpos;
+	return true;
+}
+
+
+#if(0)
 void drawtracked(int x, int y, int height) {
 	int i, j;
 	char buf[1024];

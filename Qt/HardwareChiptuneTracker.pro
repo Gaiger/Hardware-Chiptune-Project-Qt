@@ -13,6 +13,7 @@ SOURCES += \
         AudioPlayer.cpp \
         HardwareChiptunePanelWidget.cpp \
         SongPlainTextEdit.cpp \
+        TrackPlainTextEdit.cpp \
         WaveGenerator.cpp \
         main.cpp \
         song_manager.c
@@ -27,6 +28,7 @@ HEADERS += \
     AudioPlayer.h \
     HardwareChiptunePanelWidget.h \
     SongPlainTextEdit.h \
+    TrackPlainTextEdit.h \
     WaveGenerator.h \
     song_manager.h
 

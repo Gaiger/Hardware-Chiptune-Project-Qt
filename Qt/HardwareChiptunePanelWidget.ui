@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>960</width>
     <height>600</height>
    </rect>
   </property>
@@ -36,6 +36,22 @@ QPushButton:checked{
      <x>20</x>
      <y>64</y>
      <width>380</width>
+     <height>480</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget {
+background-color: rgb(64, 64, 64); 
+color: rgb(208, 208, 208);
+}</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="TrackWidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>460</x>
+     <y>64</y>
+     <width>232</width>
      <height>480</height>
     </rect>
    </property>

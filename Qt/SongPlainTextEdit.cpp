@@ -44,6 +44,7 @@ bool IsValidChar(QChar character)
 	return false;
 }
 
+/**********************************************************************************/
 
 void SongPlainTextEdit::CorrectCursorPosition(void)
 {
@@ -140,29 +141,29 @@ struct songline {
 
 extern "C"
 {
-void get_song_data(int *p_songx, int *p_songy, int *p_songoffs, int *p_songlen, void** pp_songlines);
-void get_song_playing(int *p_playsong, int *p_songpos);
+void get_songlines(void** pp_songlines, int *p_song_length);
+bool is_song_playing(int *p_playing_song_index);
 }
 
-void SongPlainTextEdit::UpdateSongScores(void)
+void SongPlainTextEdit::UpdateSongs(void)
 {
-	int songx, songy, songoffs, songlen;
+	int song_length;
 	struct songline *p_songs;
-	get_song_data(&songx, &songy, &songoffs, &songlen, (void**)&p_songs);
+	get_songlines((void**)&p_songs, &song_length);
 
 
 	int i, j;
-	for(i = 0; i < songlen; i++) {
+	for(i = 0; i < song_length; i++) {
 		char line_buffer[1024];
 		snprintf(line_buffer, sizeof(line_buffer), "%02x: ", i);
 
 		for(j = 0; j < 4; j++) {
-			char string_buffer[1024];
+			char string_buffer[256];
 			snprintf(&string_buffer[0], sizeof(string_buffer), "%02x:%02x", p_songs[i].track[j], p_songs[i].transp[j]);
-			strncat(&line_buffer[0], &string_buffer[0], 1024);
+			strncat(&line_buffer[0], &string_buffer[0], sizeof(line_buffer));
 			if(j != 3) {
 				snprintf(&string_buffer[0], sizeof(string_buffer), " ");
-				strncat(&line_buffer[0], &string_buffer[0], 1024);
+				strncat(&line_buffer[0], &string_buffer[0], sizeof(line_buffer));
 			}
 		}
 
@@ -180,14 +181,6 @@ void SongPlainTextEdit::UpdateSongScores(void)
 
 void SongPlainTextEdit::UpdateSongPlaying(void)
 {
-	int is_playsong, songpos;
-	get_song_playing(&is_playsong, &songpos);
-	songpos -= 1;
-
-	if( 0 > songpos || songpos > QPlainTextEdit::document()->blockCount() - 1){
-		return ;
-	}
-
 	do{
 		QTextBlockFormat fmt;
 		fmt.setProperty(QTextFormat::FullWidthSelection, true);
@@ -203,11 +196,17 @@ void SongPlainTextEdit::UpdateSongPlaying(void)
 		}
 	}while(0);
 
-	if(0 == is_playsong){
+	int playing_song_index;
+	if(false == is_song_playing(&playing_song_index)){
 		return ;
 	}
 
-	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(songpos);
+	playing_song_index -= 1;
+	if( 0 > playing_song_index || playing_song_index > QPlainTextEdit::document()->blockCount() - 1){
+		return ;
+	}
+
+	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(playing_song_index);
 
 	do{
 		QTextBlockFormat fmt;
@@ -223,7 +222,7 @@ void SongPlainTextEdit::UpdateSongPlaying(void)
 	{
 		QRect viewport_geometry = QPlainTextEdit::viewport()->geometry();
 		QRectF next_line_rect = QPlainTextEdit::blockBoundingGeometry(
-					QPlainTextEdit::document()->findBlockByLineNumber(songpos + 1));
+					QPlainTextEdit::document()->findBlockByLineNumber(playing_song_index + 1));
 
 		if(viewport_geometry.topLeft().y() < next_line_rect.topLeft().y()
 				&& viewport_geometry.bottomRight().y() > next_line_rect.bottomRight().y()){
@@ -231,7 +230,7 @@ void SongPlainTextEdit::UpdateSongPlaying(void)
 		}
 
 		int scrolling_value = current_song_textblock.firstLineNumber() - 2;
-		if(songpos + 1 == QPlainTextEdit::document()->blockCount()){
+		if(playing_song_index + 1 == QPlainTextEdit::document()->blockCount()){
 			scrolling_value = QPlainTextEdit::verticalScrollBar()->maximum();
 		}
 

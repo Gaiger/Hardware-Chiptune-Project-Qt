@@ -9,7 +9,7 @@ class SongPlainTextEdit : public QPlainTextEdit
 public:
 	explicit SongPlainTextEdit(QWidget *parent = nullptr);
 
-	void UpdateSongScores(void);
+	void UpdateSongs(void);
 	void UpdateSongPlaying(void);
 
 private slots:
