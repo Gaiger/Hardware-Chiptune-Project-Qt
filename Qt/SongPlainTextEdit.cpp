@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <QDebug>
 #include <QTextBlock>
 #include <QScrollBar>
@@ -148,35 +152,20 @@ void SongPlainTextEdit::UpdateSongScores(void)
 
 
 	int i, j;
-	char line_buffer[1024];
-
-
 	for(i = 0; i < songlen; i++) {
+		char line_buffer[1024];
 		snprintf(line_buffer, sizeof(line_buffer), "%02x: ", i);
-		char string_buffer[1024];
-		//addstr(buf);
 
 		for(j = 0; j < 4; j++) {
-
+			char string_buffer[1024];
 			snprintf(&string_buffer[0], sizeof(string_buffer), "%02x:%02x", p_songs[i].track[j], p_songs[i].transp[j]);
 			strncat(&line_buffer[0], &string_buffer[0], 1024);
-			//addstr(buf);
 			if(j != 3) {
 				snprintf(&string_buffer[0], sizeof(string_buffer), " ");
 				strncat(&line_buffer[0], &string_buffer[0], 1024);
-				//addch(' ');
 			}
 		}
 
-		//attrset(A_NORMAL);
-		//if(playsong && songpos == (i + 1)) addch('*');
-#if(0)
-		if(is_playsong && songpos == (i + 1)){
-			//char string_buffer[1024];
-			snprintf(&string_buffer[0], sizeof(string_buffer), "*");
-			strncat(&line_buffer[0], &string_buffer[0], 1024);
-		}
-#endif
 		QPlainTextEdit::blockSignals(true);
 		QPlainTextEdit::moveCursor (QTextCursor::End);
 		QPlainTextEdit::appendPlainText(QString(&line_buffer[0]));
@@ -195,18 +184,28 @@ void SongPlainTextEdit::UpdateSongPlaying(void)
 	get_song_playing(&is_playsong, &songpos);
 	songpos -= 1;
 
-	do{
-		if(0 == songpos){
-			break;
-		}
+	if( 0 > songpos || songpos > QPlainTextEdit::document()->blockCount() - 1){
+		return ;
+	}
 
+	do{
 		QTextBlockFormat fmt;
 		fmt.setProperty(QTextFormat::FullWidthSelection, true);
 		fmt.setBackground( QPlainTextEdit::palette().base().color());
 		QTextCursor cursor(QPlainTextEdit::document());
-		cursor.setPosition(QPlainTextEdit::document()->findBlockByLineNumber(songpos - 1).position(), QTextCursor::MoveAnchor);
-		cursor.setBlockFormat(fmt);
+		for(int i = 0; i < QPlainTextEdit::document()->blockCount(); i++){
+			QTextBlock textblock = QPlainTextEdit::document()->findBlockByLineNumber(i);
+			if( QPlainTextEdit::palette().base().color() == textblock.blockFormat().background().color()){
+				continue;
+			}
+			cursor.setPosition(textblock.position(), QTextCursor::MoveAnchor);
+			cursor.setBlockFormat(fmt);
+		}
 	}while(0);
+
+	if(0 == is_playsong){
+		return ;
+	}
 
 	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(songpos);
 
