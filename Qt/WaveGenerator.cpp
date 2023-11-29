@@ -29,7 +29,11 @@ public:
 	void SetStartPlaySong(int song_index)
 	{
 		startplaysong(song_index);
-		//startplaytrack(1);
+	}
+
+	void SetPlayTrack(int track_index)
+	{
+		startplaytrack(track_index);
 	}
 
 public:
@@ -128,8 +132,16 @@ QByteArray WaveGenerator::FetchData(int const size)
 
 /**********************************************************************************/
 
-void WaveGenerator::SetStartPlaySong(int song_index)
+void WaveGenerator::SetStartPlaySong(int start_song_index)
 {
 	QMutexLocker locker(&m_mutex);
-	m_p_private->SetStartPlaySong(song_index);
+	m_p_private->SetStartPlaySong(start_song_index);
+}
+
+/**********************************************************************************/
+
+void WaveGenerator::SetPlayTrack(int track_index)
+{
+	QMutexLocker locker(&m_mutex);
+	m_p_private->SetPlayTrack(track_index);
 }

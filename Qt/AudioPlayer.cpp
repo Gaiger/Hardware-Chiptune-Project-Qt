@@ -55,16 +55,8 @@ AudioPlayer::AudioPlayer(WaveGenerator *p_wave_generator, QObject *parent)
 
 AudioPlayer::~AudioPlayer(void)
 {
-	if(nullptr != m_p_audio_output){
-		delete m_p_audio_output;
-	}
-	m_p_audio_output = nullptr;
-
-	if(nullptr != m_p_audio_io_device){
-		delete m_p_audio_io_device;
-	}
-	m_p_audio_io_device = nullptr;
-
+	AudioPlayer::Stop();
+	AudioPlayer::Clean();
 	m_wave_generator_working_thread.quit();
 	do
 	{
@@ -77,15 +69,35 @@ AudioPlayer::~AudioPlayer(void)
 
 /**********************************************************************************/
 
-void AudioPlayer::Play(int song)
+void AudioPlayer::Clean(void)
 {
-	m_p_wave_generator->SetStartPlaySong(song);
-	AudioPlayer::Initialize();
+	if(nullptr != m_p_audio_output){
+		delete m_p_audio_output;
+	}
+	m_p_audio_output = nullptr;
+
+	if(nullptr != m_p_audio_io_device){
+		delete m_p_audio_io_device;
+	}
+	m_p_audio_io_device = nullptr;
 }
 
 /**********************************************************************************/
 
-void AudioPlayer::Initialize(int const sampling_rate, int const sampling_size, int const channel_counts)
+void AudioPlayer::PlaySong(int start_song_index)
+{
+	m_p_wave_generator->SetStartPlaySong(start_song_index);
+	AudioPlayer::Play();
+}
+
+void AudioPlayer::PlayTrack(int track_index)
+{
+	m_p_wave_generator->SetPlayTrack(track_index);
+	AudioPlayer::Play();
+}
+/**********************************************************************************/
+
+void AudioPlayer::Play(int const sampling_rate, int const sampling_size, int const channel_counts)
 {
 	QAudioFormat format;
 	format.setSampleRate(sampling_rate);
@@ -137,16 +149,20 @@ void AudioPlayer::Initialize(int const sampling_rate, int const sampling_size, i
 
 void AudioPlayer::AppendAudioData(QByteArray data_bytearray)
 {
-	m_accessing_io_device_mutex.lock();
+	QMutexLocker lock(&m_accessing_io_device_mutex);
+	if(nullptr == m_p_audio_io_device){
+		return ;
+	}
 	m_p_audio_io_device->write(data_bytearray);
-	m_accessing_io_device_mutex.unlock();
 }
 
 /**********************************************************************************/
 
 void AudioPlayer::Stop(void)
 {
-
+	QMutexLocker lock(&m_accessing_io_device_mutex);
+	m_p_audio_output->stop();
+	AudioPlayer::Clean();
 }
 
 /**********************************************************************************/

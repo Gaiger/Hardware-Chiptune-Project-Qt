@@ -19,10 +19,6 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(QWidget *parent) :
 {
 	ui->setupUi(this);
 
-	QFont font("Monospace");
-	font.setStyleHint(QFont::TypeWriter);
-	QWidget::setFont(font);
-
 	do{
 		m_p_song_plaintextedit = new SongPlainTextEdit(this);
 		ReplaceWidget(m_p_song_plaintextedit, ui->SongWidget);
@@ -33,7 +29,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(QWidget *parent) :
 		ReplaceWidget(m_p_track_plaintextedit, ui->TrackWidget);
 	}while(0);
 
-	QObject::startTimer(100);
+	QObject::startTimer(50);
 	m_p_song_plaintextedit->UpdateSongs();
 	m_p_track_plaintextedit->UpdateTrack();
 }
@@ -51,5 +47,13 @@ HardwareChiptunePanelWidget::~HardwareChiptunePanelWidget()
 void HardwareChiptunePanelWidget::timerEvent(QTimerEvent *p_event)
 {
 	m_p_song_plaintextedit->UpdateSongPlaying();
+	m_p_track_plaintextedit->UpdateTrackPlaying();
 	QWidget::timerEvent(p_event);
+}
+
+/**********************************************************************************/
+
+void HardwareChiptunePanelWidget::on_TrackIndexSpinBox_valueChanged(int i)
+{
+	m_p_track_plaintextedit->UpdateShowedTrack(i);
 }

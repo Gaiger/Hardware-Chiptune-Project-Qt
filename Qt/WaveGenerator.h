@@ -17,8 +17,8 @@ public:
 	~WaveGenerator() Q_DECL_OVERRIDE;
 
 	void LoadFile(QString filename);
-	void SetStartPlaySong(int song_index);
-
+	void SetStartPlaySong(int start_song_index);
+	void SetPlayTrack(int track_index);
 public:
 	QByteArray FetchData(int const size);
 

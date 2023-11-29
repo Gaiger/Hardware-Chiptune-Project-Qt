@@ -75,7 +75,8 @@ int main(int argc, char *argv[])
 
 	HardwareChiptunePanelWidget hardware_chiptune_panel_widget;
 	hardware_chiptune_panel_widget.show();
-
-	player.Play(1);
+	hardware_chiptune_panel_widget.setFocus();
+	//player.PlaySong(1);
+	player.PlayTrack(1);
 	return a.exec();
 }

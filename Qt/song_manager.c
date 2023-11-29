@@ -318,13 +318,14 @@ void get_tracks(struct track ** pp_track, int *p_track_number, int *p_track_leng
 	*p_track_length = tracklen;
 }
 
-bool is_track_playing(int *p_playing_track_index)
+bool is_track_playing(int *p_playing_track_index, int *p_playing_line_index)
 {
 	if(0 == playtrack){
 		return false;
 	}
 
-	*p_playing_track_index = trackpos;
+	*p_playing_track_index = currtrack;
+	*p_playing_line_index = trackpos;
 	return true;
 }
 

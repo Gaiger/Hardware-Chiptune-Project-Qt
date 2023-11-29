@@ -35,7 +35,8 @@ public:
 
 	~AudioPlayer()  Q_DECL_OVERRIDE;
 
-	void Play(int song = 0);
+	void PlaySong(int start_song_index = 1);
+	void PlayTrack(int track_index = 1);
 	void Stop(void);
 
 private slots:
@@ -43,11 +44,10 @@ private slots:
 	void HandleAudioStateChanged(QAudio::State state);
 
 private :
-
-	void Initialize(int const sampling_rate = 16000, int const sampling_size = 1, int const channel_counts = 1);
+	void Play(int const sampling_rate = 16000, int const sampling_size = 1, int const channel_counts = 1);
 	void AppendAudioData(QByteArray data_bytearray);
-
-
+	void Clean();
+private:
 	QAudioOutput * m_p_audio_output;
 	QIODevice *m_p_audio_io_device;
 	QMutex m_accessing_io_device_mutex;
