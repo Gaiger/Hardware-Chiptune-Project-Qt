@@ -21,7 +21,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(QWidget *parent) :
 		p_layout->setSpacing(0);
 	}
 
-	QObject::startTimer(50);
+	QObject::startTimer(100);
 	m_p_song_plain_text_edit->UpdateSongScores();
 }
 

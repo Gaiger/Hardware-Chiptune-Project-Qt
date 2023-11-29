@@ -1,4 +1,7 @@
 #include <QDebug>
+#include <QTextBlock>
+#include <QScrollBar>
+
 #include "SongPlainTextEdit.h"
 
 SongPlainTextEdit::SongPlainTextEdit(QWidget *parent)
@@ -13,7 +16,6 @@ SongPlainTextEdit::SongPlainTextEdit(QWidget *parent)
 	QObject::connect(this, &QPlainTextEdit::cursorPositionChanged,
 					 this, &SongPlainTextEdit::HandleCursorPositionChanged);
 }
-
 
 /**********************************************************************************/
 
@@ -189,31 +191,52 @@ void SongPlainTextEdit::UpdateSongScores(void)
 
 void SongPlainTextEdit::UpdateSongPlaying(void)
 {
-	//QPlainTextEdit::clear();
-	//UpdateSongScores();
 	int is_playsong, songpos;
 	get_song_playing(&is_playsong, &songpos);
+	songpos -= 1;
 
-	QList<QTextEdit::ExtraSelection> extraSelections;
-	if (!isReadOnly()) {
-		 QTextEdit::ExtraSelection selection;
+	do{
+		if(0 == songpos){
+			break;
+		}
 
-		 QColor lineColor = QColor(128, 128, 128);
+		QTextBlockFormat fmt;
+		fmt.setProperty(QTextFormat::FullWidthSelection, true);
+		fmt.setBackground( QPlainTextEdit::palette().base().color());
+		QTextCursor cursor(QPlainTextEdit::document());
+		cursor.setPosition(QPlainTextEdit::document()->findBlockByLineNumber(songpos - 1).position(), QTextCursor::MoveAnchor);
+		cursor.setBlockFormat(fmt);
+	}while(0);
 
-		 selection.format.setBackground(lineColor);
-		 selection.format.setProperty(QTextFormat::FullWidthSelection, true);
-#if(0)
-		 QPlainTextEdit
-		 QTextCursor playing_text_cursor();
-		 playing_text_cursor.set
+	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(songpos);
 
-		 selection.cursor //= SongPlainTextEdit::textCursor();
-#endif
-		 selection.cursor.clearSelection();
+	do{
+		QTextBlockFormat fmt;
+		fmt.setProperty(QTextFormat::FullWidthSelection, true);
+		fmt.setBackground(QPlainTextEdit::palette().base().color().lighter(150));
 
-		 extraSelections.append(selection);
-	 }
+		QTextCursor current_song_textcursor(QPlainTextEdit::document());
+		current_song_textcursor.setPosition(current_song_textblock.position(), QTextCursor::MoveAnchor);
+		current_song_textcursor.setBlockFormat(fmt);
+	}while(0);
 
-	 setExtraSelections(extraSelections);
+	do
+	{
+		QRect viewport_geometry = QPlainTextEdit::viewport()->geometry();
+		QRectF next_line_rect = QPlainTextEdit::blockBoundingGeometry(
+					QPlainTextEdit::document()->findBlockByLineNumber(songpos + 1));
+
+		if(viewport_geometry.topLeft().y() < next_line_rect.topLeft().y()
+				&& viewport_geometry.bottomRight().y() > next_line_rect.bottomRight().y()){
+			break;
+		}
+
+		int scrolling_value = current_song_textblock.firstLineNumber() - 2;
+		if(songpos + 1 == QPlainTextEdit::document()->blockCount()){
+			scrolling_value = QPlainTextEdit::verticalScrollBar()->maximum();
+		}
+
+		QPlainTextEdit::verticalScrollBar()->setValue(scrolling_value);
+	}while(0);
 
 }
