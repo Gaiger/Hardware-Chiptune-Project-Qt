@@ -8,7 +8,7 @@
 TrackPlainTextEdit::TrackPlainTextEdit(QWidget *parent)
 	:  QPlainTextEdit(parent)
 {
-
+	QWidget::setFont(parent->font());
 }
 
 /**********************************************************************************/
@@ -29,7 +29,6 @@ bool is_track_playing(int *p_playing_track_index);
 
 void TrackPlainTextEdit::UpdateTrack(void)
 {
-
 	struct track *p_track;
 	int track_number;
 	int track_length;

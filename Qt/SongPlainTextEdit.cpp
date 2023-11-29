@@ -12,10 +12,7 @@ SongPlainTextEdit::SongPlainTextEdit(QWidget *parent)
 	: QPlainTextEdit(parent),
 	  m_previous_textcuror_position(0)
 {
-	QFont font("Monospace");
-	font.setStyleHint(QFont::TypeWriter);
-	QWidget::setFont(font);
-
+	QWidget::setFont(parent->font());
 	QPlainTextEdit::setCursorWidth(10);
 	QObject::connect(this, &QPlainTextEdit::cursorPositionChanged,
 					 this, &SongPlainTextEdit::HandleCursorPositionChanged);

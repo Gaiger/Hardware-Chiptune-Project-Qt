@@ -19,7 +19,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(QWidget *parent) :
 {
 	ui->setupUi(this);
 
-	QFont font("Courier");
+	QFont font("Monospace");
 	font.setStyleHint(QFont::TypeWriter);
 	QWidget::setFont(font);
 
