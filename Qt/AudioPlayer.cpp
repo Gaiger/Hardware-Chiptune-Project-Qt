@@ -103,7 +103,7 @@ void AudioPlayer::PlaySong(int start_song_index)
 void AudioPlayer::PlayTrack(int track_index)
 {
 	m_p_tune_manager->SetGeneratingWave(TuneManager::TRACK, track_index);
-	AudioPlayer::Play(30);
+	AudioPlayer::Play(40);
 }
 /**********************************************************************************/
 
