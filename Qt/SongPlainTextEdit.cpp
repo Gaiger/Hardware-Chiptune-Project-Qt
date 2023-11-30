@@ -183,6 +183,10 @@ void SongPlainTextEdit::UpdateSongs(void)
 
 void SongPlainTextEdit::HandlePlayingSongStateChanged(bool is_playing, int playing_song_index)
 {
+	if(false == is_playing){
+		return ;
+	}
+
 	do{
 		QTextBlockFormat fmt;
 		fmt.setProperty(QTextFormat::FullWidthSelection, true);
@@ -197,10 +201,6 @@ void SongPlainTextEdit::HandlePlayingSongStateChanged(bool is_playing, int playi
 			cursor.setBlockFormat(fmt);
 		}
 	}while(0);
-
-	if(false == is_playing){
-		return ;
-	}
 
 	if( 0 > playing_song_index || playing_song_index > QPlainTextEdit::document()->blockCount() - 1){
 		return ;

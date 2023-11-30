@@ -123,7 +123,7 @@ color: rgb(208, 208, 208);
     <string>▷</string>
    </property>
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QLabel" name="PlayingTrackIndexLabel">
@@ -197,7 +197,7 @@ color: rgb(208, 208, 208);
     <string>▷</string>
    </property>
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </widget>
  </widget>
