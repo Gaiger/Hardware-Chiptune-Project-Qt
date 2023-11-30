@@ -86,13 +86,13 @@ void AudioPlayer::Clean(void)
 
 void AudioPlayer::PlaySong(int start_song_index)
 {
-	m_p_wave_generator->SetStartPlaySong(start_song_index);
+	m_p_wave_generator->SetGeneratingWave(TuneManager::SONG, start_song_index);
 	AudioPlayer::Play();
 }
 
 void AudioPlayer::PlayTrack(int track_index)
 {
-	m_p_wave_generator->SetPlayTrack(track_index);
+	m_p_wave_generator->SetGeneratingWave(TuneManager::TRACK, track_index);
 	AudioPlayer::Play();
 }
 /**********************************************************************************/

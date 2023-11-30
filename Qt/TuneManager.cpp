@@ -27,7 +27,7 @@ public:
 		m_wave_bytearray += generate_bytearray;
 	}
 
-	void Stop(void)
+	void StopGeneratingAndCleaningWave(void)
 	{
 		silence();
 		m_wave_bytearray.clear();
@@ -218,28 +218,28 @@ QByteArray TuneManager::FetchData(int const size)
 
 /**********************************************************************************/
 
-void TuneManager::SetStartPlaySong(int start_song_index)
+void TuneManager::SetGeneratingWave(int tune_type, int index)
 {
 	QMutexLocker locker(&m_mutex);
-	m_p_private->Stop();
-	startplaysong(start_song_index);
+
+	m_p_private->StopGeneratingAndCleaningWave();
+	do
+	{
+		if(TRACK == tune_type){
+			startplaytrack(index);
+			break;
+		}
+
+		startplaysong(index);
+	}while(0);
 }
 
 /**********************************************************************************/
 
-void TuneManager::SetPlayTrack(int track_index)
+void TuneManager::StopGeneratingWave()
 {
 	QMutexLocker locker(&m_mutex);
-	m_p_private->Stop();
-	startplaytrack(track_index);
-}
-
-/**********************************************************************************/
-
-void TuneManager::Stop()
-{
-	QMutexLocker locker(&m_mutex);
-	m_p_private->Stop();
+	m_p_private->StopGeneratingAndCleaningWave();
 }
 
 /**********************************************************************************/

@@ -17,9 +17,14 @@ public:
 	~TuneManager() Q_DECL_OVERRIDE;
 
 	void LoadFile(QString filename);
-	void SetStartPlaySong(int start_song_index);
-	void SetPlayTrack(int track_index);
-	void Stop();
+
+	enum TUNE_TYPE
+	{
+		SONG,
+		TRACK,
+	};Q_ENUM(TUNE_TYPE)
+	void SetGeneratingWave(int tune_type, int index);
+	void StopGeneratingWave();
 public:
 	QByteArray FetchData(int const size);
 
