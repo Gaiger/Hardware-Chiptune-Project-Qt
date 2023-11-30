@@ -89,12 +89,12 @@ void TrackPlainTextEdit::UpdateShowedTrack(int i)
 
 /**********************************************************************************/
 
-void TrackPlainTextEdit::UpdateTrackPlaying(void)
+void TrackPlainTextEdit::HandlePlayingTrackStateChanged(bool is_playing, int playing_track_index, int playing_line_index)
 {
-	int playing_track_index, playing_line_index;
-	if(false == is_track_playing(&playing_track_index, &playing_line_index)){
+	if(false == is_playing){
 		return ;
 	}
+
 	if(playing_track_index != m_current_shown_track_index){
 		return ;
 	}
@@ -114,8 +114,6 @@ void TrackPlainTextEdit::UpdateTrackPlaying(void)
 		}
 	}while(0);
 
-
-	playing_line_index -= 1;
 	if( 0 > playing_line_index || playing_line_index > QPlainTextEdit::document()->blockCount() - 1){
 		return ;
 	}
@@ -150,5 +148,6 @@ void TrackPlainTextEdit::UpdateTrackPlaying(void)
 
 		QPlainTextEdit::verticalScrollBar()->setValue(scrolling_value);
 	}while(0);
-
 }
+
+/**********************************************************************************/

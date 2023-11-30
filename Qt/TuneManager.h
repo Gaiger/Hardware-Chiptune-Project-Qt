@@ -33,8 +33,9 @@ public:
 	void PlayingSongStateChanged(bool is_playing, int playing_song_index);
 	void PlayingTrackStateChanged(bool is_playing, int playing_track_index, int playing_line_index);
 
-private :
-	void timerEvent(QTimerEvent *p_event) Q_DECL_OVERRIDE;
+private slots:
+	void InquirePlayingState(void);
+
 private:
 	signals:
 	void GenerateWaveDataRequested(void);

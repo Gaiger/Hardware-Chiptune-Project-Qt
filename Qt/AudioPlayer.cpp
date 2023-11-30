@@ -40,15 +40,15 @@ private:
 
 /**********************************************************************************/
 
-AudioPlayer::AudioPlayer(TuneManager *p_wave_generator, QObject *parent)
+AudioPlayer::AudioPlayer(QObject *parent)
 	: QObject(parent),
 	m_p_audio_output(nullptr),
 	m_p_audio_io_device(nullptr)
 {
-	m_p_wave_generator = p_wave_generator;
+	m_p_tune_manager = new TuneManager();
 
-	m_p_wave_generator->moveToThread(&m_wave_generator_working_thread);
-	m_wave_generator_working_thread.start(QThread::HighPriority);
+	m_p_tune_manager->moveToThread(&m_tune_manager_working_thread);
+	m_tune_manager_working_thread.start(QThread::HighPriority);
 }
 
 /**********************************************************************************/
@@ -57,14 +57,15 @@ AudioPlayer::~AudioPlayer(void)
 {
 	AudioPlayer::Stop();
 	AudioPlayer::Clean();
-	m_wave_generator_working_thread.quit();
+	m_tune_manager_working_thread.quit();
 	do
 	{
-		if(false == m_wave_generator_working_thread.isRunning()){
+		if(false == m_tune_manager_working_thread.isRunning()){
 			break;
 		}
 	}while(1);
-	m_p_wave_generator = nullptr;
+	delete m_p_tune_manager;
+	m_p_tune_manager = nullptr;
 }
 
 /**********************************************************************************/
@@ -72,6 +73,8 @@ AudioPlayer::~AudioPlayer(void)
 void AudioPlayer::Clean(void)
 {
 	if(nullptr != m_p_audio_output){
+		m_p_audio_output->stop();
+		m_p_audio_output->reset();
 		delete m_p_audio_output;
 	}
 	m_p_audio_output = nullptr;
@@ -84,20 +87,28 @@ void AudioPlayer::Clean(void)
 
 /**********************************************************************************/
 
+void AudioPlayer::LoadFile(QString filename)
+{
+	m_p_tune_manager->LoadFile(filename);
+}
+
+/**********************************************************************************/
+
 void AudioPlayer::PlaySong(int start_song_index)
 {
-	m_p_wave_generator->SetGeneratingWave(TuneManager::SONG, start_song_index);
-	AudioPlayer::Play();
+	m_p_tune_manager->SetGeneratingWave(TuneManager::SONG, start_song_index);
+	AudioPlayer::Play(200);
 }
 
 void AudioPlayer::PlayTrack(int track_index)
 {
-	m_p_wave_generator->SetGeneratingWave(TuneManager::TRACK, track_index);
-	AudioPlayer::Play();
+	m_p_tune_manager->SetGeneratingWave(TuneManager::TRACK, track_index);
+	AudioPlayer::Play(50);
 }
 /**********************************************************************************/
 
-void AudioPlayer::Play(int const sampling_rate, int const sampling_size, int const channel_counts)
+void AudioPlayer::Play(int filling_buffer_time_interval,
+					   int const sampling_rate, int const sampling_size, int const channel_counts)
 {
 	QAudioFormat format;
 	format.setSampleRate(sampling_rate);
@@ -127,21 +138,23 @@ void AudioPlayer::Play(int const sampling_rate, int const sampling_size, int con
 	qDebug() << info.deviceName();
 	qDebug() << format;
 
-	m_p_audio_output = new QAudioOutput(info, format);
-	QObject::connect(m_p_audio_output, &QAudioOutput::notify, this, &AudioPlayer::HandleAudioNotify);
-	QObject::connect(m_p_audio_output, &QAudioOutput::stateChanged, this, &AudioPlayer::HandleAudioStateChanged);
-	m_p_audio_output->setVolume(0.40);
+	if(nullptr == m_p_audio_output)
+	{
+		m_p_audio_output = new QAudioOutput(info, format);
+		QObject::connect(m_p_audio_output, &QAudioOutput::notify, this, &AudioPlayer::HandleAudioNotify);
+		QObject::connect(m_p_audio_output, &QAudioOutput::stateChanged, this, &AudioPlayer::HandleAudioStateChanged);
+		m_p_audio_output->setVolume(0.40);
+	}
+	int audio_buffer_size = 2 * filling_buffer_time_interval * format.sampleRate() * format.channelCount() * format.sampleSize()/8/1000;
 
-	int notify_interval = 100;
-	int audio_buffer_size = 2 * notify_interval * format.sampleRate() * format.channelCount() * format.sampleSize()/8/1000;
-	m_p_audio_output->setNotifyInterval(notify_interval);
+	m_p_audio_output->setNotifyInterval(filling_buffer_time_interval);
 
 	m_p_audio_output->setBufferSize(audio_buffer_size);
 	qDebug() <<" m_p_audio_output->bufferSize() = " << m_p_audio_output->bufferSize();
 
 	m_p_audio_io_device = new AudioIODevice();
 	m_p_audio_io_device->open(QIODevice::ReadWrite);
-	AudioPlayer::AppendAudioData(m_p_wave_generator->FetchData(audio_buffer_size));
+	AudioPlayer::AppendAudioData(m_p_tune_manager->FetchData(audio_buffer_size));
 	m_p_audio_output->start(m_p_audio_io_device);
 }
 
@@ -161,6 +174,7 @@ void AudioPlayer::AppendAudioData(QByteArray data_bytearray)
 void AudioPlayer::Stop(void)
 {
 	QMutexLocker lock(&m_accessing_io_device_mutex);
+	m_p_tune_manager->StopGeneratingWave();
 	if(nullptr != m_p_audio_output){
 		m_p_audio_output->stop();
 	}
@@ -169,9 +183,19 @@ void AudioPlayer::Stop(void)
 
 /**********************************************************************************/
 
+TuneManager * const AudioPlayer::GetTuneManager(void)
+{
+	return m_p_tune_manager;
+}
+
+/**********************************************************************************/
+#include <QElapsedTimer>
+
+QElapsedTimer s_elapsed_timer;
+
 void AudioPlayer::HandleAudioNotify(void)
 {
-
+	qDebug() << "s_elapsed_timer = " << s_elapsed_timer.restart();
 	//qDebug() << Q_FUNC_INFO  << "elapsed " <<
 	//			m_p_audio_output->elapsedUSecs()/1000.0/1000.0
 	//		 << "seconds";
@@ -182,7 +206,7 @@ void AudioPlayer::HandleAudioNotify(void)
 	}
 
 	QByteArray append_bytearray
-			= m_p_wave_generator->FetchData(remain_audio_buffer_size);
+			= m_p_tune_manager->FetchData(remain_audio_buffer_size);
 	AudioPlayer::AppendAudioData(append_bytearray);
 }
 

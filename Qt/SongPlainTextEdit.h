@@ -12,6 +12,8 @@ public:
 	void UpdateSongs(void);
 	void UpdateSongPlaying(void);
 
+public slots:
+	void HandlePlayingSongStateChanged(bool is_playing, int playing_song_index);
 private slots:
 	void HandleCursorPositionChanged(void);
 

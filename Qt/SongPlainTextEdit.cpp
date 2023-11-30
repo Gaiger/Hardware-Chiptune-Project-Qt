@@ -144,7 +144,6 @@ struct songline {
 extern "C"
 {
 void get_songlines(void** pp_songlines, int *p_song_length);
-bool is_song_playing(int *p_playing_song_index);
 }
 
 void SongPlainTextEdit::UpdateSongs(void)
@@ -179,9 +178,10 @@ void SongPlainTextEdit::UpdateSongs(void)
 	QPlainTextEdit::moveCursor(QTextCursor::Start);
 }
 
+
 /**********************************************************************************/
 
-void SongPlainTextEdit::UpdateSongPlaying(void)
+void SongPlainTextEdit::HandlePlayingSongStateChanged(bool is_playing, int playing_song_index)
 {
 	do{
 		QTextBlockFormat fmt;
@@ -198,17 +198,15 @@ void SongPlainTextEdit::UpdateSongPlaying(void)
 		}
 	}while(0);
 
-	int playing_index;
-	if(false == is_song_playing(&playing_index)){
+	if(false == is_playing){
 		return ;
 	}
 
-	playing_index -= 1;
-	if( 0 > playing_index || playing_index > QPlainTextEdit::document()->blockCount() - 1){
+	if( 0 > playing_song_index || playing_song_index > QPlainTextEdit::document()->blockCount() - 1){
 		return ;
 	}
 
-	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(playing_index);
+	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(playing_song_index);
 
 	do{
 		QTextBlockFormat fmt;
@@ -224,7 +222,7 @@ void SongPlainTextEdit::UpdateSongPlaying(void)
 	{
 		QRect viewport_geometry = QPlainTextEdit::viewport()->geometry();
 		QRectF next_line_rect = QPlainTextEdit::blockBoundingGeometry(
-					QPlainTextEdit::document()->findBlockByLineNumber(playing_index + 1));
+					QPlainTextEdit::document()->findBlockByLineNumber(playing_song_index + 1));
 
 		if(viewport_geometry.topLeft().y() < next_line_rect.topLeft().y()
 				&& viewport_geometry.bottomRight().y() > next_line_rect.bottomRight().y()){
@@ -232,11 +230,10 @@ void SongPlainTextEdit::UpdateSongPlaying(void)
 		}
 
 		int scrolling_value = current_song_textblock.firstLineNumber() - 2;
-		if(playing_index + 1 == QPlainTextEdit::document()->blockCount()){
+		if(playing_song_index + 1 == QPlainTextEdit::document()->blockCount()){
 			scrolling_value = QPlainTextEdit::verticalScrollBar()->maximum();
 		}
 
 		QPlainTextEdit::verticalScrollBar()->setValue(scrolling_value);
 	}while(0);
-
 }

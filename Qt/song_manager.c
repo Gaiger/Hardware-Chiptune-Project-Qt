@@ -275,13 +275,13 @@ void get_songlines(void** pp_songlines, int *p_song_length)
 	return;
 }
 
-bool is_song_playing(int *p_playing_song_index)
+bool is_song_playing(int *p_processing_song_index)
 {
 	if(0 == playsong){
 		return false;
 	}
 
-	*p_playing_song_index = songpos;
+	*p_processing_song_index = songpos;
 	return true;
 }
 

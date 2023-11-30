@@ -1,5 +1,5 @@
 #include <QThread>
-#include <QTimerEvent>
+#include <QTimer>
 
 #include <QDebug>
 
@@ -37,7 +37,7 @@ public:
 	QByteArray m_wave_bytearray;
 	int m_generate_data_length;
 
-	int m_inquiring_playing_status_timer_id;
+	QTimer m_inquiring_playing_state_timer;
 
 	bool m_is_playing_song;
 	int m_playing_song_index;
@@ -57,7 +57,6 @@ TuneManager::TuneManager(QObject *parent)
 	m_p_private = new TuneManagerPrivate();
 	m_p_private->m_wave_bytearray = QByteArray();
 	m_p_private->m_generate_data_length = 0;
-	m_p_private->m_inquiring_playing_status_timer_id = -1;
 
 	m_p_private->m_is_playing_song = false;
 	m_p_private->m_playing_song_index = -1;
@@ -65,6 +64,9 @@ TuneManager::TuneManager(QObject *parent)
 	m_p_private->m_is_playing_track = false;
 	m_p_private->m_playing_track_index = -1;
 	m_p_private->m_playing_line_index = -1;
+	QObject::connect(&m_p_private->m_inquiring_playing_state_timer, &QTimer::timeout,
+					this, &TuneManager::InquirePlayingState);
+	m_p_private->m_inquiring_playing_state_timer.setInterval(50);
 }
 
 /**********************************************************************************/
@@ -87,75 +89,57 @@ TuneManager::~TuneManager(void)
 
 void TuneManager::LoadFile(QString filename)
 {
-	if(-1 != m_p_private->m_inquiring_playing_status_timer_id){
-		QObject::killTimer(m_p_private->m_inquiring_playing_status_timer_id);
-		m_p_private->m_inquiring_playing_status_timer_id = -1;
-	}
+	QMutexLocker locker(&m_mutex);
 
+	m_p_private->m_inquiring_playing_state_timer.stop();
 	loadfile(filename.toLatin1().data());
-	m_p_private->m_inquiring_playing_status_timer_id = QObject::startTimer(50);
+	m_p_private->m_inquiring_playing_state_timer.start();
 }
 
 /**********************************************************************************/
 
-void TuneManager::timerEvent(QTimerEvent *p_event)
+void TuneManager::InquirePlayingState(void)
 {
+	do
+	{
+		int playing_song_index;
+		bool is_playing_song = is_song_playing(&playing_song_index);
+		playing_song_index -= 1;
+		if(m_p_private->m_playing_song_index == playing_song_index){
+			break;
+		}
 
-	if(p_event->timerId() == m_p_private->m_inquiring_playing_status_timer_id){
-		do
-		{
-			int playing_song_index;
-			bool is_playing_song = is_song_playing(&playing_song_index);
+		if(false == is_playing_song){
+			playing_song_index = -1;
+		}
+		emit PlayingSongStateChanged(is_playing_song, playing_song_index);
 
-			if(m_p_private->m_playing_song_index == playing_song_index){
+		m_p_private->m_is_playing_song = is_playing_song;
+		m_p_private->m_playing_song_index = playing_song_index;
+	}while(0);
+
+	do
+	{
+		int playing_track_index, playing_line_index;
+
+		bool is_playing_track = is_track_playing(&playing_track_index, &playing_line_index);
+		if(m_p_private->m_playing_track_index == playing_track_index){
+			if(m_p_private->m_playing_line_index == playing_line_index){
 				break;
 			}
+		}
 
-			if(m_p_private->m_is_playing_song == is_playing_song){
-				break;
-			}
+		if(false == is_playing_track){
+			playing_track_index = -1;
+			playing_line_index = -1;
+		}
 
-			if(false == is_playing_song){
-				playing_song_index = -1;
-			}
-			emit PlayingSongStateChanged(is_playing_song, playing_song_index);
+		emit PlayingTrackStateChanged(is_playing_track, playing_track_index, playing_line_index);
 
-			m_p_private->m_is_playing_song = is_playing_song;
-			m_p_private->m_playing_song_index = playing_song_index;
-		}while(0);
-
-
-		do
-		{
-			int playing_track_index, playing_line_index;
-
-			bool is_playing_track = is_track_playing(&playing_track_index, &playing_line_index);
-
-			if(m_p_private->m_playing_track_index == playing_track_index){
-				if(m_p_private->m_playing_line_index ==playing_line_index){
-					break;
-				}
-			}
-
-			if(m_p_private->m_is_playing_track == is_playing_track){
-				break;
-			}
-
-			if(false == is_playing_track){
-				playing_track_index = -1;
-				playing_line_index = -1;
-			}
-
-			emit PlayingTrackStateChanged(is_playing_track, playing_track_index, playing_line_index);
-
-			m_p_private->m_is_playing_track = is_playing_track;
-			m_p_private->m_playing_track_index = playing_track_index;
-			m_p_private->m_playing_line_index = playing_line_index;
-		}while(0);
-	}
-
-
-	QObject::timerEvent(p_event);
+		m_p_private->m_is_playing_track = is_playing_track;
+		m_p_private->m_playing_track_index = playing_track_index;
+		m_p_private->m_playing_line_index = playing_line_index;
+	}while(0);
 
 }
 
@@ -199,7 +183,6 @@ void TuneManager::GenerateWaveData(bool is_synchronized)
 QByteArray TuneManager::FetchData(int const size)
 {
 	QMutexLocker locker(&m_mutex);
-
 	if(size > m_p_private->m_generate_data_length){
 		m_p_private->m_generate_data_length = size;
 	}

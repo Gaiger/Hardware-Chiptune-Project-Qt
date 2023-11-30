@@ -27,25 +27,32 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	ui->SongIndexSpinBox->setFont(font);
 
 	do{
-		m_p_song_plaintextedit = new SongPlainTextEdit(this);
-		ReplaceWidget(m_p_song_plaintextedit, ui->SongWidget);
+		m_p_song_plain_textedit = new SongPlainTextEdit(this);
+		ReplaceWidget(m_p_song_plain_textedit, ui->SongWidget);
 	}while(0);
 
 	do{
-		m_p_track_plaintextedit = new TrackPlainTextEdit(this);
-		ReplaceWidget(m_p_track_plaintextedit, ui->TrackWidget);
+		m_p_track_plain_textedit = new TrackPlainTextEdit(this);
+		ReplaceWidget(m_p_track_plain_textedit, ui->TrackWidget);
 	}while(0);
 
-	QObject::startTimer(50);
-	m_p_song_plaintextedit->UpdateSongs();
-	m_p_track_plaintextedit->UpdateTrack();
+	//QObject::startTimer(50);
+	m_p_song_plain_textedit->UpdateSongs();
+	m_p_track_plain_textedit->UpdateTrack();
+
+
+	QObject::connect(p_player->GetTuneManager(), &TuneManager::PlayingSongStateChanged,
+					 m_p_song_plain_textedit, &SongPlainTextEdit::HandlePlayingSongStateChanged);
+
+	QObject::connect(p_player->GetTuneManager(), &TuneManager::PlayingTrackStateChanged,
+					 m_p_track_plain_textedit, &TrackPlainTextEdit::HandlePlayingTrackStateChanged);
 }
 
 /**********************************************************************************/
 
 HardwareChiptunePanelWidget::~HardwareChiptunePanelWidget()
 {
-	delete m_p_song_plaintextedit;
+	delete m_p_song_plain_textedit;
 	delete ui;
 }
 
@@ -53,8 +60,6 @@ HardwareChiptunePanelWidget::~HardwareChiptunePanelWidget()
 
 void HardwareChiptunePanelWidget::timerEvent(QTimerEvent *p_event)
 {
-	m_p_song_plaintextedit->UpdateSongPlaying();
-	m_p_track_plaintextedit->UpdateTrackPlaying();
 	QWidget::timerEvent(p_event);
 }
 
@@ -76,7 +81,7 @@ void HardwareChiptunePanelWidget::on_PlaySongPushButton_clicked(bool is_checked)
 
 void HardwareChiptunePanelWidget::on_TrackIndexSpinBox_valueChanged(int i)
 {
-	m_p_track_plaintextedit->UpdateShowedTrack(i);
+	m_p_track_plain_textedit->UpdateShowedTrack(i);
 }
 
 /**********************************************************************************/
