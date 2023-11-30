@@ -27,10 +27,23 @@ public:
 		m_wave_bytearray += generate_bytearray;
 	}
 
-	void StopGeneratingAndCleaningWave(void)
+	void Clean(void)
+	{
+		m_generate_data_length = 0;
+
+		m_is_playing_song = false;
+		m_playing_song_index = -1;
+
+		m_is_playing_track = false;
+		m_playing_track_index = -1;
+		m_playing_line_index = -1;
+		m_wave_bytearray.clear();
+	}
+
+	void StopGeneratingWave(void)
 	{
 		silence();
-		m_wave_bytearray.clear();
+		Clean();
 	}
 
 public:
@@ -55,18 +68,10 @@ TuneManager::TuneManager(QObject *parent)
 	m_p_private(nullptr)
 {
 	m_p_private = new TuneManagerPrivate();
-	m_p_private->m_wave_bytearray = QByteArray();
-	m_p_private->m_generate_data_length = 0;
-
-	m_p_private->m_is_playing_song = false;
-	m_p_private->m_playing_song_index = -1;
-
-	m_p_private->m_is_playing_track = false;
-	m_p_private->m_playing_track_index = -1;
-	m_p_private->m_playing_line_index = -1;
+	m_p_private->Clean();
 	QObject::connect(&m_p_private->m_inquiring_playing_state_timer, &QTimer::timeout,
 					this, &TuneManager::InquirePlayingState);
-	m_p_private->m_inquiring_playing_state_timer.setInterval(50);
+	m_p_private->m_inquiring_playing_state_timer.setInterval(25);
 }
 
 /**********************************************************************************/
@@ -112,8 +117,8 @@ void TuneManager::InquirePlayingState(void)
 		if(false == is_playing_song){
 			playing_song_index = -1;
 		}
-		emit PlayingSongStateChanged(is_playing_song, playing_song_index);
 
+		emit PlayingSongStateChanged(is_playing_song, playing_song_index);
 		m_p_private->m_is_playing_song = is_playing_song;
 		m_p_private->m_playing_song_index = playing_song_index;
 	}while(0);
@@ -133,9 +138,8 @@ void TuneManager::InquirePlayingState(void)
 			playing_track_index = -1;
 			playing_line_index = -1;
 		}
-
+		//qDebug() << playing_line_index;
 		emit PlayingTrackStateChanged(is_playing_track, playing_track_index, playing_line_index);
-
 		m_p_private->m_is_playing_track = is_playing_track;
 		m_p_private->m_playing_track_index = playing_track_index;
 		m_p_private->m_playing_line_index = playing_line_index;
@@ -186,6 +190,7 @@ QByteArray TuneManager::FetchData(int const size)
 	if(size > m_p_private->m_generate_data_length){
 		m_p_private->m_generate_data_length = size;
 	}
+
 	if(m_p_private->m_wave_bytearray.mid(0, size).size() < size){
 			GenerateWaveData(true);
 	}
@@ -205,7 +210,7 @@ void TuneManager::SetGeneratingWave(int tune_type, int index)
 {
 	QMutexLocker locker(&m_mutex);
 
-	m_p_private->StopGeneratingAndCleaningWave();
+	m_p_private->StopGeneratingWave();
 	do
 	{
 		if(TRACK == tune_type){
@@ -222,7 +227,7 @@ void TuneManager::SetGeneratingWave(int tune_type, int index)
 void TuneManager::StopGeneratingWave()
 {
 	QMutexLocker locker(&m_mutex);
-	m_p_private->StopGeneratingAndCleaningWave();
+	m_p_private->StopGeneratingWave();
 }
 
 /**********************************************************************************/

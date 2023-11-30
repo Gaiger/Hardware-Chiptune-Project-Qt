@@ -97,13 +97,13 @@ void AudioPlayer::LoadFile(QString filename)
 void AudioPlayer::PlaySong(int start_song_index)
 {
 	m_p_tune_manager->SetGeneratingWave(TuneManager::SONG, start_song_index);
-	AudioPlayer::Play(200);
+	AudioPlayer::Play(100);
 }
 
 void AudioPlayer::PlayTrack(int track_index)
 {
 	m_p_tune_manager->SetGeneratingWave(TuneManager::TRACK, track_index);
-	AudioPlayer::Play(50);
+	AudioPlayer::Play(30);
 }
 /**********************************************************************************/
 
@@ -145,7 +145,8 @@ void AudioPlayer::Play(int filling_buffer_time_interval,
 		QObject::connect(m_p_audio_output, &QAudioOutput::stateChanged, this, &AudioPlayer::HandleAudioStateChanged);
 		m_p_audio_output->setVolume(0.40);
 	}
-	int audio_buffer_size = 2 * filling_buffer_time_interval * format.sampleRate() * format.channelCount() * format.sampleSize()/8/1000;
+	int audio_buffer_size = 2 * filling_buffer_time_interval
+			* format.sampleRate() * format.channelCount() * format.sampleSize()/8/1000;
 
 	m_p_audio_output->setNotifyInterval(filling_buffer_time_interval);
 
@@ -189,13 +190,9 @@ TuneManager * const AudioPlayer::GetTuneManager(void)
 }
 
 /**********************************************************************************/
-#include <QElapsedTimer>
-
-QElapsedTimer s_elapsed_timer;
 
 void AudioPlayer::HandleAudioNotify(void)
 {
-	qDebug() << "s_elapsed_timer = " << s_elapsed_timer.restart();
 	//qDebug() << Q_FUNC_INFO  << "elapsed " <<
 	//			m_p_audio_output->elapsedUSecs()/1000.0/1000.0
 	//		 << "seconds";
