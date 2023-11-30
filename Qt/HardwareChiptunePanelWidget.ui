@@ -117,6 +117,8 @@ color: rgb(208, 208, 208);
    <property name="font">
     <font>
      <pointsize>20</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
     </font>
    </property>
    <property name="text">
@@ -191,6 +193,8 @@ color: rgb(208, 208, 208);
    <property name="font">
     <font>
      <pointsize>20</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
     </font>
    </property>
    <property name="text">
