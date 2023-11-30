@@ -318,13 +318,35 @@ void get_tracks(struct track ** pp_track, int *p_track_number, int *p_track_leng
 	*p_track_length = tracklen;
 }
 
+struct channel {
+	u8	tnum;
+	s8	transp;
+	u8	tnote;
+	u8	lastinstr;
+	u8	inum;
+	u8	iptr;
+	u8	iwait;
+	u8	inote;
+	s8	bendd;
+	s16	bend;
+	s8	volumed;
+	s16	dutyd;
+	u8	vdepth;
+	u8	vrate;
+	u8	vpos;
+	s16	inertia;
+	u16	slur;
+} ;
+
+extern struct channel channel[4];
+
 bool is_track_playing(int *p_playing_track_index, int *p_playing_line_index)
 {
 	if(0 == playtrack){
 		return false;
 	}
 
-	*p_playing_track_index = currtrack;
+	*p_playing_track_index = channel[0].tnum;
 	*p_playing_line_index = trackpos;
 	return true;
 }

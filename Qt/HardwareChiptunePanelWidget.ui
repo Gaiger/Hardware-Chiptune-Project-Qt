@@ -24,15 +24,22 @@ background-color: rgb(48, 48, 48);
 color: rgb(208, 208, 208);
 }
 
+
 QWidget:disabled {
 background-color:  rgb(80, 80, 80) ;
 color: rgb(184, 184, 184);
 }
 
+QPushButton{
+  background-color: rgb(64, 64, 64); 
+ color: rgb(128, 128, 128);
+}
+
 QPushButton:checked{
   background-color: rgb(32, 32, 32); 
  color: rgb(128, 128, 128);
-}</string>
+}
+</string>
   </property>
   <widget class="QWidget" name="SongWidget" native="true">
    <property name="geometry">
@@ -54,7 +61,7 @@ color: rgb(208, 208, 208);
    <property name="geometry">
     <rect>
      <x>460</x>
-     <y>64</y>
+     <y>80</y>
      <width>232</width>
      <height>596</height>
     </rect>
@@ -69,18 +76,21 @@ color: rgb(208, 208, 208);
   <widget class="QSpinBox" name="TrackIndexSpinBox">
    <property name="geometry">
     <rect>
-     <x>631</x>
+     <x>480</x>
      <y>20</y>
-     <width>61</width>
-     <height>32</height>
+     <width>64</width>
+     <height>48</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>9</pointsize>
+     <pointsize>7</pointsize>
      <weight>50</weight>
      <bold>false</bold>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
    </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -93,6 +103,48 @@ color: rgb(208, 208, 208);
    </property>
    <property name="displayIntegerBase">
     <number>16</number>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="PlayTrackPushButton">
+   <property name="geometry">
+    <rect>
+     <x>566</x>
+     <y>18</y>
+     <width>52</width>
+     <height>52</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>20</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>▷</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="PlayingTrackIndexLabel">
+   <property name="geometry">
+    <rect>
+     <x>630</x>
+     <y>20</y>
+     <width>48</width>
+     <height>48</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>20</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
  </widget>

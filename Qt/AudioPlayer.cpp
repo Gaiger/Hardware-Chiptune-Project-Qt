@@ -161,7 +161,9 @@ void AudioPlayer::AppendAudioData(QByteArray data_bytearray)
 void AudioPlayer::Stop(void)
 {
 	QMutexLocker lock(&m_accessing_io_device_mutex);
-	m_p_audio_output->stop();
+	if(nullptr != m_p_audio_output){
+		m_p_audio_output->stop();
+	}
 	AudioPlayer::Clean();
 }
 

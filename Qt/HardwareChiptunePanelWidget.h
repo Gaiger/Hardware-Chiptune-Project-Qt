@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+#include "AudioPlayer.h"
+
 #include "SongPlainTextEdit.h"
 #include "TrackPlainTextEdit.h"
 
@@ -15,16 +17,19 @@ class HardwareChiptunePanelWidget : public QWidget
 	Q_OBJECT
 
 public:
-	explicit HardwareChiptunePanelWidget(QWidget *parent = nullptr);
+	explicit HardwareChiptunePanelWidget(AudioPlayer *p_player, QWidget *parent = nullptr);
 	~HardwareChiptunePanelWidget();
 private :
 	void timerEvent(QTimerEvent *p_event) Q_DECL_OVERRIDE;
 
 private slots:
 	void on_TrackIndexSpinBox_valueChanged(int i);
+	void on_PlayTrackPushButton_clicked(bool is_checked);
 private:
 	SongPlainTextEdit *m_p_song_plaintextedit;
 	TrackPlainTextEdit *m_p_track_plaintextedit;
+private:
+	AudioPlayer *m_p_player;
 private:
 	Ui::HardwareChiptunePanelWidget *ui;
 };

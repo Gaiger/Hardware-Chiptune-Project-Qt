@@ -73,10 +73,9 @@ int main(int argc, char *argv[])
 	WaveGenerator wave_generator("../test2.song");
 	AudioPlayer player(&wave_generator, &a);
 
-	HardwareChiptunePanelWidget hardware_chiptune_panel_widget;
+	HardwareChiptunePanelWidget hardware_chiptune_panel_widget(&player);
 	hardware_chiptune_panel_widget.show();
 	hardware_chiptune_panel_widget.setFocus();
-	//player.PlaySong(1);
-	player.PlayTrack(1);
+	//player.PlayTrack(1);
 	return a.exec();
 }
