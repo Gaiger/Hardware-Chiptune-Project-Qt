@@ -58,8 +58,6 @@ void HardwareChiptunePanelWidget::timerEvent(QTimerEvent *p_event)
 	QWidget::timerEvent(p_event);
 }
 
-
-
 /**********************************************************************************/
 
 void HardwareChiptunePanelWidget::on_PlaySongPushButton_clicked(bool is_checked)

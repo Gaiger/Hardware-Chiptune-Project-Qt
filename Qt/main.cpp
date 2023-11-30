@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include <QApplication>
-#include "WaveGenerator.h"
+#include "TuneManager.h"
 #include "AudioPlayer.h"
 
 #include "HardwareChiptunePanelWidget.h"
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
 
-	WaveGenerator wave_generator("../test2.song");
+	TuneManager wave_generator("../test2.song");
 	AudioPlayer player(&wave_generator, &a);
 
 	HardwareChiptunePanelWidget hardware_chiptune_panel_widget(&player);

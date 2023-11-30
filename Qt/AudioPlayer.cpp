@@ -40,7 +40,7 @@ private:
 
 /**********************************************************************************/
 
-AudioPlayer::AudioPlayer(WaveGenerator *p_wave_generator, QObject *parent)
+AudioPlayer::AudioPlayer(TuneManager *p_wave_generator, QObject *parent)
 	: QObject(parent),
 	m_p_audio_output(nullptr),
 	m_p_audio_io_device(nullptr)

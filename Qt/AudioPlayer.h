@@ -8,7 +8,7 @@
 #include <QIODevice>
 #include <QMutex>
 
-#include "WaveGenerator.h"
+#include "TuneManager.h"
 
 
 class AudioPlayer : public QObject
@@ -31,7 +31,7 @@ public:
 		CHANNEL_COUNTS_MAX		= 255,
 	}; Q_ENUM(CHANNEL_COUNTS)
 
-	AudioPlayer(WaveGenerator *p_wave_generator, QObject *parent = nullptr);
+	AudioPlayer(TuneManager *p_wave_generator, QObject *parent = nullptr);
 
 	~AudioPlayer()  Q_DECL_OVERRIDE;
 
@@ -51,7 +51,7 @@ private:
 	QAudioOutput * m_p_audio_output;
 	QIODevice *m_p_audio_io_device;
 	QMutex m_accessing_io_device_mutex;
-	WaveGenerator *m_p_wave_generator;
+	TuneManager *m_p_wave_generator;
 	QThread m_wave_generator_working_thread;
 };
 
