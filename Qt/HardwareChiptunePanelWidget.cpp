@@ -23,9 +23,8 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	QFont font("Monospace");
 	font.setStyleHint(QFont::TypeWriter);
 	font.setPixelSize(20);
-	//QWidget::setFont(font);
-
 	ui->TrackIndexSpinBox->setFont(font);
+	ui->SongIndexSpinBox->setFont(font);
 
 	do{
 		m_p_song_plaintextedit = new SongPlainTextEdit(this);
@@ -57,6 +56,22 @@ void HardwareChiptunePanelWidget::timerEvent(QTimerEvent *p_event)
 	m_p_song_plaintextedit->UpdateSongPlaying();
 	m_p_track_plaintextedit->UpdateTrackPlaying();
 	QWidget::timerEvent(p_event);
+}
+
+
+
+/**********************************************************************************/
+
+void HardwareChiptunePanelWidget::on_PlaySongPushButton_clicked(bool is_checked)
+{
+	do
+	{
+		if(true == is_checked){
+			m_p_player->PlaySong( ui->SongIndexSpinBox->value());
+			break;
+		}
+		m_p_player->Stop();
+	}while(0);
 }
 
 /**********************************************************************************/

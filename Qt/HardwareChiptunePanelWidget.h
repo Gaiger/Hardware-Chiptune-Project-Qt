@@ -23,6 +23,8 @@ private :
 	void timerEvent(QTimerEvent *p_event) Q_DECL_OVERRIDE;
 
 private slots:
+	void on_PlaySongPushButton_clicked(bool is_checked);
+
 	void on_TrackIndexSpinBox_valueChanged(int i);
 	void on_PlayTrackPushButton_clicked(bool is_checked);
 private:
