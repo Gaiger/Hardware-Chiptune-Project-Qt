@@ -25,8 +25,7 @@ public:
 	};Q_ENUM(TUNE_TYPE)
 	void SetGeneratingWave(int tune_type, int index);
 	void StopGeneratingWave();
-public:
-	QByteArray FetchData(int const size);
+	QByteArray FetchWave(int const length);
 
 public:
 	signals:
@@ -38,11 +37,11 @@ private slots:
 
 private:
 	signals:
-	void GenerateWaveDataRequested(void);
+	void GenerateWaveRequested(int length);
 private slots:
-	void HandleGenerateWaveDataRequested(void);
+	void HandleGenerateWaveRequested(int length);
 private:
-	void GenerateWaveData(bool is_synchronized = true);
+	void GenerateWave(int length, bool is_synchronized = true);
 
 private :
 	TuneManagerPrivate *m_p_private;

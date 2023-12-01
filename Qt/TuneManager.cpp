@@ -15,21 +15,21 @@ public:
 class TuneManagerPrivate
 {
 public:
-	void GenerateWaveData(void)
+	void GenerateWave(int const length)
 	{
-		QByteArray generate_bytearray;
-		int i;
-		for(i = 0; i < m_generate_data_length; i++) {
+		QByteArray generated_bytearray;
+		generated_bytearray.reserve(length);
+		for(int i = 0; i < length; i++) {
 			uint8_t value = interrupthandler();
-			generate_bytearray += value;
+			generated_bytearray += value;
 		}
 
-		m_wave_bytearray += generate_bytearray;
+		m_wave_bytearray += generated_bytearray;
 	}
 
 	void Clean(void)
 	{
-		m_generate_data_length = 0;
+		m_wave_prebuffer_length = 0;
 
 		m_is_playing_song = false;
 		m_playing_song_index = -1;
@@ -42,13 +42,31 @@ public:
 
 	void StopGeneratingWave(void)
 	{
+		m_inquiring_playing_state_timer.stop();
 		silence();
 		Clean();
 	}
 
+	void StartGeneratingWave(int tune_type, int index)
+	{
+		StopGeneratingWave();
+		do
+		{
+			if(TuneManager::TRACK == tune_type){
+				startplaytrack(index);
+				break;
+			}
+
+			startplaysong(index);
+		}while(0);
+
+		m_inquiring_playing_state_timer.setInterval(25);
+		m_inquiring_playing_state_timer.start();
+	}
+
 public:
 	QByteArray m_wave_bytearray;
-	int m_generate_data_length;
+	int m_wave_prebuffer_length;
 
 	QTimer m_inquiring_playing_state_timer;
 
@@ -71,7 +89,6 @@ TuneManager::TuneManager(QObject *parent)
 	m_p_private->Clean();
 	QObject::connect(&m_p_private->m_inquiring_playing_state_timer, &QTimer::timeout,
 					this, &TuneManager::InquirePlayingState);
-	m_p_private->m_inquiring_playing_state_timer.setInterval(25);
 }
 
 /**********************************************************************************/
@@ -88,17 +105,17 @@ TuneManager::TuneManager(QString filename, QObject *parent)
 
 TuneManager::~TuneManager(void)
 {
+	StopGeneratingWave();
 	delete m_p_private;
 	m_p_private = nullptr;
 }
 
+/**********************************************************************************/
+
 void TuneManager::LoadFile(QString filename)
 {
 	QMutexLocker locker(&m_mutex);
-
-	m_p_private->m_inquiring_playing_state_timer.stop();
 	loadfile(filename.toLatin1().data());
-	m_p_private->m_inquiring_playing_state_timer.start();
 }
 
 /**********************************************************************************/
@@ -149,21 +166,22 @@ void TuneManager::InquirePlayingState(void)
 
 /**********************************************************************************/
 
-void TuneManager::HandleGenerateWaveDataRequested(void)
+void TuneManager::HandleGenerateWaveRequested(int length)
 {
-	m_p_private->GenerateWaveData();
+	m_p_private->GenerateWave(length);
 }
 
 /**********************************************************************************/
 
-void TuneManager::GenerateWaveData(bool is_synchronized)
+void TuneManager::GenerateWave(int length, bool is_synchronized)
 {
-	QObject::disconnect(this, &TuneManager::GenerateWaveDataRequested,
-						this, &TuneManager::HandleGenerateWaveDataRequested);
+	QObject::disconnect(this, &TuneManager::GenerateWaveRequested,
+						this, &TuneManager::HandleGenerateWaveRequested);
 
 	Qt::ConnectionType type = Qt::DirectConnection;
 	do
 	{
+
 		if( QObject::thread() == QThread::currentThread()){
 			break;
 		}
@@ -176,32 +194,33 @@ void TuneManager::GenerateWaveData(bool is_synchronized)
 		type = Qt::BlockingQueuedConnection;
 	}while(0);
 
-	QObject::connect(this, &TuneManager::GenerateWaveDataRequested,
-					 this, &TuneManager::HandleGenerateWaveDataRequested, type);
-
-	emit GenerateWaveDataRequested();
+	QObject::connect(this, &TuneManager::GenerateWaveRequested,
+					 this, &TuneManager::HandleGenerateWaveRequested, type);
+	emit GenerateWaveRequested(length);
 }
 
 /**********************************************************************************/
 
-QByteArray TuneManager::FetchData(int const size)
+QByteArray TuneManager::FetchWave(int const length)
 {
 	QMutexLocker locker(&m_mutex);
-	if(size > m_p_private->m_generate_data_length){
-		m_p_private->m_generate_data_length = size;
+	if(length > m_p_private->m_wave_prebuffer_length){
+		m_p_private->m_wave_prebuffer_length = length;
 	}
 
-	if(m_p_private->m_wave_bytearray.mid(0, size).size() < size){
-			GenerateWaveData(true);
-	}
-	QByteArray fetched_bytearray = m_p_private->m_wave_bytearray.mid(0, size);
-	m_p_private->m_wave_bytearray.remove(0, size);
-
-	if(m_p_private->m_wave_bytearray.mid(size, -1).size() < m_p_private->m_generate_data_length){
-		GenerateWaveData(false);
+	if(m_p_private->m_wave_bytearray.mid(0, length).size() < length){
+			GenerateWave(length - m_p_private->m_wave_bytearray.mid(0, length).size(),
+							 true);
 	}
 
-	return fetched_bytearray;
+	QByteArray fetched_wave_bytearray = m_p_private->m_wave_bytearray.mid(0, length);
+	m_p_private->m_wave_bytearray.remove(0, length);
+
+	if(m_p_private->m_wave_bytearray.mid(length, -1).size() < m_p_private->m_wave_prebuffer_length){
+		GenerateWave(m_p_private->m_wave_prebuffer_length, false);
+	}
+
+	return fetched_wave_bytearray;
 }
 
 /**********************************************************************************/
@@ -209,17 +228,7 @@ QByteArray TuneManager::FetchData(int const size)
 void TuneManager::SetGeneratingWave(int tune_type, int index)
 {
 	QMutexLocker locker(&m_mutex);
-
-	m_p_private->StopGeneratingWave();
-	do
-	{
-		if(TRACK == tune_type){
-			startplaytrack(index);
-			break;
-		}
-
-		startplaysong(index);
-	}while(0);
+	m_p_private->StartGeneratingWave(tune_type, index);
 }
 
 /**********************************************************************************/

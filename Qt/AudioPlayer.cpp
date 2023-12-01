@@ -155,7 +155,7 @@ void AudioPlayer::Play(int filling_buffer_time_interval,
 
 	m_p_audio_io_device = new AudioIODevice();
 	m_p_audio_io_device->open(QIODevice::ReadWrite);
-	AudioPlayer::AppendAudioData(m_p_tune_manager->FetchData(audio_buffer_size));
+	AudioPlayer::AppendAudioData(m_p_tune_manager->FetchWave(audio_buffer_size));
 	m_p_audio_output->start(m_p_audio_io_device);
 }
 
@@ -203,7 +203,7 @@ void AudioPlayer::HandleAudioNotify(void)
 	}
 
 	QByteArray append_bytearray
-			= m_p_tune_manager->FetchData(remain_audio_buffer_size);
+			= m_p_tune_manager->FetchWave(remain_audio_buffer_size);
 	AudioPlayer::AppendAudioData(append_bytearray);
 }
 
