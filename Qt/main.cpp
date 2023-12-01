@@ -9,12 +9,6 @@
 
 #include "HardwareChiptunePanelWidget.h"
 
-#ifndef _STUFF_H_
-#define _STUFF_H_
-extern "C"{
-	#include "../stuff.h"
-}
-#endif
 #if(0)
 const u16 instrptr[] = {
 	0, 1

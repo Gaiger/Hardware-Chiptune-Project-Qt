@@ -7,9 +7,13 @@ extern "C"
 #endif
 #include <stdint.h>
 #include <stdbool.h>
+
 #ifndef _STUFF_H_
 #define _STUFF_H_
-#include "../stuff.h"
+	#if defined TRACKLEN
+		#undef TRACKLEN
+	#endif
+	#include "../stuff.h"
 #endif
 
 
@@ -19,14 +23,7 @@ void readinstr(int num, int pos, u8 *il);
 
 void loadfile(char *fname) ;
 
-struct songline {
-	u8			track[4];
-	u8			transp[4];
-};
-
 void get_songlines(void ** pp_songlines, int *p_number_of_songlines);
-
-
 void get_tracks(void ** pp_track, int *p_track_number, int *p_track_length);
 
 bool is_song_playing(int *p_processing_song_index);

@@ -56,6 +56,10 @@ struct instrument {
 	struct instrline	line[256];
 };
 
+struct songline {
+	u8			track[4];
+	u8			transp[4];
+};
 
 struct instrument instrument[256], iclip;
 struct track track[256], tclip;

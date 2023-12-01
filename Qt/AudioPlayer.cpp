@@ -2,13 +2,6 @@
 #include <QEventLoop>
 #include <QBuffer>
 
-#ifndef _STUFF_H_
-#define _STUFF_H_
-extern "C"{
-#include "../stuff.h"
-}
-#endif
-
 #include "AudioPlayer.h"
 
 class AudioIODevice: public QIODevice
