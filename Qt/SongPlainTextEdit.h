@@ -1,18 +1,18 @@
 #ifndef SONGPLAINTEXTEDIT_H
 #define SONGPLAINTEXTEDIT_H
 
+#include <TuneManager.h>
 #include <QPlainTextEdit>
 
 class SongPlainTextEdit : public QPlainTextEdit
 {
 	Q_OBJECT
 public:
-	explicit SongPlainTextEdit(QWidget *parent = nullptr);
+	explicit SongPlainTextEdit(TuneManager *p_tune_manager, QWidget *parent = nullptr);
 
-	void UpdateSongs(void);
-	void UpdateSongPlaying(void);
+	void ShowSongs(void);
 
-public slots:
+private slots:
 	void HandlePlayingSongStateChanged(bool is_playing, int playing_song_index);
 private slots:
 	void HandleCursorPositionChanged(void);
@@ -22,6 +22,7 @@ private:
 	void HighlightCurrentLine(void);
 
 private:
+	TuneManager *m_p_tune_manager;
 	int m_previous_textcuror_position;
 };
 

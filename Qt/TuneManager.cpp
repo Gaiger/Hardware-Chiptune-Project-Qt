@@ -1,6 +1,6 @@
 #include <QThread>
 #include <QTimer>
-
+#include <QBuffer>
 #include <QDebug>
 
 #include "song_manager.h"
@@ -27,8 +27,9 @@ public:
 		m_wave_bytearray += generated_bytearray;
 	}
 
-	void Clean(void)
+	void CleanPlayingData(void)
 	{
+		m_wave_bytearray.clear();
 		m_wave_prebuffer_length = 0;
 
 		m_is_playing_song = false;
@@ -37,14 +38,25 @@ public:
 		m_is_playing_track = false;
 		m_playing_track_index = -1;
 		m_playing_line_index = -1;
-		m_wave_bytearray.clear();
+	}
+
+	void CleanAll(void)
+	{
+		CleanPlayingData();
+
+		m_p_songlines = nullptr;
+		m_number_of_songlines = 0;
+
+		m_p_tracks = nullptr;
+		m_number_of_tracks = 0;
+		m_track_length = 0;
 	}
 
 	void StopGeneratingWave(void)
 	{
 		m_inquiring_playing_state_timer.stop();
 		silence();
-		Clean();
+		CleanPlayingData();
 	}
 
 	void StartGeneratingWave(int tune_type, int index)
@@ -65,6 +77,13 @@ public:
 	}
 
 public:
+	TuneManager::songline *m_p_songlines;
+	int m_number_of_songlines;
+
+	TuneManager::track *m_p_tracks;
+	int m_number_of_tracks;
+	int m_track_length;
+
 	QByteArray m_wave_bytearray;
 	int m_wave_prebuffer_length;
 
@@ -85,8 +104,12 @@ TuneManager::TuneManager(QObject *parent)
 	: QObject(parent),
 	m_p_private(nullptr)
 {
+	if( QMetaType::UnknownType == QMetaType::type("TUNE_TYPE")){
+			qRegisterMetaType<TuneManager::TUNE_TYPE>("TUNE_TYPE");
+	}
+
 	m_p_private = new TuneManagerPrivate();
-	m_p_private->Clean();
+	m_p_private->CleanAll();
 	QObject::connect(&m_p_private->m_inquiring_playing_state_timer, &QTimer::timeout,
 					this, &TuneManager::InquirePlayingState);
 }
@@ -106,16 +129,39 @@ TuneManager::TuneManager(QString filename, QObject *parent)
 TuneManager::~TuneManager(void)
 {
 	StopGeneratingWave();
+	m_p_private->CleanAll();
 	delete m_p_private;
 	m_p_private = nullptr;
 }
 
 /**********************************************************************************/
 
+
 void TuneManager::LoadFile(QString filename)
 {
 	QMutexLocker locker(&m_mutex);
 	loadfile(filename.toLatin1().data());
+
+	get_songlines((void**)&m_p_private->m_p_songlines, &m_p_private->m_number_of_songlines);
+	get_tracks((void**)&m_p_private->m_p_tracks, &m_p_private->m_number_of_tracks, &m_p_private->m_track_length);
+	return ;
+}
+
+/**********************************************************************************/
+
+void TuneManager::GetSongLines(TuneManager::songline ** pp_songlines, int * p_number_of_songlines)
+{
+	*pp_songlines = (TuneManager::songline*)m_p_private->m_p_songlines;
+	*p_number_of_songlines = m_p_private->m_number_of_songlines;
+}
+
+/**********************************************************************************/
+
+void TuneManager::GetTracks(TuneManager::track ** pp_track, int * p_track_number, int * p_track_length)
+{
+	*pp_track = (TuneManager::track*)m_p_private->m_p_tracks;
+	*p_track_number = m_p_private->m_number_of_tracks;
+	*p_track_length = m_p_private->m_track_length;
 }
 
 /**********************************************************************************/

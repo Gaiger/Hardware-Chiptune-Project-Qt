@@ -9,8 +9,9 @@
 
 #include "SongPlainTextEdit.h"
 
-SongPlainTextEdit::SongPlainTextEdit(QWidget *parent)
+SongPlainTextEdit::SongPlainTextEdit(TuneManager *p_tune_manager, QWidget *parent)
 	: QPlainTextEdit(parent),
+	  m_p_tune_manager(p_tune_manager),
 	  m_previous_textcuror_position(0)
 {
 	QFont font("Monospace");
@@ -19,6 +20,10 @@ SongPlainTextEdit::SongPlainTextEdit(QWidget *parent)
 	QWidget::setFont(font);
 
 	QPlainTextEdit::setCursorWidth(10);
+
+	QObject::connect(m_p_tune_manager, &TuneManager::PlayingSongStateChanged,
+					 this, &SongPlainTextEdit::HandlePlayingSongStateChanged);
+
 	QObject::connect(this, &QPlainTextEdit::cursorPositionChanged,
 					 this, &SongPlainTextEdit::HandleCursorPositionChanged);
 }
@@ -28,7 +33,6 @@ SongPlainTextEdit::SongPlainTextEdit(QWidget *parent)
 void SongPlainTextEdit::HandleCursorPositionChanged(void)
 {
 	CorrectCursorPosition();
-	HighlightCurrentLine();
 }
 
 /**********************************************************************************/
@@ -108,53 +112,17 @@ void SongPlainTextEdit::CorrectCursorPosition(void)
 	m_previous_textcuror_position =  QPlainTextEdit::textCursor().position();
 }
 
-/**********************************************************************************/
-
-void SongPlainTextEdit::HighlightCurrentLine(void)
-{
-#if(0)
-	QList<QTextEdit::ExtraSelection> extraSelections;
-	if (!isReadOnly()) {
-		 QTextEdit::ExtraSelection selection;
-
-		 QColor lineColor = QColor(128, 128, 128);
-
-		 selection.format.setBackground(lineColor);
-		 selection.format.setProperty(QTextFormat::FullWidthSelection, true);
-
-
-		//mergeFormatOnWordOrSelection(fmt);
-		 selection.cursor = SongPlainTextEdit::textCursor();
-		 selection.cursor.clearSelection();
-
-		 extraSelections.append(selection);
-	 }
-
-	 setExtraSelections(extraSelections);
-#endif
-}
 
 /**********************************************************************************/
 
-struct songline {
-	uint8_t			track[4];
-	uint8_t			transp[4];
-};
-
-extern "C"
+void SongPlainTextEdit::ShowSongs(void)
 {
-void get_songlines(void** pp_songlines, int *p_song_length);
-}
-
-void SongPlainTextEdit::UpdateSongs(void)
-{
-	int song_length;
-	struct songline *p_songs;
-	get_songlines((void**)&p_songs, &song_length);
-
+	TuneManager::songline *p_songs;
+	int number_of_songs;
+	m_p_tune_manager->GetSongLines(&p_songs, &number_of_songs);
 
 	int i, j;
-	for(i = 0; i < song_length; i++) {
+	for(i = 0; i < number_of_songs; i++) {
 		char line_buffer[1024];
 		snprintf(line_buffer, sizeof(line_buffer), "%02x: ", i);
 

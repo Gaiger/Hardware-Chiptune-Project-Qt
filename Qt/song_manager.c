@@ -12,9 +12,12 @@
 
 #ifndef _STUFF_H_
 #define _STUFF_H_
-#include "../stuff.h"
+	#if defined TRACKLEN
+		#undef TRACKLEN
+	#endif
+	#include "../stuff.h"
 #endif
-
+#include "song_manager.h"
 
 
 #define SETLO(v,x) v = ((v) & 0xf0) | (x)
@@ -53,10 +56,6 @@ struct instrument {
 	struct instrline	line[256];
 };
 
-struct songline {
-	u8			track[4];
-	u8			transp[4];
-};
 
 struct instrument instrument[256], iclip;
 struct track track[256], tclip;

@@ -7,7 +7,6 @@
 
 
 class TuneManagerPrivate;
-
 class TuneManager : public QObject
 {
 	Q_OBJECT
@@ -17,6 +16,26 @@ public:
 	~TuneManager() Q_DECL_OVERRIDE;
 
 	void LoadFile(QString filename);
+
+	struct songline {
+		uint8_t			track[4];
+		uint8_t			transp[4];
+	};
+
+	void GetSongLines(TuneManager::songline **pp_songlines, int * p_number_of_songlines);
+
+	struct trackline {
+		uint8_t	note;
+		uint8_t	instr;
+		uint8_t	cmd[2];
+		uint8_t	param[2];
+		};
+#define TRACKLEN				(32)
+	struct track {
+		struct trackline	line[TRACKLEN];
+	};
+
+	void GetTracks(TuneManager::track ** pp_track, int * p_track_number, int * p_track_length);
 
 	enum TUNE_TYPE
 	{

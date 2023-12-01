@@ -8,50 +8,36 @@
 
 #include "TrackPlainTextEdit.h"
 
-TrackPlainTextEdit::TrackPlainTextEdit(QWidget *parent)
+TrackPlainTextEdit::TrackPlainTextEdit(TuneManager *p_tune_manager, QWidget *parent)
 	:  QPlainTextEdit(parent),
+	  m_p_tune_manager(p_tune_manager),
 	  m_current_shown_track_index(0)
 {
 	QFont font("Monospace");
 	font.setStyleHint(QFont::TypeWriter);
 	font.setPixelSize(16);
-
 	QWidget::setFont(font);
+
+
+	QObject::connect(m_p_tune_manager, &TuneManager::PlayingTrackStateChanged,
+					 this, &TrackPlainTextEdit::HandlePlayingTrackStateChanged);
 }
 
 /**********************************************************************************/
-
-
-/**********************************************************************************/
-
-extern "C"
-{
-#include "../stuff.h"
 const char * const notenames[] = {"C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "H-"};
 
-void get_tracks(struct track ** pp_track, int *p_track_number, int *p_track_length);
-bool is_track_playing(int *p_playing_track_index, int *p_playing_line_index);
-}
-
 /**********************************************************************************/
 
-void TrackPlainTextEdit::UpdateTrack(void)
+void TrackPlainTextEdit::ShowTrack(int index)
 {
-	UpdateShowedTrack(1);
-}
-
-/**********************************************************************************/
-
-void TrackPlainTextEdit::UpdateShowedTrack(int i)
-{
-	m_current_shown_track_index = i;
+	m_current_shown_track_index = index;
 	QPlainTextEdit::clear();
 
-	struct track *p_track;
-	int track_number;
+	TuneManager::track *p_track;
+	int numberf_of_tracks;
 	int track_length;
-	get_tracks(&p_track, &track_number, &track_length);
-	//qDebug() << "track ";// << Qt::hex << index;
+	m_p_tune_manager->GetTracks(&p_track, &numberf_of_tracks, &track_length);
+
 	for(int i = 0; i < track_length; i++){
 		char line_buffer[1024];
 		char string_buffer[1024];

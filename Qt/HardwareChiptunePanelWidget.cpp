@@ -27,18 +27,35 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	ui->SongIndexSpinBox->setFont(font);
 
 	do{
-		m_p_song_plain_textedit = new SongPlainTextEdit(this);
+		m_p_song_plain_textedit = new SongPlainTextEdit(m_p_player->GetTuneManager(), this);
 		ReplaceWidget(m_p_song_plain_textedit, ui->SongWidget);
 	}while(0);
 
 	do{
-		m_p_track_plain_textedit = new TrackPlainTextEdit(this);
+		m_p_track_plain_textedit = new TrackPlainTextEdit(m_p_player->GetTuneManager(), this);
 		ReplaceWidget(m_p_track_plain_textedit, ui->TrackWidget);
 	}while(0);
 
+	do
+	{	TuneManager::songline *p_songs;
+		int number_of_songs;
+		m_p_player->GetTuneManager()->GetSongLines(&p_songs, &number_of_songs);
+		ui->SongIndexSpinBox->setRange(0, number_of_songs - 1);
+	}while(0);
+
+	do
+	{
+		TuneManager::track *p_track;
+		int numberf_of_tracks;
+		int track_length;
+		m_p_player->GetTuneManager()->GetTracks(&p_track, &numberf_of_tracks, &track_length);
+		ui->TrackIndexSpinBox->setRange(0, numberf_of_tracks - 1);
+	}while(0);
+
+
 	//QObject::startTimer(50);
-	m_p_song_plain_textedit->UpdateSongs();
-	m_p_track_plain_textedit->UpdateTrack();
+	m_p_song_plain_textedit->ShowSongs();
+	m_p_track_plain_textedit->ShowTrack(1);
 
 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::PlayingSongStateChanged,
@@ -46,13 +63,6 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::PlayingTrackStateChanged,
 					 this, &HardwareChiptunePanelWidget::HandlePlayingTrackStateChanged);
-
-	QObject::connect(p_player->GetTuneManager(), &TuneManager::PlayingSongStateChanged,
-					 m_p_song_plain_textedit, &SongPlainTextEdit::HandlePlayingSongStateChanged);
-
-	QObject::connect(p_player->GetTuneManager(), &TuneManager::PlayingTrackStateChanged,
-					 m_p_track_plain_textedit, &TrackPlainTextEdit::HandlePlayingTrackStateChanged);
-
 }
 
 /**********************************************************************************/
@@ -122,7 +132,7 @@ void HardwareChiptunePanelWidget::on_PlaySongPushButton_released(void)
 
 void HardwareChiptunePanelWidget::on_TrackIndexSpinBox_valueChanged(int i)
 {
-	m_p_track_plain_textedit->UpdateShowedTrack(i);
+	m_p_track_plain_textedit->ShowTrack(i);
 }
 
 /**********************************************************************************/
