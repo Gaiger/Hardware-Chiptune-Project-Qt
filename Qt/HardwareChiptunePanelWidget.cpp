@@ -58,11 +58,11 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	m_p_track_plain_textedit->ShowTrack(1);
 
 
-	QObject::connect(p_player->GetTuneManager(), &TuneManager::PlayingSongStateChanged,
-					 this, &HardwareChiptunePanelWidget::HandlePlayingSongStateChanged);
+	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingSongStateChanged,
+					 this, &HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged);
 
-	QObject::connect(p_player->GetTuneManager(), &TuneManager::PlayingTrackStateChanged,
-					 this, &HardwareChiptunePanelWidget::HandlePlayingTrackStateChanged);
+	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingTrackStateChanged,
+					 this, &HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged);
 }
 
 /**********************************************************************************/
@@ -85,11 +85,11 @@ void HardwareChiptunePanelWidget::timerEvent(QTimerEvent *p_event)
 #define UNICODE_PLAY_ICON						u8"\u25B7"
 #define UNICODE_STOP_ICON						u8"\u25A1"
 
-void HardwareChiptunePanelWidget::HandlePlayingSongStateChanged(bool is_playing, int playing_song_index)
+void HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index)
 {
-	Q_UNUSED(playing_song_index);
+	Q_UNUSED(generating_song_index);
 
-	if(false == is_playing){
+	if(false == is_generating){
 		if(ui->PlaySongPushButton->text() == QString(UNICODE_STOP_ICON) ){
 			ui->PlaySongPushButton->setText(QString(UNICODE_PLAY_ICON));
 		}
@@ -98,10 +98,10 @@ void HardwareChiptunePanelWidget::HandlePlayingSongStateChanged(bool is_playing,
 
 /**********************************************************************************/
 
-void HardwareChiptunePanelWidget::HandlePlayingTrackStateChanged(bool is_playing, int playing_track_index, int playing_line_index)
+void HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index)
 {
-	Q_UNUSED(playing_track_index);
-	Q_UNUSED(playing_line_index);
+	Q_UNUSED(generating_track_index);
+	Q_UNUSED(generating_line_index);
 
 	if(false == is_playing){
 		if(ui->PlayTrackPushButton->text() == QString(UNICODE_STOP_ICON) ){
@@ -142,10 +142,10 @@ void HardwareChiptunePanelWidget::on_PlayTrackPushButton_released(void)
 	do
 	{
 		if( ui->PlayTrackPushButton->text() == QString(UNICODE_PLAY_ICON)){
-			int playing_track_index;
-			playing_track_index = ui->TrackIndexSpinBox->value();
+			int generating_track_index;
+			generating_track_index = ui->TrackIndexSpinBox->value();
 			m_p_player->PlayTrack(ui->TrackIndexSpinBox->value());
-			ui->PlayingTrackIndexLabel->setText(QString::asprintf("%02x", playing_track_index));
+			ui->PlayingTrackIndexLabel->setText(QString::asprintf("%02x", generating_track_index));
 			ui->PlayTrackPushButton->setText(QString(UNICODE_STOP_ICON));
 			break;
 		}

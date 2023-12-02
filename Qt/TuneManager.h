@@ -30,7 +30,9 @@ public:
 		uint8_t	cmd[2];
 		uint8_t	param[2];
 		};
-#define TRACKLEN				(32)
+#ifndef TRACKLEN
+	#define TRACKLEN				(32)
+#endif
 	struct track {
 		struct trackline	line[TRACKLEN];
 	};
@@ -43,13 +45,16 @@ public:
 		TRACK,
 	};Q_ENUM(TUNE_TYPE)
 	void SetGeneratingWave(int tune_type, int index);
-	void StopGeneratingWave();
+	void ResetGeneratingWave();
 	QByteArray FetchWave(int const length);
 
 public:
 	signals:
-	void PlayingSongStateChanged(bool is_playing, int playing_song_index);
-	void PlayingTrackStateChanged(bool is_playing, int playing_track_index, int playing_line_index);
+#if(0)
+	void GeneratingWaveStopped(void);
+#endif
+	void GeneratingSongStateChanged(bool is_generating_song, int generating_song_index);
+	void GeneratingTrackStateChanged(bool is_generating_track, int generating_track_index, int generating_line_index);
 
 private slots:
 	void InquirePlayingState(void);

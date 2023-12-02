@@ -21,8 +21,8 @@ SongPlainTextEdit::SongPlainTextEdit(TuneManager *p_tune_manager, QWidget *paren
 
 	QPlainTextEdit::setCursorWidth(10);
 
-	QObject::connect(m_p_tune_manager, &TuneManager::PlayingSongStateChanged,
-					 this, &SongPlainTextEdit::HandlePlayingSongStateChanged);
+	QObject::connect(m_p_tune_manager, &TuneManager::GeneratingSongStateChanged,
+					 this, &SongPlainTextEdit::HandleGeneratingSongStateChanged);
 
 	QObject::connect(this, &QPlainTextEdit::cursorPositionChanged,
 					 this, &SongPlainTextEdit::HandleCursorPositionChanged);
@@ -149,7 +149,7 @@ void SongPlainTextEdit::ShowSongs(void)
 
 /**********************************************************************************/
 
-void SongPlainTextEdit::HandlePlayingSongStateChanged(bool is_playing, int playing_song_index)
+void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int generating_song_index)
 {
 	if(false == is_playing){
 		return ;
@@ -170,11 +170,11 @@ void SongPlainTextEdit::HandlePlayingSongStateChanged(bool is_playing, int playi
 		}
 	}while(0);
 
-	if( 0 > playing_song_index || playing_song_index > QPlainTextEdit::document()->blockCount() - 1){
+	if( 0 > generating_song_index || generating_song_index > QPlainTextEdit::document()->blockCount() - 1){
 		return ;
 	}
 
-	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(playing_song_index);
+	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(generating_song_index);
 
 	do{
 		QTextBlockFormat fmt;
@@ -190,7 +190,7 @@ void SongPlainTextEdit::HandlePlayingSongStateChanged(bool is_playing, int playi
 	{
 		QRect viewport_geometry = QPlainTextEdit::viewport()->geometry();
 		QRectF next_line_rect = QPlainTextEdit::blockBoundingGeometry(
-					QPlainTextEdit::document()->findBlockByLineNumber(playing_song_index + 1));
+					QPlainTextEdit::document()->findBlockByLineNumber(generating_song_index + 1));
 
 		if(viewport_geometry.topLeft().y() < next_line_rect.topLeft().y()
 				&& viewport_geometry.bottomRight().y() > next_line_rect.bottomRight().y()){
@@ -198,7 +198,7 @@ void SongPlainTextEdit::HandlePlayingSongStateChanged(bool is_playing, int playi
 		}
 
 		int scrolling_value = current_song_textblock.firstLineNumber() - 2;
-		if(playing_song_index + 1 == QPlainTextEdit::document()->blockCount()){
+		if(generating_song_index + 1 == QPlainTextEdit::document()->blockCount()){
 			scrolling_value = QPlainTextEdit::verticalScrollBar()->maximum();
 		}
 

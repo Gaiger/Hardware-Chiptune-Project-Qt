@@ -39,7 +39,17 @@ AudioPlayer::AudioPlayer(QObject *parent)
 	m_p_audio_io_device(nullptr)
 {
 	m_p_tune_manager = new TuneManager();
-
+#if(0)
+	QObject::connect(m_p_tune_manager, &TuneManager::GeneratingWaveStopped,
+					this,
+					[&]()
+					{
+						if(nullptr != m_p_audio_output){
+							//AudioPlayer::Stop();
+						}
+					}
+	);
+#endif
 	m_p_tune_manager->moveToThread(&m_tune_manager_working_thread);
 	m_tune_manager_working_thread.start(QThread::HighPriority);
 }
@@ -168,7 +178,7 @@ void AudioPlayer::AppendAudioData(QByteArray data_bytearray)
 void AudioPlayer::Stop(void)
 {
 	QMutexLocker lock(&m_accessing_io_device_mutex);
-	m_p_tune_manager->StopGeneratingWave();
+	m_p_tune_manager->ResetGeneratingWave();
 	if(nullptr != m_p_audio_output){
 		m_p_audio_output->stop();
 	}

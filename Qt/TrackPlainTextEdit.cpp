@@ -19,8 +19,8 @@ TrackPlainTextEdit::TrackPlainTextEdit(TuneManager *p_tune_manager, QWidget *par
 	QWidget::setFont(font);
 
 
-	QObject::connect(m_p_tune_manager, &TuneManager::PlayingTrackStateChanged,
-					 this, &TrackPlainTextEdit::HandlePlayingTrackStateChanged);
+	QObject::connect(m_p_tune_manager, &TuneManager::GeneratingTrackStateChanged,
+					 this, &TrackPlainTextEdit::HandleGeneratingTrackStateChanged);
 }
 
 /**********************************************************************************/
@@ -75,13 +75,13 @@ void TrackPlainTextEdit::ShowTrack(int index)
 
 /**********************************************************************************/
 
-void TrackPlainTextEdit::HandlePlayingTrackStateChanged(bool is_playing, int playing_track_index, int playing_line_index)
+void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_playing, int generating_track_index, int generating_line_index)
 {
 	if(false == is_playing){
 		return ;
 	}
 
-	if(playing_track_index != m_current_shown_track_index){
+	if(generating_track_index != m_current_shown_track_index){
 		return ;
 	}
 
@@ -100,11 +100,11 @@ void TrackPlainTextEdit::HandlePlayingTrackStateChanged(bool is_playing, int pla
 		}
 	}while(0);
 
-	if( 0 > playing_line_index || playing_line_index > QPlainTextEdit::document()->blockCount() - 1){
+	if( 0 > generating_line_index || generating_line_index > QPlainTextEdit::document()->blockCount() - 1){
 		return ;
 	}
 
-	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(playing_line_index);
+	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(generating_line_index);
 
 	do{
 		QTextBlockFormat fmt;
@@ -120,7 +120,7 @@ void TrackPlainTextEdit::HandlePlayingTrackStateChanged(bool is_playing, int pla
 	{
 		QRect viewport_geometry = QPlainTextEdit::viewport()->geometry();
 		QRectF next_line_rect = QPlainTextEdit::blockBoundingGeometry(
-					QPlainTextEdit::document()->findBlockByLineNumber(playing_line_index + 1));
+					QPlainTextEdit::document()->findBlockByLineNumber(generating_line_index + 1));
 
 		if(viewport_geometry.topLeft().y() < next_line_rect.topLeft().y()
 				&& viewport_geometry.bottomRight().y() > next_line_rect.bottomRight().y()){
@@ -128,7 +128,7 @@ void TrackPlainTextEdit::HandlePlayingTrackStateChanged(bool is_playing, int pla
 		}
 
 		int scrolling_value = current_song_textblock.firstLineNumber() - 2;
-		if(playing_line_index + 1 == QPlainTextEdit::document()->blockCount()){
+		if(generating_line_index + 1 == QPlainTextEdit::document()->blockCount()){
 			scrolling_value = QPlainTextEdit::verticalScrollBar()->maximum();
 		}
 

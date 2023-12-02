@@ -13,7 +13,7 @@ public:
 	void ShowSongs(void);
 
 private slots:
-	void HandlePlayingSongStateChanged(bool is_playing, int playing_song_index);
+	void HandleGeneratingSongStateChanged(bool is_playing, int generating_song_index);
 private slots:
 	void HandleCursorPositionChanged(void);
 

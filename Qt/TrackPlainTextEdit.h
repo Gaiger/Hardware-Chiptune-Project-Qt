@@ -12,7 +12,7 @@ public:
 	void ShowTrack(int index);
 
 private slots:
-	void HandlePlayingTrackStateChanged(bool is_playing, int playing_track_index, int playing_line_index);
+	void HandleGeneratingTrackStateChanged(bool is_playing, int generating_track_index, int generating_line_index);
 private:
 	TuneManager *m_p_tune_manager;
 	int m_current_shown_track_index;

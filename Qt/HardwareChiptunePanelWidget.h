@@ -28,8 +28,8 @@ private slots:
 	void on_PlayTrackPushButton_released(void);
 
 private slots:
-	void HandlePlayingSongStateChanged(bool is_playing, int playing_song_index);
-	void HandlePlayingTrackStateChanged(bool is_playing, int playing_track_index, int playing_line_index);
+	void HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index);
+	void HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index);
 private:
 	SongPlainTextEdit *m_p_song_plain_textedit;
 	TrackPlainTextEdit *m_p_track_plain_textedit;
