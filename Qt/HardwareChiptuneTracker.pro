@@ -12,6 +12,7 @@ SOURCES += \
         ../chip.c \
         AudioPlayer.cpp \
         HardwareChiptunePanelWidget.cpp \
+        InstrumentPlainTextEdit.cpp \
         SongPlainTextEdit.cpp \
         TrackPlainTextEdit.cpp \
         TuneManager.cpp \
@@ -27,6 +28,7 @@ HEADERS += \
     ../stuff.h \
     AudioPlayer.h \
     HardwareChiptunePanelWidget.h \
+    InstrumentPlainTextEdit.h \
     SongPlainTextEdit.h \
     TrackPlainTextEdit.h \
     TuneManager.h \

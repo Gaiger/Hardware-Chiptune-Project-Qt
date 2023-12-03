@@ -73,6 +73,9 @@ public:
 	int m_number_of_tracks;
 	int m_track_length;
 
+	TuneManager::instrument *m_p_instruments;
+	int m_number_of_instruments;
+
 	QByteArray m_wave_bytearray;
 	int m_wave_prebuffer_length;
 
@@ -133,24 +136,33 @@ void TuneManager::LoadFile(QString filename)
 
 	get_songlines((void**)&m_p_private->m_p_songlines, &m_p_private->m_number_of_songlines);
 	get_tracks((void**)&m_p_private->m_p_tracks, &m_p_private->m_number_of_tracks, &m_p_private->m_track_length);
+	get_instruments((void**)&m_p_private->m_p_instruments, &m_p_private->m_number_of_instruments);
 	return ;
 }
 
 /**********************************************************************************/
 
-void TuneManager::GetSongLines(TuneManager::songline ** pp_songlines, int * p_number_of_songlines)
+void TuneManager::GetSongs(TuneManager::songline ** pp_songlines, int * p_number_of_songlines)
 {
-	*pp_songlines = (TuneManager::songline*)m_p_private->m_p_songlines;
+	*pp_songlines = m_p_private->m_p_songlines;
 	*p_number_of_songlines = m_p_private->m_number_of_songlines;
 }
 
 /**********************************************************************************/
 
-void TuneManager::GetTracks(TuneManager::track ** pp_track, int * p_track_number, int * p_track_length)
+void TuneManager::GetTracks(TuneManager::track ** pp_tracks, int * p_track_number, int * p_track_length)
 {
-	*pp_track = (TuneManager::track*)m_p_private->m_p_tracks;
+	*pp_tracks = m_p_private->m_p_tracks;
 	*p_track_number = m_p_private->m_number_of_tracks;
 	*p_track_length = m_p_private->m_track_length;
+}
+
+/**********************************************************************************/
+
+void TuneManager::GetInstruments(TuneManager::instrument ** pp_instruments, int * p_number_of_instruments)
+{
+	*pp_instruments = m_p_private->m_p_instruments;
+	*p_number_of_instruments = m_p_private->m_number_of_instruments;
 }
 
 /**********************************************************************************/

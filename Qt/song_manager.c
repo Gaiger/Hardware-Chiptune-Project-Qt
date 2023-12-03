@@ -314,9 +314,9 @@ void drawsonged(int x, int y, int height) {
 }
 #endif
 
-void get_tracks(struct track ** pp_track, int *p_track_number, int *p_track_length)
+void get_tracks(void ** pp_track, int *p_track_number, int *p_track_length)
 {
-	*pp_track = &track[0];
+	*pp_track = (void**)&track[0];
 	*p_track_number = sizeof(track)/sizeof(struct track);
 	*p_track_length = tracklen;
 }
@@ -396,7 +396,16 @@ void drawtracked(int x, int y, int height) {
 		}
 	}
 }
+#endif
 
+
+void get_instruments(void ** pp_instruments, int *p_instrument_number)
+{
+	*pp_instruments = &instrument[0];
+	*p_instrument_number = sizeof(instrument)/sizeof(struct instrument);
+}
+
+#if(0)
 void drawinstred(int x, int y, int height) {
 	int i;
 	char buf[1024];

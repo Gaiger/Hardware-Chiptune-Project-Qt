@@ -1,8 +1,8 @@
 #ifndef TRACKPLAINTEXTEDIT_H
 #define TRACKPLAINTEXTEDIT_H
 
-#include <TuneManager.h>
 #include <QPlainTextEdit>
+#include <TuneManager.h>
 
 class TrackPlainTextEdit : public QPlainTextEdit
 {

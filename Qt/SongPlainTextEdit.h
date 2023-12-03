@@ -1,8 +1,8 @@
 #ifndef SONGPLAINTEXTEDIT_H
 #define SONGPLAINTEXTEDIT_H
 
-#include <TuneManager.h>
 #include <QPlainTextEdit>
+#include <TuneManager.h>
 
 class SongPlainTextEdit : public QPlainTextEdit
 {

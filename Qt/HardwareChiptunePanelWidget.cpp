@@ -25,38 +25,52 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	font.setPixelSize(20);
 	ui->TrackIndexSpinBox->setFont(font);
 	ui->SongIndexSpinBox->setFont(font);
+	ui->InstrumentIndexSpinBox->setFont(font);
 
 	do{
-		m_p_song_plain_textedit = new SongPlainTextEdit(m_p_player->GetTuneManager(), this);
-		ReplaceWidget(m_p_song_plain_textedit, ui->SongWidget);
+		m_p_song_plaintextedit = new SongPlainTextEdit(m_p_player->GetTuneManager(), this);
+		ReplaceWidget(m_p_song_plaintextedit, ui->SongWidget);
 	}while(0);
 
 	do{
-		m_p_track_plain_textedit = new TrackPlainTextEdit(m_p_player->GetTuneManager(), this);
-		ReplaceWidget(m_p_track_plain_textedit, ui->TrackWidget);
+		m_p_track_plaintextedit = new TrackPlainTextEdit(m_p_player->GetTuneManager(), this);
+		ReplaceWidget(m_p_track_plaintextedit, ui->TrackWidget);
+	}while(0);
+
+	do{
+		m_p_instrument_plaintextedit = new InstrumentPlainTextEdit(m_p_player->GetTuneManager(), this);
+		ReplaceWidget(m_p_instrument_plaintextedit, ui->InstrumentWidget);
 	}while(0);
 
 	do
 	{	TuneManager::songline *p_songs;
 		int number_of_songs;
-		m_p_player->GetTuneManager()->GetSongLines(&p_songs, &number_of_songs);
+		m_p_player->GetTuneManager()->GetSongs(&p_songs, &number_of_songs);
 		ui->SongIndexSpinBox->setRange(0, number_of_songs - 1);
 	}while(0);
 
 	do
 	{
 		TuneManager::track *p_track;
-		int numberf_of_tracks;
+		int number_of_tracks;
 		int track_length;
-		m_p_player->GetTuneManager()->GetTracks(&p_track, &numberf_of_tracks, &track_length);
-		ui->TrackIndexSpinBox->setRange(0, numberf_of_tracks - 1);
+		m_p_player->GetTuneManager()->GetTracks(&p_track, &number_of_tracks, &track_length);
+		ui->TrackIndexSpinBox->setRange(0, number_of_tracks - 1);
+	}while(0);
+
+	do
+	{
+		TuneManager::instrument *p_instruments;
+		int number_of_instruments;
+		m_p_player->GetTuneManager()->GetInstruments(&p_instruments, &number_of_instruments);
+		ui->InstrumentIndexSpinBox->setRange(0, number_of_instruments - 1);
 	}while(0);
 
 
 	//QObject::startTimer(50);
-	m_p_song_plain_textedit->ShowSongs();
-	m_p_track_plain_textedit->ShowTrack(1);
-
+	m_p_song_plaintextedit->ShowSongs();
+	m_p_track_plaintextedit->ShowTrack(1);
+	m_p_instrument_plaintextedit->ShowInstrument(1);
 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingSongStateChanged,
 					 this, &HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged);
@@ -69,7 +83,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 
 HardwareChiptunePanelWidget::~HardwareChiptunePanelWidget()
 {
-	delete m_p_song_plain_textedit;
+	delete m_p_song_plaintextedit;
 	delete ui;
 }
 
@@ -132,7 +146,7 @@ void HardwareChiptunePanelWidget::on_PlaySongPushButton_released(void)
 
 void HardwareChiptunePanelWidget::on_TrackIndexSpinBox_valueChanged(int i)
 {
-	m_p_track_plain_textedit->ShowTrack(i);
+	m_p_track_plaintextedit->ShowTrack(i);
 }
 
 /**********************************************************************************/
@@ -155,4 +169,9 @@ void HardwareChiptunePanelWidget::on_PlayTrackPushButton_released(void)
 	}while(0);
 }
 
+/**********************************************************************************/
 
+void HardwareChiptunePanelWidget::on_InstrumentIndexSpinBox_valueChanged(int i)
+{
+	m_p_instrument_plaintextedit->ShowInstrument(i);
+}

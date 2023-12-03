@@ -204,6 +204,54 @@ color: rgb(208, 208, 208);
     <bool>false</bool>
    </property>
   </widget>
+  <widget class="QWidget" name="InstrumentWidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>760</x>
+     <y>80</y>
+     <width>168</width>
+     <height>360</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget {
+background-color: rgb(64, 64, 64); 
+color: rgb(208, 208, 208);
+}</string>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="InstrumentIndexSpinBox">
+   <property name="geometry">
+    <rect>
+     <x>816</x>
+     <y>20</y>
+     <width>64</width>
+     <height>48</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>7</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+   <property name="maximum">
+    <number>255</number>
+   </property>
+   <property name="value">
+    <number>1</number>
+   </property>
+   <property name="displayIntegerBase">
+    <number>16</number>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

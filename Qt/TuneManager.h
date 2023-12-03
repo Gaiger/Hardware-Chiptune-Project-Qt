@@ -21,8 +21,7 @@ public:
 		uint8_t			track[4];
 		uint8_t			transp[4];
 	};
-
-	void GetSongLines(TuneManager::songline **pp_songlines, int * p_number_of_songlines);
+	void GetSongs(TuneManager::songline **pp_songlines, int * p_number_of_songlines);
 
 	struct trackline {
 		uint8_t	note;
@@ -36,8 +35,17 @@ public:
 	struct track {
 		struct trackline	line[TRACKLEN];
 	};
+	void GetTracks(TuneManager::track ** pp_tracks, int * p_track_number, int * p_track_length);
 
-	void GetTracks(TuneManager::track ** pp_track, int * p_track_number, int * p_track_length);
+	struct instrline {
+		uint8_t		cmd;
+		uint8_t		param;
+	};
+	struct instrument {
+		int			length;
+		struct instrline	line[256];
+	};
+	void GetInstruments(TuneManager::instrument ** pp_instruments, int * p_number_of_instruments);
 
 	enum TUNE_TYPE
 	{

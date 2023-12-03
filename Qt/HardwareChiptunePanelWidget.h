@@ -7,6 +7,7 @@
 
 #include "SongPlainTextEdit.h"
 #include "TrackPlainTextEdit.h"
+#include "InstrumentPlainTextEdit.h"
 
 namespace Ui {
 class HardwareChiptunePanelWidget;
@@ -27,12 +28,15 @@ private slots:
 	void on_TrackIndexSpinBox_valueChanged(int i);
 	void on_PlayTrackPushButton_released(void);
 
+	void on_InstrumentIndexSpinBox_valueChanged(int i);
+
 private slots:
 	void HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index);
 	void HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index);
 private:
-	SongPlainTextEdit *m_p_song_plain_textedit;
-	TrackPlainTextEdit *m_p_track_plain_textedit;
+	SongPlainTextEdit *m_p_song_plaintextedit;
+	TrackPlainTextEdit *m_p_track_plaintextedit;
+	InstrumentPlainTextEdit *m_p_instrument_plaintextedit;
 private:
 	AudioPlayer *m_p_player;
 private:

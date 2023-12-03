@@ -25,6 +25,7 @@ void loadfile(char *fname) ;
 
 void get_songlines(void ** pp_songlines, int *p_number_of_songlines);
 void get_tracks(void ** pp_track, int *p_track_number, int *p_track_length);
+void get_instruments(void ** pp_instruments, int *p_instrument_number);
 
 bool is_song_playing(int *p_processing_song_index);
 bool is_track_playing(int *p_playing_track_index, int *p_playing_line_index);

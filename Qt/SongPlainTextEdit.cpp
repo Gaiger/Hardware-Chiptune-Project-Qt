@@ -119,7 +119,7 @@ void SongPlainTextEdit::ShowSongs(void)
 {
 	TuneManager::songline *p_songs;
 	int number_of_songs;
-	m_p_tune_manager->GetSongLines(&p_songs, &number_of_songs);
+	m_p_tune_manager->GetSongs(&p_songs, &number_of_songs);
 
 	int i, j;
 	for(i = 0; i < number_of_songs; i++) {
