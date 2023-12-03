@@ -103,7 +103,7 @@ void HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged(bool is_gene
 	Q_UNUSED(generating_track_index);
 	Q_UNUSED(generating_line_index);
 
-	if(false == is_playing){
+	if(false == is_generating){
 		if(ui->PlayTrackPushButton->text() == QString(UNICODE_STOP_ICON) ){
 			ui->PlayTrackPushButton->setText(QString(UNICODE_PLAY_ICON));
 		}

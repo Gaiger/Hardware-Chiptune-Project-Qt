@@ -137,9 +137,9 @@ void SongPlainTextEdit::ShowSongs(void)
 		}
 
 		QPlainTextEdit::blockSignals(true);
-		QPlainTextEdit::moveCursor (QTextCursor::End);
+		QPlainTextEdit::moveCursor(QTextCursor::End);
 		QPlainTextEdit::appendPlainText(QString(&line_buffer[0]));
-		QPlainTextEdit::moveCursor (QTextCursor::End);
+		QPlainTextEdit::moveCursor(QTextCursor::End);
 		QPlainTextEdit::blockSignals(false);
 	}
 

@@ -33,31 +33,31 @@ void TrackPlainTextEdit::ShowTrack(int index)
 	m_current_shown_track_index = index;
 	QPlainTextEdit::clear();
 
-	TuneManager::track *p_track;
+	TuneManager::track *p_tracks;
 	int numberf_of_tracks;
 	int track_length;
-	m_p_tune_manager->GetTracks(&p_track, &numberf_of_tracks, &track_length);
-
+	m_p_tune_manager->GetTracks(&p_tracks, &numberf_of_tracks, &track_length);
+	TuneManager::track *p_current_track = &p_tracks[m_current_shown_track_index];
 	for(int i = 0; i < track_length; i++){
 		char line_buffer[1024];
 		char string_buffer[1024];
 		snprintf(line_buffer, sizeof(line_buffer), "%02x: ", i);
-		if(p_track[m_current_shown_track_index].line[i].note) {
+		if(p_current_track->line[i].note) {
 			snprintf(string_buffer, sizeof(string_buffer), "%s%d",
-				notenames[(p_track[m_current_shown_track_index].line[i].note - 1) % 12],
-				(p_track[m_current_shown_track_index].line[i].note - 1) / 12);
+				notenames[(p_current_track->line[i].note - 1) % 12],
+				(p_current_track->line[i].note - 1) / 12);
 		} else {
 			snprintf(string_buffer, sizeof(string_buffer), "---");
 		}
 		strncat(&line_buffer[0], string_buffer, sizeof(line_buffer));
 
-		snprintf(&string_buffer[0], sizeof(string_buffer), " %02x", p_track[m_current_shown_track_index].line[i].instr);
+		snprintf(&string_buffer[0], sizeof(string_buffer), " %02x", p_current_track->line[i].instr);
 		strncat(&line_buffer[0], string_buffer, sizeof(line_buffer));
 		for(int j = 0; j < 2; j++) {
-			if(p_track[m_current_shown_track_index].line[i].cmd[j]) {
+			if(p_current_track->line[i].cmd[j]) {
 				snprintf(&string_buffer[0], sizeof(string_buffer), " %c%02x",
-					p_track[m_current_shown_track_index].line[i].cmd[j],
-					p_track[m_current_shown_track_index].line[i].param[j]);
+					p_current_track->line[i].cmd[j],
+					p_current_track->line[i].param[j]);
 			} else {
 				snprintf(&string_buffer[0], sizeof(string_buffer), " ...");
 			}
@@ -65,9 +65,9 @@ void TrackPlainTextEdit::ShowTrack(int index)
 		}
 
 		QPlainTextEdit::blockSignals(true);
-		QPlainTextEdit::moveCursor (QTextCursor::End);
+		QPlainTextEdit::moveCursor(QTextCursor::End);
 		QPlainTextEdit::appendPlainText(QString(&line_buffer[0]));
-		QPlainTextEdit::moveCursor (QTextCursor::End);
+		QPlainTextEdit::moveCursor(QTextCursor::End);
 		QPlainTextEdit::blockSignals(false);
 	}
 
