@@ -1,6 +1,3 @@
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
 #include <QTextBlock>
 #include <QScrollBar>
 
@@ -24,9 +21,6 @@ TrackPlainTextEdit::TrackPlainTextEdit(TuneManager *p_tune_manager, QWidget *par
 }
 
 /**********************************************************************************/
-const char * const notenames[] = {"C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "H-"};
-
-/**********************************************************************************/
 
 void TrackPlainTextEdit::ShowTrack(int index)
 {
@@ -39,34 +33,32 @@ void TrackPlainTextEdit::ShowTrack(int index)
 	m_p_tune_manager->GetTracks(&p_tracks, &numberf_of_tracks, &track_length);
 	TuneManager::track *p_current_track = &p_tracks[m_current_shown_track_index];
 	for(int i = 0; i < track_length; i++){
-		char line_buffer[1024];
-		char string_buffer[1024];
-		snprintf(line_buffer, sizeof(line_buffer), "%02x: ", i);
-		if(p_current_track->line[i].note) {
-			snprintf(string_buffer, sizeof(string_buffer), "%s%d",
-				notenames[(p_current_track->line[i].note - 1) % 12],
-				(p_current_track->line[i].note - 1) / 12);
-		} else {
-			snprintf(string_buffer, sizeof(string_buffer), "---");
-		}
-		strncat(&line_buffer[0], string_buffer, sizeof(line_buffer));
+		QString line_string;
+		line_string += QString::asprintf("%02x: ", i);
 
-		snprintf(&string_buffer[0], sizeof(string_buffer), " %02x", p_current_track->line[i].instr);
-		strncat(&line_buffer[0], string_buffer, sizeof(line_buffer));
+		uint8_t note = p_current_track->line[i].note;
+		if(p_current_track->line[i].note) {
+			QString note_string = m_p_tune_manager->GetNoteNameList().at((note - 1) % 12);
+			line_string += QString::asprintf("%s%d",
+											 note_string.toLatin1().constData(),
+											(note - 1) / 12 );
+		} else {
+			line_string += QString::asprintf("---");
+		}
+
+		line_string += QString::asprintf(" %02x",  p_current_track->line[i].instr);
 		for(int j = 0; j < 2; j++) {
 			if(p_current_track->line[i].cmd[j]) {
-				snprintf(&string_buffer[0], sizeof(string_buffer), " %c%02x",
-					p_current_track->line[i].cmd[j],
-					p_current_track->line[i].param[j]);
+				line_string += QString::asprintf( " %c%02x", p_current_track->line[i].cmd[j],
+											   p_current_track->line[i].param[j]);
 			} else {
-				snprintf(&string_buffer[0], sizeof(string_buffer), " ...");
+				line_string += QString(" ...");
 			}
-			strncat(&line_buffer[0], string_buffer, sizeof(line_buffer));
 		}
 
 		QPlainTextEdit::blockSignals(true);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
-		QPlainTextEdit::appendPlainText(QString(&line_buffer[0]));
+		QPlainTextEdit::appendPlainText(line_string);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
 		QPlainTextEdit::blockSignals(false);
 	}

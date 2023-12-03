@@ -47,6 +47,9 @@ public:
 	};
 	void GetInstruments(TuneManager::instrument ** pp_instruments, int * p_number_of_instruments);
 
+	const QList<QString> GetNoteNameList(void);
+
+public :
 	enum TUNE_TYPE
 	{
 		SONG,

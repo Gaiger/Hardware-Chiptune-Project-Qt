@@ -1,7 +1,3 @@
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include <QTextBlock>
 #include <QScrollBar>
 
@@ -123,22 +119,19 @@ void SongPlainTextEdit::ShowSongs(void)
 
 	int i, j;
 	for(i = 0; i < number_of_songs; i++) {
-		char line_buffer[1024];
-		snprintf(line_buffer, sizeof(line_buffer), "%02x: ", i);
+		QString line_string;
+		line_string += QString::asprintf("%02x: ", i);
 
 		for(j = 0; j < 4; j++) {
-			char string_buffer[256];
-			snprintf(&string_buffer[0], sizeof(string_buffer), "%02x:%02x", p_songs[i].track[j], p_songs[i].transp[j]);
-			strncat(&line_buffer[0], &string_buffer[0], sizeof(line_buffer));
+			line_string += QString::asprintf("%02x:%02x", p_songs[i].track[j], p_songs[i].transp[j]);
 			if(j != 3) {
-				snprintf(&string_buffer[0], sizeof(string_buffer), " ");
-				strncat(&line_buffer[0], &string_buffer[0], sizeof(line_buffer));
+				line_string += QString::asprintf(" ");
 			}
 		}
 
 		QPlainTextEdit::blockSignals(true);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
-		QPlainTextEdit::appendPlainText(QString(&line_buffer[0]));
+		QPlainTextEdit::appendPlainText(line_string);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
 		QPlainTextEdit::blockSignals(false);
 	}

@@ -1,6 +1,3 @@
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
 #include "InstrumentPlainTextEdit.h"
 
 InstrumentPlainTextEdit::InstrumentPlainTextEdit(TuneManager *p_tune_manager, QWidget *parent)
@@ -15,8 +12,6 @@ InstrumentPlainTextEdit::InstrumentPlainTextEdit(TuneManager *p_tune_manager, QW
 
 /**********************************************************************************/
 
-static const char * const notenames[] = {"C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "H-"};
-
 void InstrumentPlainTextEdit::ShowInstrument(int index)
 {
 	QPlainTextEdit::clear();
@@ -26,27 +21,25 @@ void InstrumentPlainTextEdit::ShowInstrument(int index)
 	TuneManager::instrument *p_current_instument = &p_instruments[index];
 
 	for(int i = 0; i < p_current_instument->length; i++) {
-		char line_buffer[1024];
-		snprintf(line_buffer, sizeof(line_buffer), "%02x: %c ", i, p_current_instument->line[i].cmd);
+		QString line_string;
+		line_string += QString::asprintf( "%02x: %c ", i, p_current_instument->line[i].cmd);
 
-		char string_buffer[256];
 		if( p_current_instument->line[i].cmd == '+' ||  p_current_instument->line[i].cmd == '=') {
 			if( p_current_instument->line[i].param) {
-				snprintf(&string_buffer[0], sizeof(string_buffer), "%s%d",
-					notenames[(p_current_instument->line[i].param - 1) % 12],
-					(p_current_instument->line[i].param - 1) / 12);
+				QString note_string = m_p_tune_manager->GetNoteNameList().at((p_current_instument->line[i].param - 1) % 12);
+				line_string += QString::asprintf("%s%d",
+												 note_string.toLatin1().constData(),
+												 (p_current_instument->line[i].param - 1) / 12);
 			} else {
-				snprintf(&string_buffer[0], sizeof(string_buffer), "---");
+				line_string += QString::asprintf("---");
 			}
 		} else {
-			snprintf(&string_buffer[0], sizeof(&string_buffer[0]), "%02x",
-					p_current_instument->line[i].param);
+			line_string += QString::asprintf("%02x", p_current_instument->line[i].param);
 		}
-		strncat(&line_buffer[0], string_buffer, sizeof(line_buffer));
 
 		QPlainTextEdit::blockSignals(true);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
-		QPlainTextEdit::appendPlainText(QString(&line_buffer[0]));
+		QPlainTextEdit::appendPlainText(line_string);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
 		QPlainTextEdit::blockSignals(false);
 	}

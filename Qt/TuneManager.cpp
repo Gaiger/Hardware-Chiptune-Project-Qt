@@ -167,6 +167,13 @@ void TuneManager::GetInstruments(TuneManager::instrument ** pp_instruments, int 
 
 /**********************************************************************************/
 
+const QList<QString> TuneManager::GetNoteNameList(void)
+{
+	return QList<QString>() << "C-" << "C#" << "D-" << "D#" << "E-"<< "F-"<< "F#" << "G-" << "G#"<< "A-" << "A#" << "H-";
+}
+
+/**********************************************************************************/
+
 void TuneManager::InquirePlayingState(void)
 {
 	do
