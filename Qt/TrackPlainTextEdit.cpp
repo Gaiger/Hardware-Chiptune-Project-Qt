@@ -30,8 +30,8 @@ const char * const notenames[] = {"C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-"
 
 void TrackPlainTextEdit::ShowTrack(int index)
 {
-	m_current_shown_track_index = index;
 	QPlainTextEdit::clear();
+	m_current_shown_track_index = index;
 
 	TuneManager::track *p_tracks;
 	int numberf_of_tracks;
