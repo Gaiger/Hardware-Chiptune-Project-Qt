@@ -12,8 +12,8 @@ public:
 	void ShowTrack(int index);
 
 private slots:
-	void HandleGeneratingSongStateChanged(bool is_playing, int generating_song_index);
-	void HandleGeneratingTrackStateChanged(bool is_playing, int generating_track_index, int generating_line_index);
+	void HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index);
+	void HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index);
 
 private:
 	TuneManager *m_p_tune_manager;

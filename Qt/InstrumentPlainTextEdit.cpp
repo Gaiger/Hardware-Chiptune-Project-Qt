@@ -50,22 +50,23 @@ void InstrumentPlainTextEdit::ShowInstrument(int index)
 
 	QPlainTextEdit::document()->clearUndoRedoStacks();
 	QPlainTextEdit::blockSignals(false);
+	QPlainTextEdit::document()->setModified(false);
 }
 
 /**********************************************************************************/
 
-void InstrumentPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int generating_song_index)
+void InstrumentPlainTextEdit::HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index)
 {
 	Q_UNUSED(generating_song_index);
-	QPlainTextEdit::setReadOnly(is_playing);
+	QPlainTextEdit::setReadOnly(is_generating);
 }
 
 /**********************************************************************************/
 
-void InstrumentPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_playing, int generating_track_index, int generating_line_index)
+void InstrumentPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index)
 {
 	Q_UNUSED(generating_track_index);
 	Q_UNUSED(generating_line_index);
 
-	QPlainTextEdit::setReadOnly(is_playing);
+	QPlainTextEdit::setReadOnly(is_generating);
 }

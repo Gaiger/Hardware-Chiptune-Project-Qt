@@ -139,16 +139,15 @@ void SongPlainTextEdit::ShowSongs(void)
 	QPlainTextEdit::document()->clearUndoRedoStacks();
 	QPlainTextEdit::moveCursor(QTextCursor::Start);
 	QPlainTextEdit::blockSignals(false);
+	QPlainTextEdit::document()->setModified(false);
+
 }
 
 /**********************************************************************************/
 
-void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int generating_song_index)
+void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index)
 {
-	QPlainTextEdit::setReadOnly(is_playing);
-	if(false == is_playing){
-		return ;
-	}
+	QPlainTextEdit::setReadOnly(is_generating);
 
 	do{
 		QTextBlockFormat fmt;
@@ -164,6 +163,11 @@ void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int ge
 			cursor.setBlockFormat(fmt);
 		}
 	}while(0);
+
+	if(false == is_generating){
+		QPlainTextEdit::document()->clearUndoRedoStacks();
+		return ;
+	}
 
 	if( 0 > generating_song_index || generating_song_index > QPlainTextEdit::document()->blockCount() - 1){
 		return ;

@@ -62,8 +62,10 @@ void TrackPlainTextEdit::ShowTrack(int index)
 		QPlainTextEdit::appendPlainText(line_string);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
 	}
-	QPlainTextEdit::document()->setModified(false);
+
+	QPlainTextEdit::document()->clearUndoRedoStacks();
 	QPlainTextEdit::blockSignals(false);
+	QPlainTextEdit::document()->setModified(false);
 }
 
 /**********************************************************************************/
@@ -76,16 +78,9 @@ void TrackPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int g
 
 /**********************************************************************************/
 
-void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_playing, int generating_track_index, int generating_line_index)
+void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index)
 {
-	QPlainTextEdit::setReadOnly(is_playing);
-	if(false == is_playing){
-		return ;
-	}
-
-	if(generating_track_index != m_current_shown_track_index){
-		return ;
-	}
+	QPlainTextEdit::setReadOnly(is_generating);
 
 	do{
 		QTextBlockFormat fmt;
@@ -101,6 +96,15 @@ void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_playing, int 
 			cursor.setBlockFormat(fmt);
 		}
 	}while(0);
+
+	if(false == is_generating){
+		QPlainTextEdit::document()->clearUndoRedoStacks();
+		return ;
+	}
+
+	if(generating_track_index != m_current_shown_track_index){
+		return ;
+	}
 
 	if( 0 > generating_line_index || generating_line_index > QPlainTextEdit::document()->blockCount() - 1){
 		return ;
