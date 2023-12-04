@@ -76,7 +76,7 @@ color: rgb(208, 208, 208);
   <widget class="QSpinBox" name="TrackIndexSpinBox">
    <property name="geometry">
     <rect>
-     <x>480</x>
+     <x>464</x>
      <y>20</y>
      <width>64</width>
      <height>48</height>
@@ -105,10 +105,10 @@ color: rgb(208, 208, 208);
     <number>16</number>
    </property>
   </widget>
-  <widget class="QPushButton" name="PlayTrackPushButton">
+  <widget class="QPushButton" name="TrackPlayPushButton">
    <property name="geometry">
     <rect>
-     <x>566</x>
+     <x>540</x>
      <y>18</y>
      <width>52</width>
      <height>52</height>
@@ -128,31 +128,10 @@ color: rgb(208, 208, 208);
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QLabel" name="PlayingTrackIndexLabel">
-   <property name="geometry">
-    <rect>
-     <x>630</x>
-     <y>20</y>
-     <width>48</width>
-     <height>48</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>20</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
   <widget class="QSpinBox" name="SongIndexSpinBox">
    <property name="geometry">
     <rect>
-     <x>264</x>
+     <x>168</x>
      <y>20</y>
      <width>64</width>
      <height>48</height>
@@ -181,11 +160,11 @@ color: rgb(208, 208, 208);
     <number>16</number>
    </property>
   </widget>
-  <widget class="QPushButton" name="PlaySongPushButton">
+  <widget class="QPushButton" name="SongPlayPushButton">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>20</y>
+     <x>244</x>
+     <y>18</y>
      <width>52</width>
      <height>52</height>
     </rect>
@@ -223,7 +202,7 @@ color: rgb(208, 208, 208);
   <widget class="QSpinBox" name="InstrumentIndexSpinBox">
    <property name="geometry">
     <rect>
-     <x>816</x>
+     <x>768</x>
      <y>20</y>
      <width>64</width>
      <height>48</height>
@@ -250,6 +229,54 @@ color: rgb(208, 208, 208);
    </property>
    <property name="displayIntegerBase">
     <number>16</number>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="InstrumentApplyPushButton">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>856</x>
+     <y>18</y>
+     <width>72</width>
+     <height>52</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Apply</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="TrackApplyPushButton">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>620</x>
+     <y>18</y>
+     <width>72</width>
+     <height>52</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Apply</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="SongApplyPushButton">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>330</x>
+     <y>18</y>
+     <width>72</width>
+     <height>52</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Apply</string>
    </property>
   </widget>
  </widget>

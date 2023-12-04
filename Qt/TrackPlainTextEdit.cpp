@@ -25,6 +25,7 @@ TrackPlainTextEdit::TrackPlainTextEdit(TuneManager *p_tune_manager, QWidget *par
 
 void TrackPlainTextEdit::ShowTrack(int index)
 {
+	QPlainTextEdit::blockSignals(true);
 	QPlainTextEdit::clear();
 	m_current_shown_track_index = index;
 
@@ -57,13 +58,12 @@ void TrackPlainTextEdit::ShowTrack(int index)
 			}
 		}
 
-		QPlainTextEdit::blockSignals(true);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
 		QPlainTextEdit::appendPlainText(line_string);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
-		QPlainTextEdit::blockSignals(false);
 	}
-
+	QPlainTextEdit::document()->setModified(false);
+	QPlainTextEdit::blockSignals(false);
 }
 
 /**********************************************************************************/

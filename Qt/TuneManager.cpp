@@ -209,7 +209,7 @@ void TuneManager::LoadFile(QString filename)
 {
 	QMutexLocker locker(&m_mutex);
 	loadfile(filename.toLatin1().data());
-
+	optimize();
 	get_songlines((void**)&m_p_private->m_p_songlines, &m_p_private->m_number_of_songlines);
 	get_tracks((void**)&m_p_private->m_p_tracks, &m_p_private->m_number_of_tracks, &m_p_private->m_track_length);
 	get_instruments((void**)&m_p_private->m_p_instruments, &m_p_private->m_number_of_instruments);

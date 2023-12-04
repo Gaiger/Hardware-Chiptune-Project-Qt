@@ -23,10 +23,10 @@ private :
 	void timerEvent(QTimerEvent *p_event) Q_DECL_OVERRIDE;
 
 private slots:
-	void on_PlaySongPushButton_released(void);
+	void on_SongPlayPushButton_released(void);
 
 	void on_TrackIndexSpinBox_valueChanged(int i);
-	void on_PlayTrackPushButton_released(void);
+	void on_TrackPlayPushButton_released(void);
 
 	void on_InstrumentIndexSpinBox_valueChanged(int i);
 

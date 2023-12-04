@@ -19,6 +19,7 @@ InstrumentPlainTextEdit::InstrumentPlainTextEdit(TuneManager *p_tune_manager, QW
 
 void InstrumentPlainTextEdit::ShowInstrument(int index)
 {
+	QPlainTextEdit::blockSignals(true);
 	QPlainTextEdit::clear();
 	TuneManager::instrument *p_instruments;
 	int number_of_instruments;
@@ -42,12 +43,13 @@ void InstrumentPlainTextEdit::ShowInstrument(int index)
 			line_string += QString::asprintf("%02x", p_current_instument->line[i].param);
 		}
 
-		QPlainTextEdit::blockSignals(true);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
 		QPlainTextEdit::appendPlainText(line_string);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
-		QPlainTextEdit::blockSignals(false);
 	}
+
+	QPlainTextEdit::document()->clearUndoRedoStacks();
+	QPlainTextEdit::blockSignals(false);
 }
 
 /**********************************************************************************/

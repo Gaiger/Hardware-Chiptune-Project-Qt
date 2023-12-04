@@ -30,7 +30,7 @@ SongPlainTextEdit::SongPlainTextEdit(TuneManager *p_tune_manager, QWidget *paren
 
 void SongPlainTextEdit::HandleCursorPositionChanged(void)
 {
-	CorrectCursorPosition();
+	//CorrectCursorPosition();
 }
 
 /**********************************************************************************/
@@ -114,6 +114,7 @@ void SongPlainTextEdit::CorrectCursorPosition(void)
 
 void SongPlainTextEdit::ShowSongs(void)
 {
+	QPlainTextEdit::blockSignals(true);
 	TuneManager::songline *p_songs;
 	int number_of_songs;
 	m_p_tune_manager->GetSongs(&p_songs, &number_of_songs);
@@ -130,14 +131,14 @@ void SongPlainTextEdit::ShowSongs(void)
 			}
 		}
 
-		QPlainTextEdit::blockSignals(true);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
 		QPlainTextEdit::appendPlainText(line_string);
 		QPlainTextEdit::moveCursor(QTextCursor::End);
-		QPlainTextEdit::blockSignals(false);
 	}
 
+	QPlainTextEdit::document()->clearUndoRedoStacks();
 	QPlainTextEdit::moveCursor(QTextCursor::Start);
+	QPlainTextEdit::blockSignals(false);
 }
 
 /**********************************************************************************/

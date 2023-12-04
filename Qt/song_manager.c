@@ -464,6 +464,7 @@ void drawmodeinfo(int x, int y) {
 			break;
 	}
 }
+#endif
 
 void optimize() {
 	u8 used[256], replace[256];
@@ -514,6 +515,7 @@ void optimize() {
 	}
 }
 
+#if(0)
 static FILE *exportfile = 0;
 static int exportbits = 0;
 static int exportcount = 0;
