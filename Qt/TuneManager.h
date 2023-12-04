@@ -68,7 +68,7 @@ public:
 	void GeneratingTrackStateChanged(bool is_generating_track, int generating_track_index, int generating_line_index);
 
 private slots:
-	void InquirePlayingState(void);
+	void InquireGeneratingState(void);
 
 private:
 	signals:

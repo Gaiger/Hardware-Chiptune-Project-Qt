@@ -65,6 +65,62 @@ public:
 		m_track_length = 0;
 	}
 
+	bool IsGeneratingSongStateChanged(void)
+	{
+		bool is_changed = false;
+		int generating_song_index = -1;
+
+		bool is_generating_song = is_song_playing(&generating_song_index);
+		do
+		{
+			if(is_generating_song != m_is_generating_song){
+				is_changed = true;
+			}
+
+			if(false == is_generating_song){
+				break;
+			}
+
+			if(m_generating_song_index != generating_song_index){
+				is_changed = true;
+			}
+		}while(0);
+
+		m_is_generating_song = is_generating_song;
+		m_generating_song_index = generating_song_index;
+		return is_changed;
+	}
+
+	bool IsGeneratingTrackStateChanged(void)
+	{
+		bool is_changed = false;
+		int generating_track_index = -1;
+		int generating_line_index = -1;
+
+		bool is_generating_track = is_track_playing(&generating_track_index, &generating_line_index);
+		do
+		{
+			if(is_generating_track != m_is_generating_track)
+			{
+				is_changed = true;
+			}
+
+			if(false == is_generating_track){
+				break;
+			}
+
+			if(m_generating_track_index != generating_track_index
+					|| m_generating_line_index != generating_line_index){
+				is_changed = true;
+			}
+		}while(0);
+
+		m_is_generating_track = is_generating_track;
+		m_generating_track_index = generating_track_index;
+		m_generating_line_index = generating_line_index;
+		return is_changed;
+	}
+
 public:
 	TuneManager::songline *m_p_songlines;
 	int m_number_of_songlines;
@@ -103,7 +159,7 @@ TuneManager::TuneManager(QObject *parent)
 	m_p_private = new TuneManagerPrivate();
 	m_p_private->CleanAll();
 	QObject::connect(&m_p_private->m_inquiring_playing_state_timer, &QTimer::timeout,
-					this, &TuneManager::InquirePlayingState);
+					this, &TuneManager::InquireGeneratingState);
 }
 
 /**********************************************************************************/
@@ -174,47 +230,17 @@ const QList<QString> TuneManager::GetNoteNameList(void)
 
 /**********************************************************************************/
 
-void TuneManager::InquirePlayingState(void)
+void TuneManager::InquireGeneratingState(void)
 {
-	do
-	{
-		int generating_song_index;
-		bool is_generating_song = is_song_playing(&generating_song_index);
-		generating_song_index -= 1;
-		if(m_p_private->m_generating_song_index == generating_song_index){
-			break;
-		}
+	if(true == m_p_private->IsGeneratingSongStateChanged()){
+		emit GeneratingSongStateChanged(m_p_private->m_is_generating_song, m_p_private->m_generating_song_index);
+	}
 
-		if(false == is_generating_song){
-			generating_song_index = -1;
-		}
-
-		emit GeneratingSongStateChanged(is_generating_song, generating_song_index);
-		m_p_private->m_is_generating_song = is_generating_song;
-		m_p_private->m_generating_song_index = generating_song_index;
-	}while(0);
-
-	do
-	{
-		int generating_track_index, generating_line_index;
-
-		bool is_generating_track = is_track_playing(&generating_track_index, &generating_line_index);
-		if(m_p_private->m_generating_track_index == generating_track_index){
-			if(m_p_private->m_generating_line_index == generating_line_index){
-				break;
-			}
-		}
-
-		if(false == is_generating_track){
-			generating_track_index = -1;
-			generating_line_index = -1;
-		}
-		//qDebug() << generating_line_index;
-		emit GeneratingTrackStateChanged(is_generating_track, generating_track_index, generating_line_index);
-		m_p_private->m_is_generating_track = is_generating_track;
-		m_p_private->m_generating_track_index = generating_track_index;
-		m_p_private->m_generating_line_index = generating_line_index;
-	}while(0);
+	if(true == m_p_private->IsGeneratingTrackStateChanged()){
+		emit GeneratingTrackStateChanged(m_p_private->m_is_generating_track,
+										 m_p_private->m_generating_track_index,
+										 m_p_private->m_generating_line_index);
+	}
 
 #if(0)
 	if(false == m_p_private->m_is_generating_song &&
@@ -290,6 +316,8 @@ void TuneManager::SetGeneratingWave(int tune_type, int index)
 {
 	QMutexLocker locker(&m_mutex);
 	m_p_private->SetGeneratingWave(tune_type, index);
+
+	InquireGeneratingState();
 }
 
 /**********************************************************************************/
@@ -298,6 +326,8 @@ void TuneManager::ResetGeneratingWave()
 {
 	QMutexLocker locker(&m_mutex);
 	m_p_private->ResetGeneratingWave();
+
+	InquireGeneratingState();
 }
 
 /**********************************************************************************/

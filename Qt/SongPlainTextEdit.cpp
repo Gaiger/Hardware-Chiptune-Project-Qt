@@ -144,6 +144,7 @@ void SongPlainTextEdit::ShowSongs(void)
 
 void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int generating_song_index)
 {
+	QPlainTextEdit::setReadOnly(is_playing);
 	if(false == is_playing){
 		return ;
 	}
