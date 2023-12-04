@@ -29,12 +29,7 @@ public:
 		m_wave_bytearray.clear();
 		m_wave_prebuffer_length = 0;
 
-		m_is_generating_song = false;
-		m_generating_song_index = -1;
-
-		m_is_generating_track = false;
-		m_generating_track_index = -1;
-		m_generating_line_index = -1;
+		InquireGeneratingState();
 	}
 
 	void SetGeneratingWave(int tune_type, int index)
@@ -46,10 +41,10 @@ public:
 				startplaytrack(index);
 				break;
 			}
-
 			startplaysong(index);
 		}while(0);
 
+		InquireGeneratingState();
 		m_inquiring_playing_state_timer.setInterval(25);
 		m_inquiring_playing_state_timer.start();
 	}
@@ -57,6 +52,8 @@ public:
 	void CleanAll(void)
 	{
 		ResetGeneratingWave();
+		m_is_generating_song = false;
+		m_is_generating_track = false;
 		m_p_songlines = nullptr;
 		m_number_of_songlines = 0;
 
@@ -121,6 +118,28 @@ public:
 		return is_changed;
 	}
 
+	void InquireGeneratingState(void)
+	{
+		if(true == TuneManagerPrivate::IsGeneratingSongStateChanged()){
+			emit m_p_public->GeneratingSongStateChanged(m_is_generating_song, m_generating_song_index);
+		}
+
+		if(true == TuneManagerPrivate::IsGeneratingTrackStateChanged()){
+			emit  m_p_public->GeneratingTrackStateChanged(m_is_generating_track,
+											 m_generating_track_index,
+											 m_generating_line_index);
+		}
+
+	#if(0)
+		if(false == m_p_private->m_is_generating_song &&
+				false == m_p_private->m_is_generating_track)
+		{
+			emit GeneratingWaveStopped();
+		}
+	#endif
+	}
+
+
 public:
 	TuneManager::songline *m_p_songlines;
 	int m_number_of_songlines;
@@ -144,6 +163,7 @@ public:
 	int m_generating_track_index;
 	int m_generating_line_index;
 
+	TuneManager *m_p_public;
 };
 
 /**********************************************************************************/
@@ -158,6 +178,7 @@ TuneManager::TuneManager(QObject *parent)
 
 	m_p_private = new TuneManagerPrivate();
 	m_p_private->CleanAll();
+	m_p_private->m_p_public = this;
 	QObject::connect(&m_p_private->m_inquiring_playing_state_timer, &QTimer::timeout,
 					this, &TuneManager::InquireGeneratingState);
 }
@@ -183,7 +204,6 @@ TuneManager::~TuneManager(void)
 }
 
 /**********************************************************************************/
-
 
 void TuneManager::LoadFile(QString filename)
 {
@@ -232,23 +252,7 @@ const QList<QString> TuneManager::GetNoteNameList(void)
 
 void TuneManager::InquireGeneratingState(void)
 {
-	if(true == m_p_private->IsGeneratingSongStateChanged()){
-		emit GeneratingSongStateChanged(m_p_private->m_is_generating_song, m_p_private->m_generating_song_index);
-	}
-
-	if(true == m_p_private->IsGeneratingTrackStateChanged()){
-		emit GeneratingTrackStateChanged(m_p_private->m_is_generating_track,
-										 m_p_private->m_generating_track_index,
-										 m_p_private->m_generating_line_index);
-	}
-
-#if(0)
-	if(false == m_p_private->m_is_generating_song &&
-			false == m_p_private->m_is_generating_track)
-	{
-		emit GeneratingWaveStopped();
-	}
-#endif
+	m_p_private->InquireGeneratingState();
 }
 
 /**********************************************************************************/
@@ -316,8 +320,6 @@ void TuneManager::SetGeneratingWave(int tune_type, int index)
 {
 	QMutexLocker locker(&m_mutex);
 	m_p_private->SetGeneratingWave(tune_type, index);
-
-	InquireGeneratingState();
 }
 
 /**********************************************************************************/
@@ -326,8 +328,6 @@ void TuneManager::ResetGeneratingWave()
 {
 	QMutexLocker locker(&m_mutex);
 	m_p_private->ResetGeneratingWave();
-
-	InquireGeneratingState();
 }
 
 /**********************************************************************************/

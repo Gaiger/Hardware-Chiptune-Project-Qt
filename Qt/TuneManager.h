@@ -61,9 +61,6 @@ public :
 
 public:
 	signals:
-#if(0)
-	void GeneratingWaveStopped(void);
-#endif
 	void GeneratingSongStateChanged(bool is_generating_song, int generating_song_index);
 	void GeneratingTrackStateChanged(bool is_generating_track, int generating_track_index, int generating_line_index);
 
