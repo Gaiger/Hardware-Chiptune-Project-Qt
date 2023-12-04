@@ -140,7 +140,6 @@ void SongPlainTextEdit::ShowSongs(void)
 	QPlainTextEdit::moveCursor(QTextCursor::Start);
 	QPlainTextEdit::blockSignals(false);
 	QPlainTextEdit::document()->setModified(false);
-
 }
 
 /**********************************************************************************/
@@ -148,7 +147,7 @@ void SongPlainTextEdit::ShowSongs(void)
 void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index)
 {
 	QPlainTextEdit::setReadOnly(is_generating);
-
+	QPlainTextEdit::blockSignals(true);
 	do{
 		QTextBlockFormat fmt;
 		fmt.setProperty(QTextFormat::FullWidthSelection, true);
@@ -163,9 +162,11 @@ void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_generating, int
 			cursor.setBlockFormat(fmt);
 		}
 	}while(0);
+	QPlainTextEdit::blockSignals(false);
 
 	if(false == is_generating){
 		QPlainTextEdit::document()->clearUndoRedoStacks();
+		QPlainTextEdit::document()->setModified(false);
 		return ;
 	}
 
@@ -174,7 +175,7 @@ void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_generating, int
 	}
 
 	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(generating_song_index);
-
+	QPlainTextEdit::blockSignals(true);
 	do{
 		QTextBlockFormat fmt;
 		fmt.setProperty(QTextFormat::FullWidthSelection, true);
@@ -203,6 +204,7 @@ void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_generating, int
 
 		QPlainTextEdit::verticalScrollBar()->setValue(scrolling_value);
 	}while(0);
+	QPlainTextEdit::blockSignals(false);
 }
 
 /**********************************************************************************/

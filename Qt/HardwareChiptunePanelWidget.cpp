@@ -42,6 +42,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		QObject::connect(m_p_song_plaintextedit, &QPlainTextEdit::modificationChanged, this,
 						 [&](bool is_changed){
 			ui->SongApplyPushButton->setEnabled(is_changed);
+			ui->SongPlayPushButton->setEnabled(!is_changed);
 		});
 	}while(0);
 
@@ -60,6 +61,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		QObject::connect(m_p_track_plaintextedit, &QPlainTextEdit::modificationChanged, this,
 						 [&](bool is_changed){
 			ui->TrackApplyPushButton->setEnabled(is_changed);
+			ui->TrackPlayPushButton->setEnabled(!is_changed);
 		});
 	}while(0);
 

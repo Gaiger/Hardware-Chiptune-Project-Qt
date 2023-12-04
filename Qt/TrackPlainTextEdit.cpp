@@ -80,6 +80,7 @@ void TrackPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int g
 
 void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index)
 {
+	QPlainTextEdit::blockSignals(true);
 	QPlainTextEdit::setReadOnly(is_generating);
 
 	do{
@@ -96,9 +97,10 @@ void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, i
 			cursor.setBlockFormat(fmt);
 		}
 	}while(0);
-
+	QPlainTextEdit::blockSignals(false);
 	if(false == is_generating){
 		QPlainTextEdit::document()->clearUndoRedoStacks();
+		QPlainTextEdit::document()->setModified(false);
 		return ;
 	}
 
@@ -110,8 +112,8 @@ void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, i
 		return ;
 	}
 
+	QPlainTextEdit::blockSignals(true);
 	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(generating_line_index);
-
 	do{
 		QTextBlockFormat fmt;
 		fmt.setProperty(QTextFormat::FullWidthSelection, true);
@@ -120,6 +122,7 @@ void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, i
 		QTextCursor current_song_textcursor(QPlainTextEdit::document());
 		current_song_textcursor.setPosition(current_song_textblock.position(), QTextCursor::MoveAnchor);
 		current_song_textcursor.setBlockFormat(fmt);
+
 	}while(0);
 
 	do
@@ -140,6 +143,7 @@ void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, i
 
 		QPlainTextEdit::verticalScrollBar()->setValue(scrolling_value);
 	}while(0);
+	QPlainTextEdit::blockSignals(false);
 }
 
 /**********************************************************************************/
