@@ -14,6 +14,8 @@ public:
 
 private slots:
 	void HandleGeneratingSongStateChanged(bool is_playing, int generating_song_index);
+	void HandleGeneratingTrackStateChanged(bool is_playing, int generating_track_index, int generating_line_index);
+
 private slots:
 	void HandleCursorPositionChanged(void);
 

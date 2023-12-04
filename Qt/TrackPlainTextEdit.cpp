@@ -15,7 +15,8 @@ TrackPlainTextEdit::TrackPlainTextEdit(TuneManager *p_tune_manager, QWidget *par
 	font.setPixelSize(16);
 	QWidget::setFont(font);
 
-
+	QObject::connect(m_p_tune_manager, &TuneManager::GeneratingSongStateChanged,
+					 this, &TrackPlainTextEdit::HandleGeneratingSongStateChanged);
 	QObject::connect(m_p_tune_manager, &TuneManager::GeneratingTrackStateChanged,
 					 this, &TrackPlainTextEdit::HandleGeneratingTrackStateChanged);
 }
@@ -63,6 +64,14 @@ void TrackPlainTextEdit::ShowTrack(int index)
 		QPlainTextEdit::blockSignals(false);
 	}
 
+}
+
+/**********************************************************************************/
+
+void TrackPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int generating_song_index)
+{
+	Q_UNUSED(generating_song_index);
+	QPlainTextEdit::setReadOnly(is_playing);
 }
 
 /**********************************************************************************/

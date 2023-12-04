@@ -19,6 +19,8 @@ SongPlainTextEdit::SongPlainTextEdit(TuneManager *p_tune_manager, QWidget *paren
 
 	QObject::connect(m_p_tune_manager, &TuneManager::GeneratingSongStateChanged,
 					 this, &SongPlainTextEdit::HandleGeneratingSongStateChanged);
+	QObject::connect(m_p_tune_manager, &TuneManager::GeneratingTrackStateChanged,
+					 this, &SongPlainTextEdit::HandleGeneratingTrackStateChanged);
 
 	QObject::connect(this, &QPlainTextEdit::cursorPositionChanged,
 					 this, &SongPlainTextEdit::HandleCursorPositionChanged);
@@ -108,7 +110,6 @@ void SongPlainTextEdit::CorrectCursorPosition(void)
 	m_previous_textcuror_position =  QPlainTextEdit::textCursor().position();
 }
 
-
 /**********************************************************************************/
 
 void SongPlainTextEdit::ShowSongs(void)
@@ -138,7 +139,6 @@ void SongPlainTextEdit::ShowSongs(void)
 
 	QPlainTextEdit::moveCursor(QTextCursor::Start);
 }
-
 
 /**********************************************************************************/
 
@@ -198,4 +198,14 @@ void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int ge
 
 		QPlainTextEdit::verticalScrollBar()->setValue(scrolling_value);
 	}while(0);
+}
+
+/**********************************************************************************/
+
+void SongPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_playing, int generating_track_index, int generating_line_index)
+{
+	Q_UNUSED(generating_track_index);
+	Q_UNUSED(generating_line_index);
+
+	QPlainTextEdit::setReadOnly(is_playing);
 }

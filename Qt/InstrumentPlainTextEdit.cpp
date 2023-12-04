@@ -8,6 +8,11 @@ InstrumentPlainTextEdit::InstrumentPlainTextEdit(TuneManager *p_tune_manager, QW
 	font.setStyleHint(QFont::TypeWriter);
 	font.setPixelSize(22);
 	QWidget::setFont(font);
+
+	QObject::connect(m_p_tune_manager, &TuneManager::GeneratingSongStateChanged,
+					 this, &InstrumentPlainTextEdit::HandleGeneratingSongStateChanged);
+	QObject::connect(m_p_tune_manager, &TuneManager::GeneratingTrackStateChanged,
+					 this, &InstrumentPlainTextEdit::HandleGeneratingTrackStateChanged);
 }
 
 /**********************************************************************************/
@@ -43,5 +48,22 @@ void InstrumentPlainTextEdit::ShowInstrument(int index)
 		QPlainTextEdit::moveCursor(QTextCursor::End);
 		QPlainTextEdit::blockSignals(false);
 	}
+}
 
+/**********************************************************************************/
+
+void InstrumentPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int generating_song_index)
+{
+	Q_UNUSED(generating_song_index);
+	QPlainTextEdit::setReadOnly(is_playing);
+}
+
+/**********************************************************************************/
+
+void InstrumentPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_playing, int generating_track_index, int generating_line_index)
+{
+	Q_UNUSED(generating_track_index);
+	Q_UNUSED(generating_line_index);
+
+	QPlainTextEdit::setReadOnly(is_playing);
 }
