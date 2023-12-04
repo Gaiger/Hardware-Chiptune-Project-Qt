@@ -103,9 +103,9 @@ void HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged(bool is_gener
 {
 	Q_UNUSED(generating_song_index);
 
-	if(false == is_generating){
-		if(ui->PlaySongPushButton->text() == QString(UNICODE_STOP_ICON) ){
-			ui->PlaySongPushButton->setText(QString(UNICODE_PLAY_ICON));
+	if(true == is_generating){
+		if(ui->PlayTrackPushButton->text() == QString(UNICODE_STOP_ICON) ){
+			ui->PlayTrackPushButton->setText(QString(UNICODE_PLAY_ICON));
 		}
 	}
 }
@@ -117,11 +117,13 @@ void HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged(bool is_gene
 	Q_UNUSED(generating_track_index);
 	Q_UNUSED(generating_line_index);
 
-	if(false == is_generating){
-		if(ui->PlayTrackPushButton->text() == QString(UNICODE_STOP_ICON) ){
-			ui->PlayTrackPushButton->setText(QString(UNICODE_PLAY_ICON));
+	if(true == is_generating){
+		if(ui->PlaySongPushButton->text() == QString(UNICODE_STOP_ICON) ){
+			ui->PlaySongPushButton->setText(QString(UNICODE_PLAY_ICON));
 		}
 	}
+
+
 }
 
 /**********************************************************************************/
@@ -130,7 +132,6 @@ void HardwareChiptunePanelWidget::on_PlaySongPushButton_released(void)
 {
 	do
 	{
-
 		if( ui->PlaySongPushButton->text() == QString(UNICODE_PLAY_ICON)){
 			m_p_player->PlaySong( ui->SongIndexSpinBox->value());
 			ui->PlaySongPushButton->setText(QString(UNICODE_STOP_ICON));
