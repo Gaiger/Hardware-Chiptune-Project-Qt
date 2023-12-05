@@ -148,7 +148,6 @@ void HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged(bool is_gene
 		}
 		ui->TrackPlayPushButton->setText(QString(UNICODE_PLAY_ICON));
 	}while(0);
-
 }
 
 /**********************************************************************************/
@@ -174,7 +173,6 @@ void HardwareChiptunePanelWidget::on_SongPlayPushButton_released(void)
 
 void HardwareChiptunePanelWidget::on_TrackIndexSpinBox_valueChanged(int i)
 {
-	m_p_player->Stop();
 	m_p_track_plaintextedit->ShowTrack(i);
 }
 
