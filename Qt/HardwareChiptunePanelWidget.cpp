@@ -82,9 +82,14 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		QObject::connect(m_p_instrument_plaintextedit, &QPlainTextEdit::modificationChanged, this,
 						 [&](bool is_changed){
 			ui->InstrumentApplyPushButton->setEnabled(is_changed);
+			ui->ParsingErrorLabel->setText("");
 		});
+
+		QObject::connect(m_p_instrument_plaintextedit, &InstrumentPlainTextEdit::ParseTimbreErrorOccurred,
+						 ui->ParsingErrorLabel, &QLabel::setText);
 	}while(0);
 
+	 ui->ParsingErrorLabel->setFont(font20);
 	//QObject::startTimer(50);
 	m_p_song_plaintextedit->ShowSongs();
 	m_p_track_plaintextedit->ShowTrack(1);
@@ -222,6 +227,7 @@ void HardwareChiptunePanelWidget::on_InstrumentApplyPushButton_released(void)
 {
 	if(0 == m_p_instrument_plaintextedit->UpdateTimbre()){
 		ui->InstrumentApplyPushButton->setEnabled(false);
+		ui->ParsingErrorLabel->setText("");
 	}
 }
 

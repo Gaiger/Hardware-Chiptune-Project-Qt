@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>960</width>
-    <height>696</height>
+    <height>744</height>
    </rect>
   </property>
   <property name="font">
@@ -277,6 +277,19 @@ color: rgb(208, 208, 208);
    </property>
    <property name="text">
     <string>Apply</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="ParsingErrorLabel">
+   <property name="geometry">
+    <rect>
+     <x>120</x>
+     <y>688</y>
+     <width>800</width>
+     <height>48</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
    </property>
   </widget>
  </widget>
