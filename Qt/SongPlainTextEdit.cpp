@@ -147,22 +147,24 @@ void SongPlainTextEdit::ShowSongs(void)
 void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index)
 {
 	QPlainTextEdit::setReadOnly(is_generating);
-	QPlainTextEdit::blockSignals(true);
+	int playing_song_index = generating_song_index - 1;
+
 	do{
 		QTextBlockFormat fmt;
 		fmt.setProperty(QTextFormat::FullWidthSelection, true);
 		fmt.setBackground( QPlainTextEdit::palette().base().color());
 		QTextCursor cursor(QPlainTextEdit::document());
 		for(int i = 0; i < QPlainTextEdit::document()->blockCount(); i++){
-			QTextBlock textblock = QPlainTextEdit::document()->findBlockByLineNumber(i);
+			QTextBlock textblock = QPlainTextEdit::document()->findBlockByNumber(i);
 			if( QPlainTextEdit::palette().base().color() == textblock.blockFormat().background().color()){
 				continue;
 			}
 			cursor.setPosition(textblock.position(), QTextCursor::MoveAnchor);
+			QPlainTextEdit::blockSignals(true);
 			cursor.setBlockFormat(fmt);
+			QPlainTextEdit::blockSignals(false);
 		}
 	}while(0);
-	QPlainTextEdit::blockSignals(false);
 
 	if(false == is_generating){
 		QPlainTextEdit::document()->clearUndoRedoStacks();
@@ -170,12 +172,11 @@ void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_generating, int
 		return ;
 	}
 
-	if( 0 > generating_song_index || generating_song_index > QPlainTextEdit::document()->blockCount() - 1){
+	if( 0 > playing_song_index || playing_song_index > QPlainTextEdit::document()->blockCount() - 1){
 		return ;
 	}
 
-	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(generating_song_index);
-	QPlainTextEdit::blockSignals(true);
+	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByNumber(playing_song_index);
 	do{
 		QTextBlockFormat fmt;
 		fmt.setProperty(QTextFormat::FullWidthSelection, true);
@@ -183,28 +184,29 @@ void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_generating, int
 
 		QTextCursor current_song_textcursor(QPlainTextEdit::document());
 		current_song_textcursor.setPosition(current_song_textblock.position(), QTextCursor::MoveAnchor);
+		QPlainTextEdit::blockSignals(true);
 		current_song_textcursor.setBlockFormat(fmt);
+		QPlainTextEdit::blockSignals(false);
 	}while(0);
 
 	do
 	{
 		QRect viewport_geometry = QPlainTextEdit::viewport()->geometry();
 		QRectF next_line_rect = QPlainTextEdit::blockBoundingGeometry(
-					QPlainTextEdit::document()->findBlockByLineNumber(generating_song_index + 1));
+					QPlainTextEdit::document()->findBlockByNumber(playing_song_index + 1));
 
 		if(viewport_geometry.topLeft().y() < next_line_rect.topLeft().y()
 				&& viewport_geometry.bottomRight().y() > next_line_rect.bottomRight().y()){
 			break;
 		}
-
-		int scrolling_value = current_song_textblock.firstLineNumber() - 2;
-		if(generating_song_index + 1 == QPlainTextEdit::document()->blockCount()){
+#define MIN_NUMBER_OF_TOP_COUNTS_WHILE_SCROLLING			(2)
+		int scrolling_value = current_song_textblock.firstLineNumber() - MIN_NUMBER_OF_TOP_COUNTS_WHILE_SCROLLING;
+		if(playing_song_index + 1 == QPlainTextEdit::document()->blockCount()){
 			scrolling_value = QPlainTextEdit::verticalScrollBar()->maximum();
 		}
 
 		QPlainTextEdit::verticalScrollBar()->setValue(scrolling_value);
 	}while(0);
-	QPlainTextEdit::blockSignals(false);
 }
 
 /**********************************************************************************/

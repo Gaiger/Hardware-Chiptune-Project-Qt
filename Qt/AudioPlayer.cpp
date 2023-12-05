@@ -150,7 +150,6 @@ void AudioPlayer::Play(int filling_buffer_time_interval,
 	}
 	int audio_buffer_size = 2 * filling_buffer_time_interval
 			* format.sampleRate() * format.channelCount() * format.sampleSize()/8/1000;
-
 	m_p_audio_output->setNotifyInterval(filling_buffer_time_interval);
 
 	m_p_audio_output->setBufferSize(audio_buffer_size);

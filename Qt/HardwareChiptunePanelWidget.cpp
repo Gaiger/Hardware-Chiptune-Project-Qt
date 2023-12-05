@@ -124,7 +124,8 @@ void HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged(bool is_gener
 		if(true == is_generating){
 			ui->SongPlayPushButton->setText(QString(UNICODE_STOP_ICON));
 			ui->SongIndexSpinBox->setEnabled(false);
-			ui->SongIndexSpinBox->setValue(generating_song_index);
+			int playing_song_index = generating_song_index - 1;
+			ui->SongIndexSpinBox->setValue(playing_song_index);
 			break;
 		}
 
@@ -171,6 +172,13 @@ void HardwareChiptunePanelWidget::on_SongPlayPushButton_released(void)
 
 /**********************************************************************************/
 
+void HardwareChiptunePanelWidget::on_SongApplyPushButton_released(void)
+{
+
+}
+
+/**********************************************************************************/
+
 void HardwareChiptunePanelWidget::on_TrackIndexSpinBox_valueChanged(int i)
 {
 	m_p_track_plaintextedit->ShowTrack(i);
@@ -196,7 +204,25 @@ void HardwareChiptunePanelWidget::on_TrackPlayPushButton_released(void)
 
 /**********************************************************************************/
 
+void HardwareChiptunePanelWidget::on_TrackApplyPushButton_released(void)
+{
+
+}
+
+/**********************************************************************************/
+
 void HardwareChiptunePanelWidget::on_InstrumentIndexSpinBox_valueChanged(int i)
 {
 	m_p_instrument_plaintextedit->ShowInstrument(i);
 }
+
+/**********************************************************************************/
+
+void HardwareChiptunePanelWidget::on_InstrumentApplyPushButton_released(void)
+{
+	if(0 == m_p_instrument_plaintextedit->UpdateTimbre()){
+		ui->InstrumentApplyPushButton->setEnabled(false);
+	}
+}
+
+/**********************************************************************************/

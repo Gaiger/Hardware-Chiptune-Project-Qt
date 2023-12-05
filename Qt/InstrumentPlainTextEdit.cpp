@@ -58,6 +58,7 @@ void InstrumentPlainTextEdit::ShowInstrument(int index)
 void InstrumentPlainTextEdit::HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index)
 {
 	Q_UNUSED(generating_song_index);
+
 	QPlainTextEdit::setReadOnly(is_generating);
 }
 
@@ -69,4 +70,24 @@ void InstrumentPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generati
 	Q_UNUSED(generating_line_index);
 
 	QPlainTextEdit::setReadOnly(is_generating);
+}
+
+/**********************************************************************************/
+
+int InstrumentPlainTextEdit::ParseDocument(void)
+{
+	QTextDocument *p_textdocument = QPlainTextEdit::document();
+
+	for(int i = 0; i < p_textdocument->lineCount(); i++){
+
+	}
+
+	return 0;
+}
+
+/**********************************************************************************/
+
+int InstrumentPlainTextEdit::UpdateTimbre(void)
+{
+	return ParseDocument();
 }

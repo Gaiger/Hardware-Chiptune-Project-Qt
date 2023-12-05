@@ -80,8 +80,8 @@ void TrackPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int g
 
 void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index)
 {
-	QPlainTextEdit::blockSignals(true);
 	QPlainTextEdit::setReadOnly(is_generating);
+	int playing_line_index = generating_line_index - 1;
 
 	do{
 		QTextBlockFormat fmt;
@@ -89,15 +89,17 @@ void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, i
 		fmt.setBackground( QPlainTextEdit::palette().base().color());
 		QTextCursor cursor(QPlainTextEdit::document());
 		for(int i = 0; i < QPlainTextEdit::document()->blockCount(); i++){
-			QTextBlock textblock = QPlainTextEdit::document()->findBlockByLineNumber(i);
+			QTextBlock textblock = QPlainTextEdit::document()->findBlockByNumber(i);
 			if( QPlainTextEdit::palette().base().color() == textblock.blockFormat().background().color()){
 				continue;
 			}
 			cursor.setPosition(textblock.position(), QTextCursor::MoveAnchor);
+			QPlainTextEdit::blockSignals(true);
 			cursor.setBlockFormat(fmt);
+			QPlainTextEdit::blockSignals(false);
 		}
 	}while(0);
-	QPlainTextEdit::blockSignals(false);
+
 	if(false == is_generating){
 		QPlainTextEdit::document()->clearUndoRedoStacks();
 		QPlainTextEdit::document()->setModified(false);
@@ -108,12 +110,12 @@ void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, i
 		return ;
 	}
 
-	if( 0 > generating_line_index || generating_line_index > QPlainTextEdit::document()->blockCount() - 1){
+	if( 0 > playing_line_index || playing_line_index > QPlainTextEdit::document()->blockCount() - 1){
 		return ;
 	}
 
 	QPlainTextEdit::blockSignals(true);
-	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByLineNumber(generating_line_index);
+	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByNumber(playing_line_index);
 	do{
 		QTextBlockFormat fmt;
 		fmt.setProperty(QTextFormat::FullWidthSelection, true);
@@ -121,29 +123,30 @@ void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, i
 
 		QTextCursor current_song_textcursor(QPlainTextEdit::document());
 		current_song_textcursor.setPosition(current_song_textblock.position(), QTextCursor::MoveAnchor);
+		QPlainTextEdit::blockSignals(true);
 		current_song_textcursor.setBlockFormat(fmt);
-
+		QPlainTextEdit::blockSignals(false);
 	}while(0);
 
 	do
 	{
 		QRect viewport_geometry = QPlainTextEdit::viewport()->geometry();
 		QRectF next_line_rect = QPlainTextEdit::blockBoundingGeometry(
-					QPlainTextEdit::document()->findBlockByLineNumber(generating_line_index + 1));
+					QPlainTextEdit::document()->findBlockByNumber(playing_line_index + 1));
 
 		if(viewport_geometry.topLeft().y() < next_line_rect.topLeft().y()
 				&& viewport_geometry.bottomRight().y() > next_line_rect.bottomRight().y()){
 			break;
 		}
 
-		int scrolling_value = current_song_textblock.firstLineNumber() - 2;
+#define MIN_NUMBER_OF_TOP_COUNTS_WHILE_SCROLLING			(2)
+		int scrolling_value = current_song_textblock.firstLineNumber() - MIN_NUMBER_OF_TOP_COUNTS_WHILE_SCROLLING;
 		if(generating_line_index + 1 == QPlainTextEdit::document()->blockCount()){
 			scrolling_value = QPlainTextEdit::verticalScrollBar()->maximum();
 		}
 
 		QPlainTextEdit::verticalScrollBar()->setValue(scrolling_value);
 	}while(0);
-	QPlainTextEdit::blockSignals(false);
 }
 
 /**********************************************************************************/

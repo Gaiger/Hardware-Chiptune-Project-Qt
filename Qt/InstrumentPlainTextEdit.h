@@ -11,9 +11,13 @@ public:
 	explicit InstrumentPlainTextEdit(TuneManager *p_tune_manager, QWidget *parent = nullptr);
 
 	void ShowInstrument(int index);
+	int UpdateTimbre(void);
 private slots:
 	void HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index);
 	void HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index);
+
+private:
+	int ParseDocument(void);
 private:
 	TuneManager *m_p_tune_manager;
 };

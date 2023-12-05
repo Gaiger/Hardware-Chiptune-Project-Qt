@@ -24,11 +24,14 @@ private :
 
 private slots:
 	void on_SongPlayPushButton_released(void);
+	void on_SongApplyPushButton_released(void);
 
 	void on_TrackIndexSpinBox_valueChanged(int i);
 	void on_TrackPlayPushButton_released(void);
+	void on_TrackApplyPushButton_released(void);
 
 	void on_InstrumentIndexSpinBox_valueChanged(int i);
+	void on_InstrumentApplyPushButton_released(void);
 
 private slots:
 	void HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index);
