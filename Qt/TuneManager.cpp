@@ -60,6 +60,8 @@ public:
 		m_p_tracks = nullptr;
 		m_number_of_tracks = 0;
 		m_track_length = 0;
+
+		m_is_B_note_as_H_note = false;
 	}
 
 	bool IsGeneratingSongStateChanged(void)
@@ -141,6 +143,8 @@ public:
 
 
 public:
+	bool m_is_B_note_as_H_note;
+
 	TuneManager::songline *m_p_songlines;
 	int m_number_of_songlines;
 
@@ -205,6 +209,13 @@ TuneManager::~TuneManager(void)
 
 /**********************************************************************************/
 
+void TuneManager::SetBnoteAsHNote(bool is_H_note_as_B_note)
+{
+	m_p_private->m_is_B_note_as_H_note = is_H_note_as_B_note;
+}
+
+/**********************************************************************************/
+
 void TuneManager::LoadFile(QString filename)
 {
 	QMutexLocker locker(&m_mutex);
@@ -245,7 +256,18 @@ void TuneManager::GetInstruments(TuneManager::instrument ** pp_instruments, int 
 
 const QList<QString> TuneManager::GetNoteNameList(void)
 {
-	return QList<QString>() << "C-" << "C#" << "D-" << "D#" << "E-"<< "F-"<< "F#" << "G-" << "G#"<< "A-" << "A#" << "H-";
+	QList<QString> note_string;
+	do
+	{
+		if(m_p_private->m_is_B_note_as_H_note){
+			note_string << "C-" << "C#" << "D-" << "D#" << "E-"<< "F-"<< "F#" << "G-" << "G#"<< "A-" << "A#" << "H-";
+			break;
+		}
+
+		note_string << "C-" << "C#" << "D-" << "D#" << "E-"<< "F-"<< "F#" << "G-" << "G#"<< "A-" << "A#" << "B-";
+	}while(0);
+
+	return note_string;
 }
 
 /**********************************************************************************/
