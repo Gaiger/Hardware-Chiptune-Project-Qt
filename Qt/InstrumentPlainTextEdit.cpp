@@ -169,7 +169,7 @@ int InstrumentPlainTextEdit::ParseDocument(void)
 	QTextDocument *p_textdocument = QPlainTextEdit::document();
 
 	QRegExp regexp;
-	QString pattern = ".*(d|f|i|j|l|m|t|v|w|\\+|\\=|\\~)\\s+(\\S{1,2}(?:\\s*\\S)?)\\s*.*";
+	QString pattern = ".*(d|f|i|j|l|m|t|v|w|\\+|\\=|\\~)\\s+(\\S{1,2}(?:\\s*\\S+)?)\\s*.*";
 	regexp.setCaseSensitivity(Qt::CaseInsensitive);
 	regexp.setPattern(pattern);
 
