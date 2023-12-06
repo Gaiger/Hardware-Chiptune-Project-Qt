@@ -22,12 +22,9 @@ InstrumentPlainTextEdit::InstrumentPlainTextEdit(TuneManager *p_tune_manager, QW
 
 /**********************************************************************************/
 
-void InstrumentPlainTextEdit::ShowInstrument(int index, bool is_clean_undoredostack)
+void InstrumentPlainTextEdit::ShowInstrument(int index)
 {
-	m_current_shown_index = index;
-	QPlainTextEdit::blockSignals(true);
-	QPlainTextEdit::selectAll();
-	QPlainTextEdit::cut();
+	QList<QString> note_name_list = m_p_tune_manager->GetNoteNameList();
 
 	TuneManager::instrument *p_instruments;
 	int number_of_instruments;
@@ -40,7 +37,6 @@ void InstrumentPlainTextEdit::ShowInstrument(int index, bool is_clean_undoredost
 
 		if( p_current_instument->line[i].cmd == '+' ||  p_current_instument->line[i].cmd == '=') {
 			if( p_current_instument->line[i].param) {
-				QList<QString> note_name_list = m_p_tune_manager->GetNoteNameList();
 				uint8_t param = p_current_instument->line[i].param;
 				QString note_string = note_name_list.at((param - 1) % note_name_list.size());
 				line_string += QString::asprintf("%s%d",
@@ -52,13 +48,24 @@ void InstrumentPlainTextEdit::ShowInstrument(int index, bool is_clean_undoredost
 		} else {
 			line_string += QString::asprintf("%02x", p_current_instument->line[i].param);
 		}
-		whole_text += line_string + "\n";
+
+		whole_text += line_string;
+		if(p_current_instument->length - 1 != i){
+			whole_text += "\r\n";
+		}
 	}
-	QPlainTextEdit::appendPlainText(whole_text);
-	if(true == is_clean_undoredostack){
+
+	QPlainTextEdit::blockSignals(true);
+	QTextCursor textcursor(QPlainTextEdit::document());
+	textcursor.select(QTextCursor::Document);
+	textcursor.insertText(whole_text);
+	QPlainTextEdit::blockSignals(false);
+
+	if(m_current_shown_index != index){
 		QPlainTextEdit::document()->clearUndoRedoStacks();
 	}
-	QPlainTextEdit::blockSignals(false);
+	m_current_shown_index = index;
+
 	QPlainTextEdit::document()->setModified(false);
 }
 
@@ -94,7 +101,7 @@ int InstrumentPlainTextEdit::ParseInstrlineString(QString cmd_string, QString pa
 		return -1;
 	}
 	char cmd = cmd_string.at(0).toLatin1();
-	p_instrline->cmd = cmd;
+	uint8_t parameter;
 	switch(cmd){
 
 	case 'd':
@@ -113,7 +120,7 @@ int InstrumentPlainTextEdit::ParseInstrlineString(QString cmd_string, QString pa
 			if(false == is_ok || 0 > value || 0xFF < value){
 				return -2;
 			}
-			p_instrline->param = (uint8_t)value;
+			parameter = (uint8_t)value;
 		}while(0);
 		break;
 	case '+':
@@ -134,14 +141,18 @@ int InstrumentPlainTextEdit::ParseInstrlineString(QString cmd_string, QString pa
 				return -2;
 			}
 
-			p_instrline->param  = (uint8_t)((note_index + 1) + value * note_name_list.size());
+			parameter  = (uint8_t)((note_index + 1) + value * note_name_list.size());
 		}while(0);
 		break;
 	case 0:
-		p_instrline->param = 0;
-		break;
 	default:
+		parameter = 0;
 		break;
+	}
+
+	if(nullptr != p_instrline) {
+		p_instrline->cmd = cmd;
+		p_instrline->param = parameter;
 	}
 
 	return 0;
@@ -156,55 +167,57 @@ int InstrumentPlainTextEdit::ParseDocument(void)
 	QTextDocument *p_textdocument = QPlainTextEdit::document();
 
 	QRegExp regexp;
-	//QString pattern = ".*\\d+\\s*:\\s+(d|f|i|j|l|m|t|v|w|\\+|\\=|\\~).*(\\S{1,3})\\s*.*";
-	QString pattern = ".*(d|f|i|j|l|m|t|v|w|\\+|\\=|\\~)\\s+(\\S{1,3})\\s*.*";
+	QString pattern = ".*(d|f|i|j|l|m|t|v|w|\\+|\\=|\\~)\\s+(\\S{1,2}(?:\\s*\\S)?)\\s*.*";
 	regexp.setCaseSensitivity(Qt::CaseInsensitive);
 	regexp.setPattern(pattern);
-	int line_length = 0;
-	for(int j = 0; j < 2; j++){
 
-		for(int i = 0; i < p_textdocument->lineCount(); i++){
-			QString line_string = p_textdocument->findBlockByLineNumber(i).text();
-			if(true == line_string.trimmed().isEmpty()){
-				continue;
-			}
-			QString error_string = "ERROR : Instrument line " + QString::number(i + 1);
-			error_string += " : " + p_textdocument->findBlockByLineNumber(i).text() + "\n\t";
+	for(int i = 0; i < p_textdocument->lineCount(); i++){
+		QString line_string = p_textdocument->findBlockByNumber(i).text();
+		if(true == line_string.trimmed().isEmpty()){
+			continue;
+		}
+		QString error_string = "ERROR : Instrument line " + QString::number(i + 1);
+		error_string += " : " + p_textdocument->findBlockByLineNumber(i).text() + "\n\t";
 
-			//qDebug() << regexp.exactMatch(p_textdocument->findBlockByLineNumber(i).text());
-			if(-1 == regexp.indexIn(p_textdocument->findBlockByLineNumber(i).text())){
-				error_string +=	"expression is not recognizable";
-				emit ParseTimbreErrorOccurred(error_string);
-				return -1;
-			}
-
-			TuneManager::instrline instrline;
-			int ret = ParseInstrlineString(regexp.cap(1).toLower(), regexp.cap(2).toUpper(), &instrline);
-			do{
-				if(-1 == ret){
-					error_string +=	"cmd is unknown";
-					break;
-				}
-
-				if(-2 == ret){
-					error_string +=	"parameter is not acceptable";
-				}
-			} while(0);
-
-			if(0 != ret){
-				emit ParseTimbreErrorOccurred(error_string);
-				return -2;
-			}
-
-			if(1 == j){
-				memcpy(&p_instruments[m_current_shown_index].line[i], &instrline, sizeof(TuneManager::instrline));
-				line_length += 1;
-			}
+		//qDebug() << regexp.exactMatch(p_textdocument->findBlockByNumber(i).text());
+		if(-1 == regexp.indexIn(p_textdocument->findBlockByNumber(i).text())){
+			emit ParseTimbreErrorOccurred(error_string);
+			return -1;
 		}
 
+		int ret = ParseInstrlineString(regexp.cap(1).toLower(), regexp.cap(2).toUpper(), nullptr);
+		do{
+			if(-1 == ret){
+				error_string +=	"cmd is unknown";
+				break;
+			}
+			if(-2 == ret){
+				error_string +=	"parameter is not acceptable";
+			}
+		} while(0);
+
+		if(0 != ret){
+			emit ParseTimbreErrorOccurred(error_string);
+			return -2;
+		}
 	}
-	p_instruments[m_current_shown_index].length = line_length;
-	ShowInstrument(m_current_shown_index, false);
+
+	int ii = 0;
+	for(int i = 0; i < p_textdocument->lineCount(); i++){
+		QString line_string = p_textdocument->findBlockByNumber(i).text();
+		if(true == line_string.trimmed().isEmpty()){
+			continue;
+		}
+
+		regexp.indexIn(p_textdocument->findBlockByNumber(i).text());
+		TuneManager::instrline instrline;
+		ParseInstrlineString(regexp.cap(1).toLower(), regexp.cap(2).toUpper(), &instrline);
+		memcpy(&p_instruments[m_current_shown_index].line[ii], &instrline, sizeof(TuneManager::instrline));
+		ii += 1;
+	}
+	p_instruments[m_current_shown_index].length = ii;
+
+	ShowInstrument(m_current_shown_index);
 	return 0;
 }
 

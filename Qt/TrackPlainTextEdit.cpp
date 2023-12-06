@@ -8,7 +8,7 @@
 TrackPlainTextEdit::TrackPlainTextEdit(TuneManager *p_tune_manager, QWidget *parent)
 	:  QPlainTextEdit(parent),
 	  m_p_tune_manager(p_tune_manager),
-	  m_current_shown_track_index(0)
+	  m_current_shown_track_index(-1)
 {
 	QFont font("Monospace");
 	font.setStyleHint(QFont::TypeWriter);
@@ -25,25 +25,24 @@ TrackPlainTextEdit::TrackPlainTextEdit(TuneManager *p_tune_manager, QWidget *par
 
 void TrackPlainTextEdit::ShowTrack(int index)
 {
-	QPlainTextEdit::blockSignals(true);
-	QPlainTextEdit::clear();
-	m_current_shown_track_index = index;
+	QList<QString> note_name_list = m_p_tune_manager->GetNoteNameList();
 
 	TuneManager::track *p_tracks;
 	int numberf_of_tracks;
 	int track_length;
 	m_p_tune_manager->GetTracks(&p_tracks, &numberf_of_tracks, &track_length);
-	TuneManager::track *p_current_track = &p_tracks[m_current_shown_track_index];
+	TuneManager::track *p_current_track = &p_tracks[index];
+	QString whole_text;
 	for(int i = 0; i < track_length; i++){
 		QString line_string;
 		line_string += QString::asprintf("%02x: ", i);
 
 		uint8_t note = p_current_track->line[i].note;
 		if(p_current_track->line[i].note) {
-			QString note_string = m_p_tune_manager->GetNoteNameList().at((note - 1) % 12);
+			QString note_string = note_name_list.at((note - 1) % note_name_list.size());
 			line_string += QString::asprintf("%s%d",
 											 note_string.toLatin1().constData(),
-											(note - 1) / 12 );
+											(note - 1) / note_name_list.size() );
 		} else {
 			line_string += QString::asprintf("---");
 		}
@@ -58,13 +57,24 @@ void TrackPlainTextEdit::ShowTrack(int index)
 			}
 		}
 
-		QPlainTextEdit::moveCursor(QTextCursor::End);
-		QPlainTextEdit::appendPlainText(line_string);
-		QPlainTextEdit::moveCursor(QTextCursor::End);
+		whole_text += line_string;
+		if(track_length - 1 != i){
+			whole_text += "\n";
+		}
 	}
 
-	QPlainTextEdit::document()->clearUndoRedoStacks();
+	qDebug().noquote() << whole_text;
+	QPlainTextEdit::blockSignals(true);
+	QTextCursor textcursor(QPlainTextEdit::document());
+	textcursor.select(QTextCursor::Document);
+	textcursor.insertText(whole_text);
 	QPlainTextEdit::blockSignals(false);
+
+	if(m_current_shown_track_index != index){
+		QPlainTextEdit::document()->clearUndoRedoStacks();
+	}
+	m_current_shown_track_index = index;
+
 	QPlainTextEdit::document()->setModified(false);
 }
 

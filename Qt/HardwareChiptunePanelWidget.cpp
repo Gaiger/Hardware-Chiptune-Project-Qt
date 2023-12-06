@@ -83,6 +83,9 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 						 [&](bool is_changed){
 			ui->InstrumentApplyPushButton->setEnabled(is_changed);
 			ui->ParsingErrorLabel->setText("");
+
+			ui->SongPlayPushButton->setEnabled(!is_changed);
+			ui->TrackPlayPushButton->setEnabled(!is_changed);
 		});
 
 		QObject::connect(m_p_instrument_plaintextedit, &InstrumentPlainTextEdit::ParseTimbreErrorOccurred,
@@ -231,4 +234,3 @@ void HardwareChiptunePanelWidget::on_InstrumentApplyPushButton_released(void)
 	}
 }
 
-/**********************************************************************************/

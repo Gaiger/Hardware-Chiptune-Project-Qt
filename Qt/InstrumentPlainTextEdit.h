@@ -10,7 +10,7 @@ class InstrumentPlainTextEdit : public QPlainTextEdit
 public:
 	explicit InstrumentPlainTextEdit(TuneManager *p_tune_manager, QWidget *parent = nullptr);
 
-	void ShowInstrument(int index, bool is_clean_undoredostack = true);
+	void ShowInstrument(int index);
 	int UpdateTimbre(void);
 public:
 	signals:
