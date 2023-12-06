@@ -9,6 +9,7 @@ InstrumentPlainTextEdit::InstrumentPlainTextEdit(TuneManager *p_tune_manager, QW
 	  m_p_tune_manager(p_tune_manager),
 	  m_current_shown_index(-1)
 {
+	QPlainTextEdit::setFocusPolicy(Qt::ClickFocus);
 	QFont font("Monospace");
 	font.setStyleHint(QFont::TypeWriter);
 	font.setPixelSize(22);
@@ -30,6 +31,7 @@ void InstrumentPlainTextEdit::ShowInstrument(int index)
 	int number_of_instruments;
 	m_p_tune_manager->GetInstruments(&p_instruments, &number_of_instruments);
 	TuneManager::instrument *p_current_instument = &p_instruments[index];
+
 	QString whole_text;
 	for(int i = 0; i < p_current_instument->length; i++) {
 		QString line_string;

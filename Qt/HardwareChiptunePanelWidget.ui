@@ -293,6 +293,16 @@ color: rgb(208, 208, 208);
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>SongIndexSpinBox</tabstop>
+  <tabstop>SongPlayPushButton</tabstop>
+  <tabstop>SongApplyPushButton</tabstop>
+  <tabstop>TrackIndexSpinBox</tabstop>
+  <tabstop>TrackPlayPushButton</tabstop>
+  <tabstop>TrackApplyPushButton</tabstop>
+  <tabstop>InstrumentIndexSpinBox</tabstop>
+  <tabstop>InstrumentApplyPushButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

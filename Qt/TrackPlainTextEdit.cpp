@@ -10,6 +10,8 @@ TrackPlainTextEdit::TrackPlainTextEdit(TuneManager *p_tune_manager, QWidget *par
 	  m_p_tune_manager(p_tune_manager),
 	  m_current_shown_track_index(-1)
 {
+	QPlainTextEdit::setFocusPolicy(Qt::ClickFocus);
+
 	QFont font("Monospace");
 	font.setStyleHint(QFont::TypeWriter);
 	font.setPixelSize(16);
@@ -32,6 +34,7 @@ void TrackPlainTextEdit::ShowTrack(int index)
 	int track_length;
 	m_p_tune_manager->GetTracks(&p_tracks, &numberf_of_tracks, &track_length);
 	TuneManager::track *p_current_track = &p_tracks[index];
+
 	QString whole_text;
 	for(int i = 0; i < track_length; i++){
 		QString line_string;
@@ -90,7 +93,6 @@ void TrackPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int g
 void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index)
 {
 	QPlainTextEdit::setReadOnly(is_generating);
-	int playing_line_index = generating_line_index - 1;
 
 	do{
 		QTextBlockFormat fmt;
@@ -119,6 +121,7 @@ void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, i
 		return ;
 	}
 
+	int playing_line_index = generating_line_index - 1;
 	if( 0 > playing_line_index || playing_line_index > QPlainTextEdit::document()->blockCount() - 1){
 		return ;
 	}

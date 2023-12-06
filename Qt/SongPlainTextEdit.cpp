@@ -15,7 +15,7 @@ SongPlainTextEdit::SongPlainTextEdit(TuneManager *p_tune_manager, QWidget *paren
 	font.setPixelSize(20);
 	QWidget::setFont(font);
 
-	QPlainTextEdit::setCursorWidth(10);
+	//QPlainTextEdit::setCursorWidth(10);
 
 	QObject::connect(m_p_tune_manager, &TuneManager::GeneratingSongStateChanged,
 					 this, &SongPlainTextEdit::HandleGeneratingSongStateChanged);
@@ -141,6 +141,7 @@ void SongPlainTextEdit::ShowSongs(void)
 	textcursor.insertText(whole_text);
 	QPlainTextEdit::blockSignals(false);
 
+	QPlainTextEdit::document()->clearUndoRedoStacks();
 	QPlainTextEdit::document()->setModified(false);
 }
 
@@ -149,8 +150,6 @@ void SongPlainTextEdit::ShowSongs(void)
 void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index)
 {
 	QPlainTextEdit::setReadOnly(is_generating);
-	int playing_song_index = generating_song_index - 1;
-
 	do{
 		QTextBlockFormat fmt;
 		fmt.setProperty(QTextFormat::FullWidthSelection, true);
@@ -174,6 +173,7 @@ void SongPlainTextEdit::HandleGeneratingSongStateChanged(bool is_generating, int
 		return ;
 	}
 
+	int playing_song_index = generating_song_index - 1;
 	if( 0 > playing_song_index || playing_song_index > QPlainTextEdit::document()->blockCount() - 1){
 		return ;
 	}
