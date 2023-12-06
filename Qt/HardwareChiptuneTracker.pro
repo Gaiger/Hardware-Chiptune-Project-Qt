@@ -28,6 +28,7 @@ HEADERS += \
     ../stuff.h \
     AudioPlayer.h \
     HardwareChiptunePanelWidget.h \
+    HighlightWholeLinePlainTextEdit.h \
     InstrumentPlainTextEdit.h \
     SongPlainTextEdit.h \
     TrackPlainTextEdit.h \

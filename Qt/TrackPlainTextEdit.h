@@ -1,10 +1,10 @@
 #ifndef TRACKPLAINTEXTEDIT_H
 #define TRACKPLAINTEXTEDIT_H
 
-#include <QPlainTextEdit>
 #include <TuneManager.h>
+#include <HighlightWholeLinePlainTextEdit.h>
 
-class TrackPlainTextEdit : public QPlainTextEdit
+class TrackPlainTextEdit : public HighlightWholeLinePlainTextEdit
 {
 	Q_OBJECT
 public:

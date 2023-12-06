@@ -6,7 +6,7 @@
 #include "TrackPlainTextEdit.h"
 
 TrackPlainTextEdit::TrackPlainTextEdit(TuneManager *p_tune_manager, QWidget *parent)
-	:  QPlainTextEdit(parent),
+	:  HighlightWholeLinePlainTextEdit(parent),
 	  m_p_tune_manager(p_tune_manager),
 	  m_current_shown_track_index(-1)
 {
@@ -85,6 +85,7 @@ void TrackPlainTextEdit::ShowTrack(int index)
 void TrackPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int generating_song_index)
 {
 	Q_UNUSED(generating_song_index);
+
 	QPlainTextEdit::setReadOnly(is_playing);
 }
 
@@ -92,73 +93,14 @@ void TrackPlainTextEdit::HandleGeneratingSongStateChanged(bool is_playing, int g
 
 void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index)
 {
+	Q_UNUSED(generating_track_index);
+
 	QPlainTextEdit::setReadOnly(is_generating);
-
-	do{
-		QTextBlockFormat fmt;
-		fmt.setProperty(QTextFormat::FullWidthSelection, true);
-		fmt.setBackground( QPlainTextEdit::palette().base().color());
-		QTextCursor cursor(QPlainTextEdit::document());
-		for(int i = 0; i < QPlainTextEdit::document()->blockCount(); i++){
-			QTextBlock textblock = QPlainTextEdit::document()->findBlockByNumber(i);
-			if( QPlainTextEdit::palette().base().color() == textblock.blockFormat().background().color()){
-				continue;
-			}
-			cursor.setPosition(textblock.position(), QTextCursor::MoveAnchor);
-			QPlainTextEdit::blockSignals(true);
-			cursor.setBlockFormat(fmt);
-			QPlainTextEdit::blockSignals(false);
-		}
-	}while(0);
-
+	int highlight_line_index = generating_line_index - 1;
 	if(false == is_generating){
-		QPlainTextEdit::document()->clearUndoRedoStacks();
-		QPlainTextEdit::document()->setModified(false);
-		return ;
+		highlight_line_index = -1;
 	}
-
-	if(generating_track_index != m_current_shown_track_index){
-		return ;
-	}
-
-	int playing_line_index = generating_line_index - 1;
-	if( 0 > playing_line_index || playing_line_index > QPlainTextEdit::document()->blockCount() - 1){
-		return ;
-	}
-
-	QPlainTextEdit::blockSignals(true);
-	QTextBlock current_song_textblock = QPlainTextEdit::document()->findBlockByNumber(playing_line_index);
-	do{
-		QTextBlockFormat fmt;
-		fmt.setProperty(QTextFormat::FullWidthSelection, true);
-		fmt.setBackground(QPlainTextEdit::palette().base().color().lighter(150));
-
-		QTextCursor current_song_textcursor(QPlainTextEdit::document());
-		current_song_textcursor.setPosition(current_song_textblock.position(), QTextCursor::MoveAnchor);
-		QPlainTextEdit::blockSignals(true);
-		current_song_textcursor.setBlockFormat(fmt);
-		QPlainTextEdit::blockSignals(false);
-	}while(0);
-
-	do
-	{
-		QRect viewport_geometry = QPlainTextEdit::viewport()->geometry();
-		QRectF next_line_rect = QPlainTextEdit::blockBoundingGeometry(
-					QPlainTextEdit::document()->findBlockByNumber(playing_line_index + 1));
-
-		if(viewport_geometry.topLeft().y() < next_line_rect.topLeft().y()
-				&& viewport_geometry.bottomRight().y() > next_line_rect.bottomRight().y()){
-			break;
-		}
-
-#define MIN_NUMBER_OF_TOP_COUNTS_WHILE_SCROLLING			(2)
-		int scrolling_value = current_song_textblock.firstLineNumber() - MIN_NUMBER_OF_TOP_COUNTS_WHILE_SCROLLING;
-		if(generating_line_index + 1 == QPlainTextEdit::document()->blockCount()){
-			scrolling_value = QPlainTextEdit::verticalScrollBar()->maximum();
-		}
-
-		QPlainTextEdit::verticalScrollBar()->setValue(scrolling_value);
-	}while(0);
+	HighlightWholeLine(highlight_line_index);
 }
 
 /**********************************************************************************/
