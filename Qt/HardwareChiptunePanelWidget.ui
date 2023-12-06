@@ -279,7 +279,7 @@ color: rgb(208, 208, 208);
     <string>Apply</string>
    </property>
   </widget>
-  <widget class="QLabel" name="ParsingErrorLabel">
+  <widget class="QLabel" name="ErrorMessageLabel">
    <property name="geometry">
     <rect>
      <x>120</x>

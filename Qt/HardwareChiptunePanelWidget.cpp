@@ -47,6 +47,9 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 			ui->SongApplyPushButton->setEnabled(is_changed);
 			ui->SongPlayPushButton->setEnabled(!is_changed);
 		});
+
+		QObject::connect(m_p_song_plaintextedit, &SongPlainTextEdit::ParseScoresErrorOccurred,
+						 ui->ErrorMessageLabel, &QLabel::setText);
 	}while(0);
 
 	do{
@@ -68,6 +71,9 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 			ui->TrackApplyPushButton->setEnabled(is_changed);
 			ui->TrackPlayPushButton->setEnabled(!is_changed);
 		});
+
+		QObject::connect(m_p_track_plaintextedit, &TrackPlainTextEdit::ParseMeasureErrorOccurred,
+						 ui->ErrorMessageLabel, &QLabel::setText);
 	}while(0);
 
 	do{
@@ -88,17 +94,17 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		QObject::connect(m_p_instrument_plaintextedit, &QPlainTextEdit::modificationChanged, this,
 						 [&](bool is_changed){
 			ui->InstrumentApplyPushButton->setEnabled(is_changed);
-			ui->ParsingErrorLabel->setText("");
+			ui->ErrorMessageLabel->setText("");
 
 			ui->SongPlayPushButton->setEnabled(!is_changed);
 			ui->TrackPlayPushButton->setEnabled(!is_changed);
 		});
 
 		QObject::connect(m_p_instrument_plaintextedit, &InstrumentPlainTextEdit::ParseTimbreErrorOccurred,
-						 ui->ParsingErrorLabel, &QLabel::setText);
+						 ui->ErrorMessageLabel, &QLabel::setText);
 	}while(0);
 
-	 ui->ParsingErrorLabel->setFont(font20);
+	 ui->ErrorMessageLabel->setFont(font20);
 	//QObject::startTimer(50);
 	m_p_song_plaintextedit->ShowSongs();
 	m_p_track_plaintextedit->ShowTrack(1);
@@ -222,7 +228,10 @@ void HardwareChiptunePanelWidget::on_SongPlayPushButton_released(void)
 
 void HardwareChiptunePanelWidget::on_SongApplyPushButton_released(void)
 {
-
+	if(0 == m_p_song_plaintextedit->UpdateScores()){
+		ui->SongApplyPushButton->setEnabled(false);
+		ui->ErrorMessageLabel->setText("");
+	}
 }
 
 /**********************************************************************************/
@@ -254,7 +263,10 @@ void HardwareChiptunePanelWidget::on_TrackPlayPushButton_released(void)
 
 void HardwareChiptunePanelWidget::on_TrackApplyPushButton_released(void)
 {
-
+	if(0 == m_p_track_plaintextedit->UpdateMeasure()){
+		ui->InstrumentApplyPushButton->setEnabled(false);
+		ui->ErrorMessageLabel->setText("");
+	}
 }
 
 /**********************************************************************************/
@@ -270,7 +282,7 @@ void HardwareChiptunePanelWidget::on_InstrumentApplyPushButton_released(void)
 {
 	if(0 == m_p_instrument_plaintextedit->UpdateTimbre()){
 		ui->InstrumentApplyPushButton->setEnabled(false);
-		ui->ParsingErrorLabel->setText("");
+		ui->ErrorMessageLabel->setText("");
 	}
 }
 

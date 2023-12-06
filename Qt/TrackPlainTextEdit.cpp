@@ -162,3 +162,15 @@ void TrackPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generating, i
 }
 
 /**********************************************************************************/
+
+int TrackPlainTextEdit::ParseDocument(void)
+{
+	return 0;
+}
+
+/**********************************************************************************/
+
+int TrackPlainTextEdit::UpdateMeasure(void)
+{
+	return ParseDocument();
+}

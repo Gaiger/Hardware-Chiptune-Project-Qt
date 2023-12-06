@@ -179,10 +179,11 @@ int InstrumentPlainTextEdit::ParseDocument(void)
 			continue;
 		}
 		QString error_string = "ERROR : Instrument line " + QString::number(i + 1);
-		error_string += " : " + p_textdocument->findBlockByLineNumber(i).text() + "\n\t";
+		error_string += " : <b>" + p_textdocument->findBlockByLineNumber(i).text() + "</b><br>";
 
 		//qDebug() << regexp.exactMatch(p_textdocument->findBlockByNumber(i).text());
 		if(-1 == regexp.indexIn(p_textdocument->findBlockByNumber(i).text())){
+			error_string +=	"expression is not recognizable";
 			emit ParseTimbreErrorOccurred(error_string);
 			return -1;
 		}

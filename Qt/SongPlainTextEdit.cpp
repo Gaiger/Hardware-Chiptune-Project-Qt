@@ -220,3 +220,17 @@ void SongPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_playing, int g
 
 	QPlainTextEdit::setReadOnly(is_playing);
 }
+
+/**********************************************************************************/
+
+int SongPlainTextEdit::ParseDocument(void)
+{
+	return 0;
+}
+
+/**********************************************************************************/
+
+int SongPlainTextEdit::UpdateScores(void)
+{
+	return ParseDocument();
+}
