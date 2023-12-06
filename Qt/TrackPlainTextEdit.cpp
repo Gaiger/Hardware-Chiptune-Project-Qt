@@ -63,7 +63,6 @@ void TrackPlainTextEdit::ShowTrack(int index)
 		}
 	}
 
-	qDebug().noquote() << whole_text;
 	QPlainTextEdit::blockSignals(true);
 	QTextCursor textcursor(QPlainTextEdit::document());
 	textcursor.select(QTextCursor::Document);

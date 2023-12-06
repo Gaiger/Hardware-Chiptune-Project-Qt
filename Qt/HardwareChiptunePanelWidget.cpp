@@ -1,4 +1,5 @@
 #include <QGridLayout>
+#include <QShortcut>
 #include "ui_HardwareChiptunePanelWidget.h"
 #include "HardwareChiptunePanelWidget.h"
 
@@ -37,7 +38,9 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 				m_p_player->GetTuneManager()->GetSongs(&p_songs, &number_of_songs);
 				ui->SongIndexSpinBox->setRange(0, number_of_songs - 1);
 		ui->SongIndexSpinBox->setFont(font20);
+
 		ui->SongApplyPushButton->setFont(font18_bold);
+		ui->SongApplyPushButton->setToolTip("ctrl + s");
 
 		QObject::connect(m_p_song_plaintextedit, &QPlainTextEdit::modificationChanged, this,
 						 [&](bool is_changed){
@@ -56,7 +59,9 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		m_p_player->GetTuneManager()->GetTracks(&p_track, &number_of_tracks, &track_length);
 		ui->TrackIndexSpinBox->setRange(0, number_of_tracks - 1);
 		ui->TrackIndexSpinBox->setFont(font20);
+
 		ui->TrackApplyPushButton->setFont(font18_bold);
+		ui->TrackApplyPushButton->setToolTip("ctrl + s");
 
 		QObject::connect(m_p_track_plaintextedit, &QPlainTextEdit::modificationChanged, this,
 						 [&](bool is_changed){
@@ -78,6 +83,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		ui->InstrumentIndexSpinBox->setFont(font20);
 
 		ui->InstrumentApplyPushButton->setFont(font18_bold);
+		ui->InstrumentApplyPushButton->setToolTip("ctrl + s");
 
 		QObject::connect(m_p_instrument_plaintextedit, &QPlainTextEdit::modificationChanged, this,
 						 [&](bool is_changed){
@@ -103,6 +109,11 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingTrackStateChanged,
 					 this, &HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged);
+
+	QShortcut *p_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this);
+
+	QObject::connect(p_shortcut, &QShortcut::activated,
+					 this, &HardwareChiptunePanelWidget::HandleShortcut_CTRL_S_Activated);
 }
 
 /**********************************************************************************/
@@ -156,6 +167,35 @@ void HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged(bool is_gene
 			break;
 		}
 		ui->TrackPlayPushButton->setText(QString(UNICODE_PLAY_ICON));
+	}while(0);
+}
+
+/**********************************************************************************/
+
+void HardwareChiptunePanelWidget::HandleShortcut_CTRL_S_Activated(void)
+{
+	do
+	{
+		if(true == m_p_song_plaintextedit->hasFocus()){
+			if(ui->SongApplyPushButton->isEnabled()){
+				ui->SongApplyPushButton->click();
+			}
+			break;
+		}
+
+		if(true == m_p_track_plaintextedit->hasFocus()){
+			if(ui->TrackApplyPushButton->isEnabled()){
+				ui->TrackApplyPushButton->click();
+			}
+			break;
+		}
+
+		if(true == m_p_instrument_plaintextedit->hasFocus()){
+			if(ui->InstrumentApplyPushButton->isEnabled()){
+				ui->InstrumentApplyPushButton->click();
+			}
+			break;
+		}
 	}while(0);
 }
 

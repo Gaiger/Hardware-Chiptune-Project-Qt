@@ -34,8 +34,12 @@ private slots:
 	void on_InstrumentApplyPushButton_released(void);
 
 private slots:
+	void HandleShortcut_CTRL_S_Activated(void);
+
+private slots:
 	void HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index);
 	void HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index);
+
 private:
 	SongPlainTextEdit *m_p_song_plaintextedit;
 	TrackPlainTextEdit *m_p_track_plaintextedit;
