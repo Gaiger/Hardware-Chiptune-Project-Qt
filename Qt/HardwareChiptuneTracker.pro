@@ -37,3 +37,5 @@ HEADERS += \
 
 FORMS += \
     HardwareChiptunePanelWidget.ui
+
+RC_ICONS = chip.ico

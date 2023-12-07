@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Hareware Chiptune Project</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget {
