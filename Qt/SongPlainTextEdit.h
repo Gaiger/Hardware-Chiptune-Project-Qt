@@ -10,7 +10,7 @@ class SongPlainTextEdit : public HighlightWholeLinePlainTextEdit
 public:
 	explicit SongPlainTextEdit(TuneManager *p_tune_manager, QWidget *parent = nullptr);
 
-	void ShowSongs(void);
+	void ShowSong(void);
 	int UpdateScores(void);
 public:
 	signals:
@@ -22,7 +22,7 @@ private slots:
 private slots:
 	void HandleCursorPositionChanged(void);
 private:
-	int ParseDocument(void);
+	int ParseDocument(bool is_update_to_memory);
 
 private:
 	void CorrectCursorPosition(void);

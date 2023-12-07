@@ -112,7 +112,7 @@ void SongPlainTextEdit::CorrectCursorPosition(void)
 
 /**********************************************************************************/
 
-void SongPlainTextEdit::ShowSongs(void)
+void SongPlainTextEdit::ShowSong(void)
 {
 	TuneManager::songline *p_songs;
 	int number_of_songs;
@@ -169,7 +169,7 @@ void SongPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_playing, int g
 
 /**********************************************************************************/
 
-int SongPlainTextEdit::ParseDocument(void)
+int SongPlainTextEdit::ParseDocument(bool is_update_to_memory)
 {
 	return 0;
 }
@@ -178,5 +178,12 @@ int SongPlainTextEdit::ParseDocument(void)
 
 int SongPlainTextEdit::UpdateScores(void)
 {
-	return ParseDocument();
+	int ret = ParseDocument(false);
+	if(0 != ret){
+		return ret;
+	}
+
+	ParseDocument(true);
+	ShowSong();
+	return 0;
 }

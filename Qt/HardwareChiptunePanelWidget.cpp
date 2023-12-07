@@ -106,7 +106,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 
 	 ui->ErrorMessageLabel->setFont(font20);
 	//QObject::startTimer(50);
-	m_p_song_plaintextedit->ShowSongs();
+	m_p_song_plaintextedit->ShowSong();
 	m_p_track_plaintextedit->ShowTrack(1);
 	m_p_instrument_plaintextedit->ShowInstrument(1);
 
