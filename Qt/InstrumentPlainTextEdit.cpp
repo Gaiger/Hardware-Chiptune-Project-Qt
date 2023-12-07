@@ -92,19 +92,14 @@ void InstrumentPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_generati
 
 /**********************************************************************************/
 
-struct instrline {
-	uint8_t		cmd;
-	uint8_t		param;
-};
-
-int InstrumentPlainTextEdit::ParseInstrlineString(QString cmd_string, QString parameter_string, TuneManager::instrline *p_instrline)
+int InstrumentPlainTextEdit::ParseTokensToInstrline(QString cmd_string, QString parameter_string, TuneManager::instrline *p_instrline)
 {
 	if(1 != cmd_string.size()){
 		return -1;
 	}
-	char cmd = cmd_string.at(0).toLatin1();
+	char command = cmd_string.at(0).toLatin1();
 	uint8_t parameter;
-	switch(cmd){
+	switch(command){
 
 	case 'd':
 	case 'f':
@@ -147,13 +142,14 @@ int InstrumentPlainTextEdit::ParseInstrlineString(QString cmd_string, QString pa
 		}while(0);
 		break;
 	case 0:
-	default:
 		parameter = 0;
+	default:
+		return -1;
 		break;
 	}
 
 	if(nullptr != p_instrline) {
-		p_instrline->cmd = cmd;
+		p_instrline->cmd = command;
 		p_instrline->param = parameter;
 	}
 
@@ -169,7 +165,9 @@ int InstrumentPlainTextEdit::ParseDocument(void)
 	QTextDocument *p_textdocument = QPlainTextEdit::document();
 
 	QRegExp regexp;
-	QString pattern = ".*(d|f|i|j|l|m|t|v|w|\\+|\\=|\\~)\\s+(\\S{1,2}(?:\\s*\\S+)?)\\s*.*";
+	//QString pattern = ".*(d|f|i|j|l|m|t|v|w|\\+|\\=|\\~)\\s+(\\S{1,2}(?:\\s*\\S+)?)\\s*.*";
+	//QString pattern = ".*(\\w|\\+|\\=|\\~)\\s+(\\S{1,2}(?:\\s*\\S+)?)\\s*.*";
+	QString pattern = ".*([^\\:|\\s]+)\\s+(\\S{1,2}(?:\\s*\\S+)?)\\s*.*";
 	regexp.setCaseSensitivity(Qt::CaseInsensitive);
 	regexp.setPattern(pattern);
 
@@ -188,14 +186,15 @@ int InstrumentPlainTextEdit::ParseDocument(void)
 			return -1;
 		}
 
-		int ret = ParseInstrlineString(regexp.cap(1).toLower(), regexp.cap(2).toUpper(), nullptr);
+		//qDebug() << regexp.cap(1) << regexp.cap(2);
+		int ret = ParseTokensToInstrline(regexp.cap(1).toLower(), regexp.cap(2).toUpper(), nullptr);
 		do{
 			if(-1 == ret){
-				error_string +=	"cmd is unknown";
+				error_string +=	"cmd <b>" + regexp.cap(1) + "</b> is unknown";
 				break;
 			}
 			if(-2 == ret){
-				error_string +=	"parameter is not acceptable";
+				error_string +=	"parameter <b>" + regexp.cap(2) +"</b> is not acceptable";
 			}
 		} while(0);
 
@@ -214,7 +213,7 @@ int InstrumentPlainTextEdit::ParseDocument(void)
 
 		regexp.indexIn(p_textdocument->findBlockByNumber(i).text());
 		TuneManager::instrline instrline;
-		ParseInstrlineString(regexp.cap(1).toLower(), regexp.cap(2).toUpper(), &instrline);
+		ParseTokensToInstrline(regexp.cap(1).toLower(), regexp.cap(2).toUpper(), &instrline);
 		memcpy(&p_instruments[m_current_shown_index].line[ii], &instrline, sizeof(TuneManager::instrline));
 		ii += 1;
 	}
