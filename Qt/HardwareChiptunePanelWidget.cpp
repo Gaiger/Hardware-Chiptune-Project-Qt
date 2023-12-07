@@ -111,10 +111,10 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	m_p_instrument_plaintextedit->ShowInstrument(1);
 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingSongStateChanged,
-					 this, &HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged);
+					 this, &HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged, Qt::QueuedConnection);
 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingTrackStateChanged,
-					 this, &HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged);
+					 this, &HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged, Qt::QueuedConnection);
 
 	QShortcut *p_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this);
 
