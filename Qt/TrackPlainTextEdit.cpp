@@ -163,11 +163,11 @@ int TrackPlainTextEdit::ParseTokensToTrackline(QString note_string, QString inst
 			cmd[i] = 0;
 			param[i] = 0;
 			if(true == cmd_param_string_list.at(i).isEmpty()){
-				break;
+				continue;
 			}
 
 			if(QString(".") == cmd_param_string_list.at(i).at(0)){
-				break;
+				continue;
 			}
 
 			cmd[i] = cmd_param_string_list.at(i).at(0).toLatin1();
@@ -232,7 +232,11 @@ int TrackPlainTextEdit::ParseDocument(bool is_update_to_memory)
 	QTextDocument *p_textdocument = QPlainTextEdit::document();
 
 	QRegExp regexp;
-	QString note_pattern  = ".*(\\w{1}\\-\\s*\\d|\\w{1}\\#\\s*\\d|\\-\\-\\-)(?:\\s+(\\S{1,2}))?(?:\\s+(\\S{1}\\s*\\S{0,2}))?(?:\\s+(\\S{1}\\s*\\S{0,2}))?.*";
+	QString note_pattern
+			= ".*(\\w{1}\\-\\s*\\d|\\w{1}\\#\\s*\\d|\\-\\-\\-)"
+			  "(?:\\s+(\\S{1,2}))?"
+			  "(?:\\s+(\\S{1}\\s*\\S{0,2})|\\.\\.\\.)?"
+			  "(?:\\s+(\\S{1}\\s*\\S{0,2})|\\.\\.\\.)?.*";
 	regexp.setCaseSensitivity(Qt::CaseInsensitive);
 	regexp.setPattern(note_pattern);
 
@@ -250,7 +254,7 @@ int TrackPlainTextEdit::ParseDocument(bool is_update_to_memory)
 			emit ParseMeasureErrorOccurred(error_string);
 			return -1;
 		}
-
+		qDebug() << regexp.cap(1) << regexp.cap(2) << regexp.cap(3) << regexp.cap(4);
 		TuneManager::trackline trackline;
 		int ret = ParseTokensToTrackline(regexp.cap(1).toUpper(), regexp.cap(2),
 										 QList<QString>() << regexp.cap(3).toLower() << regexp.cap(4).toLower(),
