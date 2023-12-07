@@ -20,7 +20,7 @@ private slots:
 	void HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index);
 	void HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index);
 private:
-	int ParseDocument(void);
+	int ParseDocument(bool is_update_to_memory);
 	int ParseTokensToInstrline(QString cmd_string, QString parameter_string, TuneManager::instrline *p_instrline);
 
 private:

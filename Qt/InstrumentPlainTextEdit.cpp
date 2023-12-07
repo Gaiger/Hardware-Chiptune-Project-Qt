@@ -100,7 +100,9 @@ int InstrumentPlainTextEdit::ParseTokensToInstrline(QString cmd_string, QString 
 	char cmd = cmd_string.at(0).toLatin1();
 	uint8_t param;
 	switch(cmd){
-
+	case 0:
+		param = 0;
+		break;
 	case 'd':
 	case 'f':
 	case 'i':
@@ -141,8 +143,6 @@ int InstrumentPlainTextEdit::ParseTokensToInstrline(QString cmd_string, QString 
 			param  = (uint8_t)((note_index + 1) + value * note_name_list.size());
 		}while(0);
 		break;
-	case 0:
-		param = 0;
 	default:
 		return -1;
 		break;
@@ -156,7 +156,7 @@ int InstrumentPlainTextEdit::ParseTokensToInstrline(QString cmd_string, QString 
 	return 0;
 }
 
-int InstrumentPlainTextEdit::ParseDocument(void)
+int InstrumentPlainTextEdit::ParseDocument(bool is_update_to_memory)
 {
 	TuneManager::instrument *p_instruments;
 	int number_of_instruments;
@@ -171,6 +171,7 @@ int InstrumentPlainTextEdit::ParseDocument(void)
 	regexp.setCaseSensitivity(Qt::CaseInsensitive);
 	regexp.setPattern(pattern);
 
+	int ii = 0;
 	for(int i = 0; i < p_textdocument->lineCount(); i++){
 		QString line_string = p_textdocument->findBlockByNumber(i).text();
 		if(true == line_string.trimmed().isEmpty()){
@@ -179,7 +180,6 @@ int InstrumentPlainTextEdit::ParseDocument(void)
 		QString error_string = "ERROR : Instrument line " + QString::number(i + 1);
 		error_string += " : <b>" + p_textdocument->findBlockByLineNumber(i).text() + "</b><br>";
 
-		//qDebug() << regexp.exactMatch(p_textdocument->findBlockByNumber(i).text());
 		if(-1 == regexp.indexIn(p_textdocument->findBlockByNumber(i).text())){
 			error_string +=	"expression is not recognizable";
 			emit ParseTimbreErrorOccurred(error_string);
@@ -187,14 +187,15 @@ int InstrumentPlainTextEdit::ParseDocument(void)
 		}
 
 		//qDebug() << regexp.cap(1) << regexp.cap(2);
-		int ret = ParseTokensToInstrline(regexp.cap(1).toLower(), regexp.cap(2).toUpper(), nullptr);
+		TuneManager::instrline instrline;
+		int ret = ParseTokensToInstrline(regexp.cap(1).toLower(), regexp.cap(2).toUpper(), &instrline);
 		do{
 			if(-1 == ret){
 				error_string +=	"cmd <b>" + regexp.cap(1) + "</b> is unknown";
 				break;
 			}
 			if(-2 == ret){
-				error_string +=	"parameter <b>" + regexp.cap(2) +"</b> is not acceptable";
+				error_string +=	"param <b>" + regexp.cap(2) +"</b> is not acceptable";
 			}
 		} while(0);
 
@@ -202,24 +203,17 @@ int InstrumentPlainTextEdit::ParseDocument(void)
 			emit ParseTimbreErrorOccurred(error_string);
 			return -2;
 		}
-	}
 
-	int ii = 0;
-	for(int i = 0; i < p_textdocument->lineCount(); i++){
-		QString line_string = p_textdocument->findBlockByNumber(i).text();
-		if(true == line_string.trimmed().isEmpty()){
-			continue;
+		if(true == is_update_to_memory){
+			memcpy(&p_instruments[m_current_shown_index].line[ii], &instrline, sizeof(TuneManager::instrline));
 		}
-
-		regexp.indexIn(p_textdocument->findBlockByNumber(i).text());
-		TuneManager::instrline instrline;
-		ParseTokensToInstrline(regexp.cap(1).toLower(), regexp.cap(2).toUpper(), &instrline);
-		memcpy(&p_instruments[m_current_shown_index].line[ii], &instrline, sizeof(TuneManager::instrline));
-		ii += 1;
+		ii++;
 	}
-	p_instruments[m_current_shown_index].length = ii;
 
-	ShowInstrument(m_current_shown_index);
+	if(true == is_update_to_memory){
+		p_instruments[m_current_shown_index].length = ii;
+	}
+
 	return 0;
 }
 
@@ -227,5 +221,11 @@ int InstrumentPlainTextEdit::ParseDocument(void)
 
 int InstrumentPlainTextEdit::UpdateTimbre(void)
 {
-	return ParseDocument();
+	int ret = ParseDocument(false);
+	if(0 != ret){
+		return ret;
+	}
+	ParseDocument(true);
+	ShowInstrument(m_current_shown_index);
+	return 0;
 }
