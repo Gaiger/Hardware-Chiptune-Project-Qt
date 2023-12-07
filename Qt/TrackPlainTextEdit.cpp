@@ -254,7 +254,7 @@ int TrackPlainTextEdit::ParseDocument(bool is_update_to_memory)
 			emit ParseMeasureErrorOccurred(error_string);
 			return -1;
 		}
-		qDebug() << regexp.cap(1) << regexp.cap(2) << regexp.cap(3) << regexp.cap(4);
+		//qDebug() << regexp.cap(1) << regexp.cap(2) << regexp.cap(3) << regexp.cap(4);
 		TuneManager::trackline trackline;
 		int ret = ParseTokensToTrackline(regexp.cap(1).toUpper(), regexp.cap(2),
 										 QList<QString>() << regexp.cap(3).toLower() << regexp.cap(4).toLower(),

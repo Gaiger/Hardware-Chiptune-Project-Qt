@@ -60,7 +60,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		int number_of_tracks;
 		int track_length;
 		m_p_player->GetTuneManager()->GetTracks(&p_track, &number_of_tracks, &track_length);
-		ui->TrackIndexSpinBox->setRange(0, number_of_tracks - 1);
+		ui->TrackIndexSpinBox->setRange(0 + 1, number_of_tracks - 1);
 		ui->TrackIndexSpinBox->setFont(font20);
 
 		ui->TrackApplyPushButton->setFont(font18_bold);
