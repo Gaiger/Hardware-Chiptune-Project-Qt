@@ -97,9 +97,9 @@ int InstrumentPlainTextEdit::ParseTokensToInstrline(QString cmd_string, QString 
 	if(1 != cmd_string.size()){
 		return -1;
 	}
-	char command = cmd_string.at(0).toLatin1();
-	uint8_t parameter;
-	switch(command){
+	char cmd = cmd_string.at(0).toLatin1();
+	uint8_t param;
+	switch(cmd){
 
 	case 'd':
 	case 'f':
@@ -117,7 +117,7 @@ int InstrumentPlainTextEdit::ParseTokensToInstrline(QString cmd_string, QString 
 			if(false == is_ok || 0 > value || 0xFF < value){
 				return -2;
 			}
-			parameter = (uint8_t)value;
+			param = (uint8_t)value;
 		}while(0);
 		break;
 	case '+':
@@ -138,19 +138,19 @@ int InstrumentPlainTextEdit::ParseTokensToInstrline(QString cmd_string, QString 
 				return -2;
 			}
 
-			parameter  = (uint8_t)((note_index + 1) + value * note_name_list.size());
+			param  = (uint8_t)((note_index + 1) + value * note_name_list.size());
 		}while(0);
 		break;
 	case 0:
-		parameter = 0;
+		param = 0;
 	default:
 		return -1;
 		break;
 	}
 
 	if(nullptr != p_instrline) {
-		p_instrline->cmd = command;
-		p_instrline->param = parameter;
+		p_instrline->cmd = cmd;
+		p_instrline->param = param;
 	}
 
 	return 0;
