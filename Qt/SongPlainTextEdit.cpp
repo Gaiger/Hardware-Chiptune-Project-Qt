@@ -173,6 +173,43 @@ void SongPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_playing, int g
 
 int SongPlainTextEdit::ParseDocument(bool is_update_to_memory)
 {
+	TuneManager::songline *p_songlines;
+	int number_of_songlines;
+	m_p_tune_manager->GetSongLines(&p_songlines, &number_of_songlines);
+
+	QTextDocument *p_textdocument = QPlainTextEdit::document();
+
+	QRegExp regexp;
+	QString note_pattern = "\\s*"
+						"(\\S{1,2}\\:\\s+)?"
+						"(\\S{1,2}(?:\\:\\S{1,2})?)"
+						"(?:\\s+(\\S+(?:\\:\\S+)?))?"
+						"(?:\\s+(\\S+(?:\\:\\S+)?))?"
+						"(?:\\s+(\\S+(?:\\:\\S+)?))?"
+						".*";
+
+	regexp.setCaseSensitivity(Qt::CaseInsensitive);
+	regexp.setPattern(note_pattern);
+
+	int ii = 0;
+	for(int i = 0; i < p_textdocument->lineCount(); i++){
+		QString line_string = p_textdocument->findBlockByNumber(i).text();
+		if(true == line_string.trimmed().isEmpty()){
+			continue;
+		}
+		QString error_string = "ERROR : Song line " + QString::number(i + 1);
+		error_string += " : <b>" + p_textdocument->findBlockByLineNumber(i).text() + "</b><br>";
+		if(-1 == regexp.indexIn(p_textdocument->findBlockByNumber(i).text())){
+			error_string +=	"expression is not recognizable";
+			emit ParseScoresErrorOccurred(error_string);
+			return -1;
+		}
+		qDebug() << regexp.cap(1) << regexp.cap(2) << regexp.cap(3) << regexp.cap(4) << regexp.cap(5);
+
+		ii++;
+		break;
+	}
+
 	return 0;
 }
 
