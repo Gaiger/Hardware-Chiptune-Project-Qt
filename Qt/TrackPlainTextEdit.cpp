@@ -233,7 +233,8 @@ int TrackPlainTextEdit::ParseDocument(bool is_update_to_memory)
 
 	QRegExp regexp;
 	QString note_pattern
-			= ".*(\\w{1}\\-\\s*\\d|\\w{1}\\#\\s*\\d|\\-\\-\\-)"
+			= "(\\S{1,2}\\:\\s*)?"
+			  "(\\S{2}\\s*\\S{1})"
 			  "(?:\\s+(\\S{1,2}))?"
 			  "(?:\\s+(\\S{1}\\s*\\S{0,2})|\\.\\.\\.)?"
 			  "(?:\\s+(\\S{1}\\s*\\S{0,2})|\\.\\.\\.)?.*";
@@ -254,35 +255,35 @@ int TrackPlainTextEdit::ParseDocument(bool is_update_to_memory)
 			emit ParseMeasureErrorOccurred(error_string);
 			return -1;
 		}
-		//qDebug() << regexp.cap(1) << regexp.cap(2) << regexp.cap(3) << regexp.cap(4);
+		//qDebug() << regexp.cap(1) << regexp.cap(2) << regexp.cap(3) << regexp.cap(4) << regexp.cap(5);
 		TuneManager::trackline trackline;
-		int ret = ParseTokensToTrackline(regexp.cap(1).toUpper(), regexp.cap(2),
-										 QList<QString>() << regexp.cap(3).toLower() << regexp.cap(4).toLower(),
+		int ret = ParseTokensToTrackline(regexp.cap(2).toUpper(), regexp.cap(3),
+										 QList<QString>() << regexp.cap(4).toLower() << regexp.cap(5).toLower(),
 										 &trackline);
 		do
 		{
 			if(-1 == ret){
-				error_string +=	"note <b>" + regexp.cap(1) + "</b> is unknown";
+				error_string +=	"note <b>" + regexp.cap(2) + "</b> is unknown";
 				break;
 			}
 			if(-2 == ret){
-				error_string +=	"instr <b>" + regexp.cap(2) +"</b> is not acceptable";
+				error_string +=	"instr <b>" + regexp.cap(3) +"</b> is not acceptable";
 				break;
 			}
 
 			if(-3 == ret || -5 == ret){
-				QString cmd_param_string = regexp.cap(3);
+				QString cmd_param_string = regexp.cap(4);
 				if(-5 == ret){
-					cmd_param_string = regexp.cap(4);
+					cmd_param_string = regexp.cap(5);
 				}
 				error_string +=	"cmd <b>" + QString(cmd_param_string.at(0)) +"</b> is not unknown";
 				break;
 			}
 
 			if(-4 == ret || -6 == ret){
-				QString cmd_param_string = regexp.cap(3);
+				QString cmd_param_string = regexp.cap(4);
 				if(-6 == ret){
-					cmd_param_string = regexp.cap(4);
+					cmd_param_string = regexp.cap(5);
 				}
 				QStringRef cmd_removed_string = QStringRef(&cmd_param_string, 1, cmd_param_string.size() -1);
 				do
