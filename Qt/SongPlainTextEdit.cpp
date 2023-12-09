@@ -114,23 +114,23 @@ void SongPlainTextEdit::CorrectCursorPosition(void)
 
 void SongPlainTextEdit::ShowSong(void)
 {
-	TuneManager::songline *p_songs;
-	int number_of_songs;
-	m_p_tune_manager->GetSongs(&p_songs, &number_of_songs);
+	TuneManager::songline *p_songlines;
+	int number_of_songlines;
+	m_p_tune_manager->GetSongLines(&p_songlines, &number_of_songlines);
 
 	QString whole_text;
-	for(int i = 0; i < number_of_songs; i++) {
+	for(int i = 0; i < number_of_songlines; i++) {
 		QString line_string;
 		line_string += QString::asprintf("%02x: ", i);
 
 		for(int j = 0; j < 4; j++) {
-			line_string += QString::asprintf("%02x:%02x", p_songs[i].track[j], p_songs[i].transp[j]);
+			line_string += QString::asprintf("%02x:%02x", p_songlines[i].track[j], p_songlines[i].transp[j]);
 			if(j != 3) {
 				line_string += QString::asprintf(" ");
 			}
 		}
 		whole_text += line_string;
-		if(number_of_songs - 1 != i){
+		if(number_of_songlines - 1 != i){
 			whole_text += "\r\n";
 		}
 	}
@@ -139,6 +139,8 @@ void SongPlainTextEdit::ShowSong(void)
 	QTextCursor textcursor(QPlainTextEdit::document());
 	textcursor.select(QTextCursor::Document);
 	textcursor.insertText(whole_text);
+	textcursor.movePosition(QTextCursor::Start);
+	QPlainTextEdit::setTextCursor(textcursor);
 	QPlainTextEdit::blockSignals(false);
 
 	QPlainTextEdit::document()->clearUndoRedoStacks();

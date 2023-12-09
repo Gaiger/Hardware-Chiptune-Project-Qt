@@ -33,10 +33,10 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		m_p_song_plaintextedit = new SongPlainTextEdit(m_p_player->GetTuneManager(), this);
 		ReplaceWidget(m_p_song_plaintextedit, ui->SongWidget);
 
-		TuneManager::songline *p_songs;
-				int number_of_songs;
-				m_p_player->GetTuneManager()->GetSongs(&p_songs, &number_of_songs);
-				ui->SongIndexSpinBox->setRange(0, number_of_songs - 1);
+		TuneManager::songline *p_songlines;
+				int number_of_songlines;
+				m_p_player->GetTuneManager()->GetSongLines(&p_songlines, &number_of_songlines);
+				ui->SongIndexSpinBox->setRange(0, number_of_songlines - 1);
 		ui->SongIndexSpinBox->setFont(font20);
 
 		ui->SongApplyPushButton->setFont(font18_bold);

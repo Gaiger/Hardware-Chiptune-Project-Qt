@@ -229,7 +229,7 @@ void TuneManager::LoadFile(QString filename)
 
 /**********************************************************************************/
 
-void TuneManager::GetSongs(TuneManager::songline ** pp_songlines, int * p_number_of_songlines)
+void TuneManager::GetSongLines(TuneManager::songline ** pp_songlines, int * p_number_of_songlines)
 {
 	*pp_songlines = m_p_private->m_p_songlines;
 	*p_number_of_songlines = m_p_private->m_number_of_songlines;
