@@ -21,16 +21,6 @@ SongPlainTextEdit::SongPlainTextEdit(TuneManager *p_tune_manager, QWidget *paren
 					 this, &SongPlainTextEdit::HandleGeneratingSongStateChanged);
 	QObject::connect(m_p_tune_manager, &TuneManager::GeneratingTrackStateChanged,
 					 this, &SongPlainTextEdit::HandleGeneratingTrackStateChanged);
-
-	QObject::connect(this, &QPlainTextEdit::cursorPositionChanged,
-					 this, &SongPlainTextEdit::HandleCursorPositionChanged);
-}
-
-/**********************************************************************************/
-
-void SongPlainTextEdit::HandleCursorPositionChanged(void)
-{
-	//CorrectCursorPosition();
 }
 
 /**********************************************************************************/
@@ -50,73 +40,12 @@ bool IsValidChar(QChar character)
 
 /**********************************************************************************/
 
-void SongPlainTextEdit::CorrectCursorPosition(void)
-{
-	QString text_string = QPlainTextEdit::toPlainText();
-
-	do
-	{
-		QTextCursor text_cursor = QPlainTextEdit::textCursor();
-		int current_textcuror_position = text_cursor.position();
-
-		if(current_textcuror_position >= QPlainTextEdit::toPlainText().size()){
-			text_cursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::MoveAnchor, 1);
-			QPlainTextEdit::setTextCursor(text_cursor);
-			break;
-		}
-
-		QChar current_cursor_character = QPlainTextEdit::toPlainText().at(current_textcuror_position);
-		if(true == IsValidChar(current_cursor_character)){
-			break;
-		}
-
-		do
-		{
-
-			bool is_to_right = false;
-			if(m_previous_textcuror_position + 1 == current_textcuror_position){
-				is_to_right = true;
-			}
-
-			int n = 0;
-			while(1)
-			{
-				do
-				{
-					if(true == is_to_right){
-						n += 1;
-						break;
-					}
-
-					n -= 1;
-				}while(0);
-
-				if(true == IsValidChar(QPlainTextEdit::toPlainText().at(current_textcuror_position + n))){
-					break;
-				}
-			}
-
-			if(true == is_to_right){
-				text_cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, n);
-				break;
-			}
-
-			text_cursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::MoveAnchor, -n);
-		}while(0);
-		QPlainTextEdit::setTextCursor(text_cursor);
-
-	}while(0);
-
-	m_previous_textcuror_position =  QPlainTextEdit::textCursor().position();
-}
-
-/**********************************************************************************/
-
 void SongPlainTextEdit::ShowSong(void)
 {
 	TuneManager::songline *p_songlines;
-	int number_of_songlines;
-	m_p_tune_manager->GetSongLines(&p_songlines, &number_of_songlines);
+	int * p_number_of_songlines;
+	m_p_tune_manager->GetSongLines(&p_songlines, &p_number_of_songlines);
+	int number_of_songlines = *p_number_of_songlines;
 
 	QString whole_text;
 	for(int i = 0; i < number_of_songlines; i++) {
@@ -233,8 +162,8 @@ int SongPlainTextEdit::ParseTokensToSongline(QList<QString> songline_string_list
 int SongPlainTextEdit::ParseDocument(bool is_update_to_memory)
 {
 	TuneManager::songline *p_songlines;
-	int number_of_songlines;
-	m_p_tune_manager->GetSongLines(&p_songlines, &number_of_songlines);
+	int *p_number_of_songlines;
+	m_p_tune_manager->GetSongLines(&p_songlines, &p_number_of_songlines);
 
 	QTextDocument *p_textdocument = QPlainTextEdit::document();
 
@@ -291,6 +220,10 @@ int SongPlainTextEdit::ParseDocument(bool is_update_to_memory)
 			memcpy(&p_songlines[ii], &songline, sizeof(TuneManager::songline));
 		}
 		ii++;
+	}
+
+	if(true == is_update_to_memory){
+		memcpy(p_number_of_songlines, &ii, sizeof(int));
 	}
 
 	return 0;

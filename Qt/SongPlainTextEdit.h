@@ -19,8 +19,6 @@ public:
 private slots:
 	void HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index);
 	void HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index);
-private slots:
-	void HandleCursorPositionChanged(void);
 private:
 	int ParseDocument(bool is_update_to_memory);
 	int ParseTokensToSongline(QList<QString> songline_string, TuneManager::songline *p_songline);

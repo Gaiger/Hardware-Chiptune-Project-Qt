@@ -23,7 +23,7 @@ public:
 		uint8_t			track[4];
 		uint8_t			transp[4];
 	};
-	void GetSongLines(TuneManager::songline **pp_songlines, int * p_number_of_songlines);
+	void GetSongLines(TuneManager::songline **pp_songlines, int ** pp_number_of_songlines);
 
 	struct trackline {
 		uint8_t	note;

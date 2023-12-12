@@ -55,7 +55,7 @@ public:
 		m_is_generating_song = false;
 		m_is_generating_track = false;
 		m_p_songlines = nullptr;
-		m_number_of_songlines = 0;
+		m_p_number_of_songlines = nullptr;
 
 		m_p_tracks = nullptr;
 		m_number_of_tracks = 0;
@@ -146,7 +146,7 @@ public:
 	bool m_is_B_note_as_H_note;
 
 	TuneManager::songline *m_p_songlines;
-	int m_number_of_songlines;
+	int *m_p_number_of_songlines;
 
 	TuneManager::track *m_p_tracks;
 	int m_number_of_tracks;
@@ -221,7 +221,7 @@ void TuneManager::LoadFile(QString filename)
 	QMutexLocker locker(&m_mutex);
 	loadfile(filename.toLatin1().data());
 	optimize();
-	get_songlines((void**)&m_p_private->m_p_songlines, &m_p_private->m_number_of_songlines);
+	get_songlines((void**)&m_p_private->m_p_songlines, &m_p_private->m_p_number_of_songlines);
 	get_tracks((void**)&m_p_private->m_p_tracks, &m_p_private->m_number_of_tracks, &m_p_private->m_track_length);
 	get_instruments((void**)&m_p_private->m_p_instruments, &m_p_private->m_number_of_instruments);
 	return ;
@@ -229,10 +229,10 @@ void TuneManager::LoadFile(QString filename)
 
 /**********************************************************************************/
 
-void TuneManager::GetSongLines(TuneManager::songline ** pp_songlines, int * p_number_of_songlines)
+void TuneManager::GetSongLines(TuneManager::songline ** pp_songlines, int ** pp_number_of_songlines)
 {
 	*pp_songlines = m_p_private->m_p_songlines;
-	*p_number_of_songlines = m_p_private->m_number_of_songlines;
+	*pp_number_of_songlines = m_p_private->m_p_number_of_songlines;
 }
 
 /**********************************************************************************/

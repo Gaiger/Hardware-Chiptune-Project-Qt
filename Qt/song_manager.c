@@ -271,10 +271,10 @@ void initgui() {
 	atexit(exitgui);
 }
 #endif
-void get_songlines(void** pp_songlines, int *p_song_length)
+void get_songlines(void** pp_songlines, int **pp_number_of_songlines)
 {
 	*pp_songlines = (void**)&song[0];
-	*p_song_length = songlen;
+	*pp_number_of_songlines = &songlen;
 	return;
 }
 
