@@ -23,6 +23,7 @@ private slots:
 	void HandleCursorPositionChanged(void);
 private:
 	int ParseDocument(bool is_update_to_memory);
+	int ParseTokensToSongline(QList<QString> songline_string, TuneManager::songline *p_songline);
 
 private:
 	void CorrectCursorPosition(void);

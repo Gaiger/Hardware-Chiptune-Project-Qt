@@ -135,6 +135,8 @@ void SongPlainTextEdit::ShowSong(void)
 		}
 	}
 
+	bool is_original_empty = QPlainTextEdit::document()->isEmpty();
+
 	QPlainTextEdit::blockSignals(true);
 	QTextCursor textcursor(QPlainTextEdit::document());
 	textcursor.select(QTextCursor::Document);
@@ -143,7 +145,9 @@ void SongPlainTextEdit::ShowSong(void)
 	QPlainTextEdit::setTextCursor(textcursor);
 	QPlainTextEdit::blockSignals(false);
 
-	QPlainTextEdit::document()->clearUndoRedoStacks();
+	if(true == is_original_empty){
+		QPlainTextEdit::document()->clearUndoRedoStacks();
+	}
 	QPlainTextEdit::document()->setModified(false);
 }
 
@@ -167,6 +171,61 @@ void SongPlainTextEdit::HandleGeneratingTrackStateChanged(bool is_playing, int g
 	Q_UNUSED(generating_line_index);
 
 	QPlainTextEdit::setReadOnly(is_playing);
+}
+
+/**********************************************************************************/
+
+int SongPlainTextEdit::ParseTokensToSongline(QList<QString> songline_string_list,
+											   TuneManager::songline *p_songline)
+{
+	int const track_number_in_one_songline
+			=  sizeof(TuneManager::songline::track)/sizeof(TuneManager::songline::track[0]);
+
+	for(int i = 0; i < track_number_in_one_songline; i++){
+		uint8_t track = 0;
+		uint8_t transp = 0;
+
+		do
+		{
+			if(true == songline_string_list.at(i).trimmed().isEmpty()){
+				break;;
+			}
+
+			QStringRef songline_string = QStringRef(&songline_string_list.at(i));
+			QStringRef track_string = songline_string;
+			QStringRef transp_string;
+			if(true == songline_string.contains(":")){
+				track_string = songline_string.mid(0, songline_string.indexOf(":"));
+				transp_string = songline_string.mid(songline_string.indexOf(":") + 1, -1);
+			}
+
+			bool is_ok;
+			int value;
+
+			value = track_string.toInt(&is_ok, 16);
+			if(false == is_ok){
+				return -(i * 2 + 1);
+			}
+			track = (uint8_t)value;
+
+			if(true == transp_string.trimmed().isEmpty()){
+				break;
+			}
+
+			value = transp_string.toInt(&is_ok, 16);
+			if(false == is_ok){
+				return -(i * 2 + 2);
+			}
+			transp = (uint8_t)value;
+		}while(0);
+
+		if(nullptr != p_songline){
+			p_songline->track[i] = track;
+			p_songline->transp[i] = transp;
+		}
+	}
+
+	return 0;
 }
 
 /**********************************************************************************/
@@ -204,10 +263,34 @@ int SongPlainTextEdit::ParseDocument(bool is_update_to_memory)
 			emit ParseScoresErrorOccurred(error_string);
 			return -1;
 		}
-		qDebug() << regexp.cap(1) << regexp.cap(2) << regexp.cap(3) << regexp.cap(4) << regexp.cap(5);
+		//qDebug() << regexp.cap(1) << regexp.cap(2) << regexp.cap(3) << regexp.cap(4) << regexp.cap(5);
+		TuneManager::songline songline;
+		int ret = ParseTokensToSongline(
+					QList<QString>() << regexp.cap(2) << regexp.cap(3) << regexp.cap(4) << regexp.cap(5),
+							  &songline);
+		do
+		{
+			if(0 == ret){
+				break;
+			}
 
+			int k = ret/-2;
+			if(0x01 & ret){
+				error_string +=	"track <b>" + regexp.cap(2 + k) + "</b> is not acceptable";
+			}
+
+			error_string +=	"transp <b>" + regexp.cap(2 + k) + "</b> is not acceptable";
+		}while(0);
+
+		if(0 != ret){
+			emit ParseScoresErrorOccurred(error_string);
+			return -2;
+		}
+
+		if(true == is_update_to_memory){
+			memcpy(&p_songlines[ii], &songline, sizeof(TuneManager::songline));
+		}
 		ii++;
-		break;
 	}
 
 	return 0;
