@@ -17,7 +17,7 @@ public:
 	~TuneManager() Q_DECL_OVERRIDE;
 
 	void LoadFile(QString filename);
-	void SetBnoteAsHNote(bool is_H_note_as_B_note);
+	void SetHNoteAsBNote(bool is_H_note_as_B_note);
 
 	struct songline {
 		uint8_t			track[4];

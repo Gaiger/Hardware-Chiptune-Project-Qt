@@ -209,7 +209,7 @@ TuneManager::~TuneManager(void)
 
 /**********************************************************************************/
 
-void TuneManager::SetBnoteAsHNote(bool is_H_note_as_B_note)
+void TuneManager::SetHNoteAsBNote(bool is_H_note_as_B_note)
 {
 	m_p_private->m_is_B_note_as_H_note = is_H_note_as_B_note;
 }
