@@ -38,6 +38,7 @@ private slots:
 
 private slots:
 	void HandleShortcut_CTRL_L_Activated(void);
+	void HandleShortcut_CTRL_P_Activated(void);
 
 private slots:
 	void HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index);

@@ -34,12 +34,13 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		ReplaceWidget(m_p_song_plaintextedit, ui->SongWidget);
 
 		ui->SongIndexSpinBox->setFont(font20);
-		ui->SongApplyPushButton->setToolTip("ctrl + s");
+		ui->SongPlayPushButton->setToolTip("ctrl + p");
+		ui->SongApplyPushButton->setToolTip("ctrl + l");
 
 		QObject::connect(m_p_song_plaintextedit, &QPlainTextEdit::modificationChanged, this,
 						 [&](bool is_changed){
-			ui->SongApplyPushButton->setEnabled(is_changed);
 			ui->SongPlayPushButton->setEnabled(!is_changed);
+			ui->SongApplyPushButton->setEnabled(is_changed);
 		});
 
 		QObject::connect(m_p_song_plaintextedit, &SongPlainTextEdit::ParseScoresErrorOccurred,
@@ -51,11 +52,13 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		ReplaceWidget(m_p_track_plaintextedit, ui->TrackWidget);
 
 		ui->TrackIndexSpinBox->setFont(font20);
+		ui->TrackPlayPushButton->setToolTip("ctrl + p");
+		ui->TrackApplyPushButton->setToolTip("ctrl + l");
 
 		QObject::connect(m_p_track_plaintextedit, &QPlainTextEdit::modificationChanged, this,
 						 [&](bool is_changed){
-			ui->TrackApplyPushButton->setEnabled(is_changed);
 			ui->TrackPlayPushButton->setEnabled(!is_changed);
+			ui->TrackApplyPushButton->setEnabled(is_changed);
 		});
 
 		QObject::connect(m_p_track_plaintextedit, &TrackPlainTextEdit::ParseMeasureErrorOccurred,
@@ -68,13 +71,11 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		ReplaceWidget(m_p_instrument_plaintextedit, ui->InstrumentWidget);
 
 		ui->InstrumentIndexSpinBox->setFont(font20);
-		ui->InstrumentApplyPushButton->setToolTip("ctrl + s");
+		ui->InstrumentApplyPushButton->setToolTip("ctrl + l");
 
 		QObject::connect(m_p_instrument_plaintextedit, &QPlainTextEdit::modificationChanged, this,
 						 [&](bool is_changed){
 			ui->InstrumentApplyPushButton->setEnabled(is_changed);
-			ui->ErrorMessageLabel->setText("");
-
 			ui->SongPlayPushButton->setEnabled(!is_changed);
 			ui->TrackPlayPushButton->setEnabled(!is_changed);
 		});
@@ -91,10 +92,14 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingTrackStateChanged,
 					 this, &HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged, Qt::QueuedConnection);
 
-	QShortcut *p_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this);
+	QShortcut *p_shortcut;
+	p_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this);
 	QObject::connect(p_shortcut, &QShortcut::activated,
 					 this, &HardwareChiptunePanelWidget::HandleShortcut_CTRL_L_Activated);
 
+	p_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_P), this);
+	QObject::connect(p_shortcut, &QShortcut::activated,
+					 this, &HardwareChiptunePanelWidget::HandleShortcut_CTRL_P_Activated);
 
 	m_p_player->GetTuneManager()->LoadFile("../test2.song");
 	HardwareChiptunePanelWidget::UpdateContents();
@@ -135,7 +140,6 @@ void HardwareChiptunePanelWidget::UpdateContents(void)
 		int number_of_tracks;
 		int track_length;
 		m_p_player->GetTuneManager()->GetTracks(&p_track, &number_of_tracks, &track_length);
-		ui->TrackApplyPushButton->setToolTip("ctrl + s");
 		ui->TrackIndexSpinBox->setRange(0 + 1, number_of_tracks - 1);
 		ui->TrackIndexSpinBox->setValue(1);
 		ui->TrackIndexSpinBox->setEnabled(true);
@@ -221,6 +225,30 @@ void HardwareChiptunePanelWidget::HandleShortcut_CTRL_L_Activated(void)
 		if(true == m_p_instrument_plaintextedit->hasFocus()){
 			if(ui->InstrumentApplyPushButton->isEnabled()){
 				ui->InstrumentApplyPushButton->click();
+			}
+			break;
+		}
+	}while(0);
+}
+
+/**********************************************************************************/
+
+void HardwareChiptunePanelWidget::HandleShortcut_CTRL_P_Activated(void)
+{
+	do
+	{
+		if(true == m_p_song_plaintextedit->hasFocus()
+				|| true == ui->SongPlayPushButton->hasFocus()){
+			if(ui->SongPlayPushButton->isEnabled()){
+				ui->SongPlayPushButton->click();
+			}
+			break;
+		}
+
+		if(true == m_p_track_plaintextedit->hasFocus()
+				|| true == ui->TrackPlayPushButton->hasFocus()){
+			if(ui->TrackPlayPushButton->isEnabled()){
+				ui->TrackPlayPushButton->click();
 			}
 			break;
 		}
