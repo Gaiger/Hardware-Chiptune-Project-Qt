@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>960</width>
-    <height>744</height>
+    <width>948</width>
+    <height>756</height>
    </rect>
   </property>
   <property name="font">
@@ -45,9 +45,9 @@ QPushButton:checked{
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>80</y>
+     <y>142</y>
      <width>380</width>
-     <height>520</height>
+     <height>596</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -61,7 +61,7 @@ color: rgb(208, 208, 208);
    <property name="geometry">
     <rect>
      <x>460</x>
-     <y>80</y>
+     <y>142</y>
      <width>232</width>
      <height>596</height>
     </rect>
@@ -76,8 +76,8 @@ color: rgb(208, 208, 208);
   <widget class="QSpinBox" name="TrackIndexSpinBox">
    <property name="geometry">
     <rect>
-     <x>464</x>
-     <y>20</y>
+     <x>480</x>
+     <y>82</y>
      <width>64</width>
      <height>48</height>
     </rect>
@@ -111,8 +111,8 @@ color: rgb(208, 208, 208);
   <widget class="QPushButton" name="TrackPlayPushButton">
    <property name="geometry">
     <rect>
-     <x>540</x>
-     <y>18</y>
+     <x>572</x>
+     <y>80</y>
      <width>52</width>
      <height>52</height>
     </rect>
@@ -137,8 +137,8 @@ color: rgb(208, 208, 208);
   <widget class="QSpinBox" name="SongIndexSpinBox">
    <property name="geometry">
     <rect>
-     <x>168</x>
-     <y>20</y>
+     <x>196</x>
+     <y>80</y>
      <width>64</width>
      <height>48</height>
     </rect>
@@ -172,8 +172,8 @@ color: rgb(208, 208, 208);
   <widget class="QPushButton" name="SongPlayPushButton">
    <property name="geometry">
     <rect>
-     <x>244</x>
-     <y>18</y>
+     <x>284</x>
+     <y>80</y>
      <width>52</width>
      <height>52</height>
     </rect>
@@ -199,7 +199,7 @@ color: rgb(208, 208, 208);
    <property name="geometry">
     <rect>
      <x>760</x>
-     <y>80</y>
+     <y>142</y>
      <width>168</width>
      <height>420</height>
     </rect>
@@ -214,8 +214,8 @@ color: rgb(208, 208, 208);
   <widget class="QSpinBox" name="InstrumentIndexSpinBox">
    <property name="geometry">
     <rect>
-     <x>768</x>
-     <y>20</y>
+     <x>772</x>
+     <y>82</y>
      <width>64</width>
      <height>48</height>
     </rect>
@@ -252,17 +252,23 @@ color: rgb(208, 208, 208);
    </property>
    <property name="geometry">
     <rect>
-     <x>856</x>
-     <y>18</y>
-     <width>72</width>
+     <x>872</x>
+     <y>80</y>
+     <width>52</width>
      <height>52</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Adobe Devanagari</family>
+     <pointsize>20</pointsize>
+    </font>
    </property>
    <property name="focusPolicy">
     <enum>Qt::ClickFocus</enum>
    </property>
    <property name="text">
-    <string>Apply</string>
+    <string>⟳</string>
    </property>
   </widget>
   <widget class="QPushButton" name="TrackApplyPushButton">
@@ -271,17 +277,23 @@ color: rgb(208, 208, 208);
    </property>
    <property name="geometry">
     <rect>
-     <x>620</x>
-     <y>18</y>
-     <width>72</width>
+     <x>636</x>
+     <y>80</y>
+     <width>52</width>
      <height>52</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Adobe Devanagari</family>
+     <pointsize>20</pointsize>
+    </font>
    </property>
    <property name="focusPolicy">
     <enum>Qt::ClickFocus</enum>
    </property>
    <property name="text">
-    <string>Apply</string>
+    <string>⟳</string>
    </property>
   </widget>
   <widget class="QPushButton" name="SongApplyPushButton">
@@ -290,30 +302,88 @@ color: rgb(208, 208, 208);
    </property>
    <property name="geometry">
     <rect>
-     <x>330</x>
-     <y>18</y>
-     <width>72</width>
+     <x>348</x>
+     <y>80</y>
+     <width>52</width>
      <height>52</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Adobe Devanagari</family>
+     <pointsize>20</pointsize>
+    </font>
    </property>
    <property name="focusPolicy">
     <enum>Qt::ClickFocus</enum>
    </property>
    <property name="text">
-    <string>Apply</string>
+    <string>⟳</string>
    </property>
   </widget>
   <widget class="QLabel" name="ErrorMessageLabel">
    <property name="geometry">
     <rect>
      <x>120</x>
-     <y>688</y>
+     <y>740</y>
      <width>800</width>
      <height>48</height>
     </rect>
    </property>
    <property name="text">
     <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="OpenFilePushButton">
+   <property name="geometry">
+    <rect>
+     <x>32</x>
+     <y>18</y>
+     <width>48</width>
+     <height>48</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>20</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::ClickFocus</enum>
+   </property>
+   <property name="text">
+    <string>📂</string>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="OpenFilePushButton_2">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>18</y>
+     <width>48</width>
+     <height>48</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>20</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::ClickFocus</enum>
+   </property>
+   <property name="text">
+    <string>💾</string>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
    </property>
   </widget>
  </widget>

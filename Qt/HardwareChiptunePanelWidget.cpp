@@ -25,10 +25,6 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	font20.setStyleHint(QFont::TypeWriter);
 	font20.setPixelSize(20);
 
-	QFont font18_bold(font20);
-	font18_bold.setPixelSize(18);
-	font18_bold.setBold(true);
-
 	do{
 		m_p_song_plaintextedit = new SongPlainTextEdit(m_p_player->GetTuneManager(), this);
 		ReplaceWidget(m_p_song_plaintextedit, ui->SongWidget);
@@ -38,8 +34,6 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 				m_p_player->GetTuneManager()->GetSongLines(&p_songlines, &p_number_of_songlines);
 				ui->SongIndexSpinBox->setRange(0, *p_number_of_songlines - 1);
 		ui->SongIndexSpinBox->setFont(font20);
-
-		ui->SongApplyPushButton->setFont(font18_bold);
 		ui->SongApplyPushButton->setToolTip("ctrl + s");
 
 		QObject::connect(m_p_song_plaintextedit, &QPlainTextEdit::modificationChanged, this,
@@ -62,8 +56,6 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		m_p_player->GetTuneManager()->GetTracks(&p_track, &number_of_tracks, &track_length);
 		ui->TrackIndexSpinBox->setRange(0 + 1, number_of_tracks - 1);
 		ui->TrackIndexSpinBox->setFont(font20);
-
-		ui->TrackApplyPushButton->setFont(font18_bold);
 		ui->TrackApplyPushButton->setToolTip("ctrl + s");
 
 		QObject::connect(m_p_track_plaintextedit, &QPlainTextEdit::modificationChanged, this,
@@ -87,8 +79,6 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 
 		ui->InstrumentIndexSpinBox->setRange(0, number_of_instruments - 1);
 		ui->InstrumentIndexSpinBox->setFont(font20);
-
-		ui->InstrumentApplyPushButton->setFont(font18_bold);
 		ui->InstrumentApplyPushButton->setToolTip("ctrl + s");
 
 		QObject::connect(m_p_instrument_plaintextedit, &QPlainTextEdit::modificationChanged, this,
