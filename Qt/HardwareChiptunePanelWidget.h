@@ -23,6 +23,9 @@ private :
 	void timerEvent(QTimerEvent *p_event) Q_DECL_OVERRIDE;
 
 private slots:
+	void on_OpenFilePushButton_released(void);
+	void on_SaveFilePushButton_released(void);
+
 	void on_SongPlayPushButton_released(void);
 	void on_SongApplyPushButton_released(void);
 
@@ -39,7 +42,8 @@ private slots:
 private slots:
 	void HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index);
 	void HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index);
-
+private:
+	void UpdateContents(void);
 private:
 	SongPlainTextEdit *m_p_song_plaintextedit;
 	TrackPlainTextEdit *m_p_track_plaintextedit;

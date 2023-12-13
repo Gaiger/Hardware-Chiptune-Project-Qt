@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>948</width>
-    <height>756</height>
+    <height>820</height>
    </rect>
   </property>
   <property name="font">
@@ -74,6 +74,9 @@ color: rgb(208, 208, 208);
    </property>
   </widget>
   <widget class="QSpinBox" name="TrackIndexSpinBox">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>480</x>
@@ -99,16 +102,19 @@ color: rgb(208, 208, 208);
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
    <property name="maximum">
-    <number>255</number>
+    <number>0</number>
    </property>
    <property name="value">
-    <number>1</number>
+    <number>0</number>
    </property>
    <property name="displayIntegerBase">
     <number>16</number>
    </property>
   </widget>
   <widget class="QPushButton" name="TrackPlayPushButton">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>572</x>
@@ -135,6 +141,9 @@ color: rgb(208, 208, 208);
    </property>
   </widget>
   <widget class="QSpinBox" name="SongIndexSpinBox">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>196</x>
@@ -160,16 +169,19 @@ color: rgb(208, 208, 208);
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
    <property name="maximum">
-    <number>255</number>
+    <number>0</number>
    </property>
    <property name="value">
-    <number>1</number>
+    <number>0</number>
    </property>
    <property name="displayIntegerBase">
     <number>16</number>
    </property>
   </widget>
   <widget class="QPushButton" name="SongPlayPushButton">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>284</x>
@@ -212,6 +224,9 @@ color: rgb(208, 208, 208);
    </property>
   </widget>
   <widget class="QSpinBox" name="InstrumentIndexSpinBox">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>772</x>
@@ -237,10 +252,10 @@ color: rgb(208, 208, 208);
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
    <property name="maximum">
-    <number>255</number>
+    <number>0</number>
    </property>
    <property name="value">
-    <number>1</number>
+    <number>0</number>
    </property>
    <property name="displayIntegerBase">
     <number>16</number>
@@ -325,7 +340,7 @@ color: rgb(208, 208, 208);
    <property name="geometry">
     <rect>
      <x>120</x>
-     <y>740</y>
+     <y>756</y>
      <width>800</width>
      <height>48</height>
     </rect>
@@ -360,7 +375,7 @@ color: rgb(208, 208, 208);
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="OpenFilePushButton_2">
+  <widget class="QPushButton" name="SaveFilePushButton">
    <property name="geometry">
     <rect>
      <x>100</x>

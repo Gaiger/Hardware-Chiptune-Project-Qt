@@ -1,5 +1,8 @@
 #include <QGridLayout>
 #include <QShortcut>
+#include <QFileDialog>
+
+#include <QDebug>
 #include "ui_HardwareChiptunePanelWidget.h"
 #include "HardwareChiptunePanelWidget.h"
 
@@ -29,10 +32,6 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		m_p_song_plaintextedit = new SongPlainTextEdit(m_p_player->GetTuneManager(), this);
 		ReplaceWidget(m_p_song_plaintextedit, ui->SongWidget);
 
-		TuneManager::songline *p_songlines;
-				int *p_number_of_songlines;
-				m_p_player->GetTuneManager()->GetSongLines(&p_songlines, &p_number_of_songlines);
-				ui->SongIndexSpinBox->setRange(0, *p_number_of_songlines - 1);
 		ui->SongIndexSpinBox->setFont(font20);
 		ui->SongApplyPushButton->setToolTip("ctrl + s");
 
@@ -50,13 +49,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		m_p_track_plaintextedit = new TrackPlainTextEdit(m_p_player->GetTuneManager(), this);
 		ReplaceWidget(m_p_track_plaintextedit, ui->TrackWidget);
 
-		TuneManager::track *p_track;
-		int number_of_tracks;
-		int track_length;
-		m_p_player->GetTuneManager()->GetTracks(&p_track, &number_of_tracks, &track_length);
-		ui->TrackIndexSpinBox->setRange(0 + 1, number_of_tracks - 1);
 		ui->TrackIndexSpinBox->setFont(font20);
-		ui->TrackApplyPushButton->setToolTip("ctrl + s");
 
 		QObject::connect(m_p_track_plaintextedit, &QPlainTextEdit::modificationChanged, this,
 						 [&](bool is_changed){
@@ -73,11 +66,6 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 		m_p_instrument_plaintextedit = new InstrumentPlainTextEdit(m_p_player->GetTuneManager(), this);
 		ReplaceWidget(m_p_instrument_plaintextedit, ui->InstrumentWidget);
 
-		TuneManager::instrument *p_instruments;
-		int number_of_instruments;
-		m_p_player->GetTuneManager()->GetInstruments(&p_instruments, &number_of_instruments);
-
-		ui->InstrumentIndexSpinBox->setRange(0, number_of_instruments - 1);
 		ui->InstrumentIndexSpinBox->setFont(font20);
 		ui->InstrumentApplyPushButton->setToolTip("ctrl + s");
 
@@ -95,10 +83,6 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	}while(0);
 
 	 ui->ErrorMessageLabel->setFont(font20);
-	//QObject::startTimer(50);
-	m_p_song_plaintextedit->ShowSong();
-	m_p_track_plaintextedit->ShowTrack(1);
-	m_p_instrument_plaintextedit->ShowInstrument(1);
 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingSongStateChanged,
 					 this, &HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged, Qt::QueuedConnection);
@@ -110,6 +94,10 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 
 	QObject::connect(p_shortcut, &QShortcut::activated,
 					 this, &HardwareChiptunePanelWidget::HandleShortcut_CTRL_S_Activated);
+
+
+	m_p_player->LoadFile("../test2.song");
+	HardwareChiptunePanelWidget::UpdateContents();
 }
 
 /**********************************************************************************/
@@ -118,6 +106,43 @@ HardwareChiptunePanelWidget::~HardwareChiptunePanelWidget()
 {
 	delete m_p_song_plaintextedit;
 	delete ui;
+}
+
+/**********************************************************************************/
+
+void HardwareChiptunePanelWidget::UpdateContents(void)
+{
+
+	do{
+		TuneManager::songline *p_songlines;
+		int *p_number_of_songlines;
+		m_p_player->GetTuneManager()->GetSongLines(&p_songlines, &p_number_of_songlines);
+		ui->SongIndexSpinBox->setRange(0, *p_number_of_songlines - 1);
+		ui->SongIndexSpinBox->setEnabled(true);
+		m_p_song_plaintextedit->ShowSong();
+	}while(0);
+
+	do
+	{
+		TuneManager::track *p_track;
+		int number_of_tracks;
+		int track_length;
+		m_p_player->GetTuneManager()->GetTracks(&p_track, &number_of_tracks, &track_length);
+		ui->TrackApplyPushButton->setToolTip("ctrl + s");
+		ui->TrackIndexSpinBox->setRange(0 + 1, number_of_tracks - 1);
+		ui->TrackIndexSpinBox->setEnabled(true);
+		m_p_track_plaintextedit->ShowTrack(1);
+	}while(0);
+
+	do
+	{
+		TuneManager::instrument *p_instruments;
+		int number_of_instruments;
+		m_p_player->GetTuneManager()->GetInstruments(&p_instruments, &number_of_instruments);
+		ui->InstrumentIndexSpinBox->setRange(0, number_of_instruments - 1);
+		ui->InstrumentIndexSpinBox->setEnabled(true);
+		m_p_instrument_plaintextedit->ShowInstrument(1);
+	}while(0);
 }
 
 /**********************************************************************************/
@@ -193,6 +218,24 @@ void HardwareChiptunePanelWidget::HandleShortcut_CTRL_S_Activated(void)
 			break;
 		}
 	}while(0);
+}
+
+/**********************************************************************************/
+
+void  HardwareChiptunePanelWidget::on_OpenFilePushButton_released(void)
+{
+	QString str = QFileDialog::getOpenFileName(this, QString("select the song fole"),
+											   QString(),
+											   QString("Song (*.song);; Text Files (*.txt);; All file (*)"));
+	m_p_player->LoadFile(str);
+	HardwareChiptunePanelWidget::UpdateContents();
+}
+
+/**********************************************************************************/
+
+void  HardwareChiptunePanelWidget::on_SaveFilePushButton_released(void)
+{
+	qDebug() << Q_FUNC_INFO;
 }
 
 /**********************************************************************************/
