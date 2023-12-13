@@ -34,8 +34,6 @@ public:
 	AudioPlayer(QObject *parent = nullptr);
 	~AudioPlayer()  Q_DECL_OVERRIDE;
 
-	void LoadFile(QString filename);
-
 	void PlaySong(int start_song_index = 1);
 	void PlayTrack(int track_index = 1);
 	void Stop(void);

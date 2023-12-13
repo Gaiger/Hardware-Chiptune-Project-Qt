@@ -90,13 +90,6 @@ void AudioPlayer::Clean(void)
 
 /**********************************************************************************/
 
-void AudioPlayer::LoadFile(QString filename)
-{
-	m_p_tune_manager->LoadFile(filename);
-}
-
-/**********************************************************************************/
-
 void AudioPlayer::PlaySong(int start_song_index)
 {
 	m_p_tune_manager->SetGeneratingWave(TuneManager::SONG, start_song_index);

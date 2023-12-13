@@ -1,6 +1,7 @@
 #include <QGridLayout>
 #include <QShortcut>
 #include <QFileDialog>
+#include <QDateTime>
 
 #include <QDebug>
 #include "ui_HardwareChiptunePanelWidget.h"
@@ -82,7 +83,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 						 ui->ErrorMessageLabel, &QLabel::setText);
 	}while(0);
 
-	 ui->ErrorMessageLabel->setFont(font20);
+	ui->ErrorMessageLabel->setFont(font20);
 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingSongStateChanged,
 					 this, &HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged, Qt::QueuedConnection);
@@ -90,13 +91,12 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingTrackStateChanged,
 					 this, &HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged, Qt::QueuedConnection);
 
-	QShortcut *p_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this);
-
+	QShortcut *p_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this);
 	QObject::connect(p_shortcut, &QShortcut::activated,
-					 this, &HardwareChiptunePanelWidget::HandleShortcut_CTRL_S_Activated);
+					 this, &HardwareChiptunePanelWidget::HandleShortcut_CTRL_L_Activated);
 
 
-	m_p_player->LoadFile("../test2.song");
+	m_p_player->GetTuneManager()->LoadFile("../test2.song");
 	HardwareChiptunePanelWidget::UpdateContents();
 }
 
@@ -104,7 +104,12 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 
 HardwareChiptunePanelWidget::~HardwareChiptunePanelWidget()
 {
+	m_p_player->Stop();
+
 	delete m_p_song_plaintextedit;
+	delete m_p_track_plaintextedit;
+	delete m_p_instrument_plaintextedit;
+
 	delete ui;
 }
 
@@ -118,7 +123,9 @@ void HardwareChiptunePanelWidget::UpdateContents(void)
 		int *p_number_of_songlines;
 		m_p_player->GetTuneManager()->GetSongLines(&p_songlines, &p_number_of_songlines);
 		ui->SongIndexSpinBox->setRange(0, *p_number_of_songlines - 1);
+		ui->SongIndexSpinBox->setValue(0);
 		ui->SongIndexSpinBox->setEnabled(true);
+
 		m_p_song_plaintextedit->ShowSong();
 	}while(0);
 
@@ -130,8 +137,8 @@ void HardwareChiptunePanelWidget::UpdateContents(void)
 		m_p_player->GetTuneManager()->GetTracks(&p_track, &number_of_tracks, &track_length);
 		ui->TrackApplyPushButton->setToolTip("ctrl + s");
 		ui->TrackIndexSpinBox->setRange(0 + 1, number_of_tracks - 1);
+		ui->TrackIndexSpinBox->setValue(1);
 		ui->TrackIndexSpinBox->setEnabled(true);
-		m_p_track_plaintextedit->ShowTrack(1);
 	}while(0);
 
 	do
@@ -139,9 +146,9 @@ void HardwareChiptunePanelWidget::UpdateContents(void)
 		TuneManager::instrument *p_instruments;
 		int number_of_instruments;
 		m_p_player->GetTuneManager()->GetInstruments(&p_instruments, &number_of_instruments);
-		ui->InstrumentIndexSpinBox->setRange(0, number_of_instruments - 1);
+		ui->InstrumentIndexSpinBox->setRange(0 + 1, number_of_instruments - 1);
+		ui->InstrumentIndexSpinBox->setValue(1);
 		ui->InstrumentIndexSpinBox->setEnabled(true);
-		m_p_instrument_plaintextedit->ShowInstrument(1);
 	}while(0);
 }
 
@@ -193,7 +200,7 @@ void HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged(bool is_gene
 
 /**********************************************************************************/
 
-void HardwareChiptunePanelWidget::HandleShortcut_CTRL_S_Activated(void)
+void HardwareChiptunePanelWidget::HandleShortcut_CTRL_L_Activated(void)
 {
 	do
 	{
@@ -224,18 +231,37 @@ void HardwareChiptunePanelWidget::HandleShortcut_CTRL_S_Activated(void)
 
 void  HardwareChiptunePanelWidget::on_OpenFilePushButton_released(void)
 {
-	QString str = QFileDialog::getOpenFileName(this, QString("select the song fole"),
+	QString load_filename_string = QFileDialog::getOpenFileName(this, QString("Open the Song File"),
 											   QString(),
 											   QString("Song (*.song);; Text Files (*.txt);; All file (*)"));
-	m_p_player->LoadFile(str);
-	HardwareChiptunePanelWidget::UpdateContents();
+	do
+	{
+		if(true == load_filename_string.isNull()){
+			break;
+		}
+		m_p_player->Stop();
+		m_p_player->GetTuneManager()->LoadFile(load_filename_string);
+		HardwareChiptunePanelWidget::UpdateContents();
+	}while(0);
 }
 
 /**********************************************************************************/
 
 void  HardwareChiptunePanelWidget::on_SaveFilePushButton_released(void)
 {
-	qDebug() << Q_FUNC_INFO;
+	QString suggested_filename_string = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss");
+	suggested_filename_string += ".song";
+	QString save_filename_string = QFileDialog::getSaveFileName(this, QString("Save the Song File"),
+											   suggested_filename_string,
+											   QString("Song (*.song);; Text Files (*.txt);; All file (*)"));
+
+	do
+	{
+		if(true == save_filename_string.isNull()){
+			break;
+		}
+		m_p_player->GetTuneManager()->SaveFile(save_filename_string);
+	}while(0);
 }
 
 /**********************************************************************************/

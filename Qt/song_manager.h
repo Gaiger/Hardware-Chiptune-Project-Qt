@@ -21,7 +21,9 @@ void readsong(int pos, int ch, u8 *dest);
 void readtrack(int num, int pos, struct trackline *tl);
 void readinstr(int num, int pos, u8 *il);
 
-void loadfile(char *fname) ;
+void loadfile(char *fname);
+void savefile(char *fname);
+
 void optimize(void);
 
 void get_songlines(void ** pp_songlines, int **pp_number_of_songlines);

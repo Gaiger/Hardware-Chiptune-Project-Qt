@@ -16,7 +16,8 @@ public:
 	explicit TuneManager(QString filename, QObject *parent = nullptr);
 	~TuneManager() Q_DECL_OVERRIDE;
 
-	void LoadFile(QString filename);
+	void LoadFile(QString filename_string);
+	void SaveFile(QString filename_string);
 	void SetHNoteAsBNote(bool is_H_note_as_B_note);
 
 	struct songline {
