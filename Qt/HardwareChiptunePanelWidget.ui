@@ -401,17 +401,33 @@ color: rgb(208, 208, 208);
     <bool>false</bool>
    </property>
   </widget>
+  <widget class="QPushButton" name="ExportDataPushButton">
+   <property name="geometry">
+    <rect>
+     <x>876</x>
+     <y>18</y>
+     <width>48</width>
+     <height>48</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>20</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::ClickFocus</enum>
+   </property>
+   <property name="text">
+    <string>📤</string>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+  </widget>
  </widget>
- <tabstops>
-  <tabstop>SongIndexSpinBox</tabstop>
-  <tabstop>SongPlayPushButton</tabstop>
-  <tabstop>SongApplyPushButton</tabstop>
-  <tabstop>TrackIndexSpinBox</tabstop>
-  <tabstop>TrackPlayPushButton</tabstop>
-  <tabstop>TrackApplyPushButton</tabstop>
-  <tabstop>InstrumentIndexSpinBox</tabstop>
-  <tabstop>InstrumentApplyPushButton</tabstop>
- </tabstops>
  <resources/>
  <connections/>
 </ui>

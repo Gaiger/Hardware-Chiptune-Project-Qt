@@ -322,46 +322,60 @@ void optimize() {
 	}
 }
 
-#if(0)
-static FILE *exportfile = 0;
-static int exportbits = 0;
-static int exportcount = 0;
-static int exportseek = 0;
+struct export_state_t
+{
+	uint8_t *data_move_ptr;
+	int exportbits;
+	int exportcount;
+	int exportseek;
 
-void putbit(int x) {
+	int *blankline_index_move_ptr;
+};
+
+void putbit(struct export_state_t *p_export_state, int x) {
 	if(x) {
-		exportbits |= (1 << exportcount);
+		p_export_state->exportbits |= (1 << p_export_state->exportcount);
 	}
-	exportcount++;
-	if(exportcount == 8) {
-		if(exportfile) {
-			fprintf(exportfile, "\t.byte\t0x%02x\n", exportbits);
+	p_export_state->exportcount += 1;
+	if(p_export_state->exportcount == 8) {
+		if(p_export_state->data_move_ptr) {
+			p_export_state->data_move_ptr[0] = p_export_state->exportbits;
+			p_export_state->data_move_ptr += 1;
 		}
-		exportseek++;
-		exportbits = 0;
-		exportcount = 0;
+		p_export_state->exportseek += 1;
+		p_export_state->exportbits = 0;
+		p_export_state->exportcount = 0;
 	}
 }
 
-void exportchunk(int data, int bits) {
+void exportchunk(struct export_state_t *p_export_state, int data, int bits) {
 	int i;
 
 	for(i = 0; i < bits; i++) {
-		putbit(!!(data & (1 << i)));
+		putbit(p_export_state, !!(data & (1 << i)));
 	}
 }
 
-int alignbyte() {
-	if(exportcount) {
-		if(exportfile) {
-			fprintf(exportfile, "\t.byte\t0x%02x\n", exportbits);
+int alignbyte(struct export_state_t *p_export_state)
+{
+	if(p_export_state->exportcount) {
+		if(p_export_state->data_move_ptr) {
+			p_export_state->data_move_ptr[0] = p_export_state->exportbits;
+			p_export_state->data_move_ptr += 1;
 		}
-		exportseek++;
-		exportbits = 0;
-		exportcount = 0;
+		p_export_state->exportseek += 1;
+		p_export_state->exportbits = 0;
+		p_export_state->exportcount = 0;
 	}
-	if(exportfile) fprintf(exportfile, "\n");
-	return exportseek;
+
+	if(NULL != p_export_state->data_move_ptr){
+		if(NULL != p_export_state->blankline_index_move_ptr){
+			p_export_state->blankline_index_move_ptr[0] = p_export_state->exportseek;
+			p_export_state->blankline_index_move_ptr += 1;
+		}
+	}
+
+	return p_export_state->exportseek;
 }
 
 int packcmd(u8 ch) {
@@ -372,110 +386,116 @@ int packcmd(u8 ch) {
 	return 0;
 }
 
-void exportdata(FILE *f, int maxtrack, int *resources) {
+int generate_export_data(int maxtrack, uint8_t *data_ptr, int *p_data_length,
+						 int *blankline_ptr, int *p_resources, int *p_resource_number) {
 	int i, j;
 	int nres = 0;
 
-	exportfile = f;
-	exportbits = 0;
-	exportcount = 0;
-	exportseek = 0;
+	struct export_state_t export_state;
+	memset(&export_state,0, sizeof(struct export_state_t));
+	export_state.data_move_ptr = data_ptr;
+	export_state.blankline_index_move_ptr = blankline_ptr;
 
 	for(i = 0; i < 16 + maxtrack; i++) {
-		exportchunk(resources[i], 13);
+		exportchunk(&export_state, p_resources[i], 13);
 	}
 
-	resources[nres++] = alignbyte();
+	p_resources[nres++] = alignbyte(&export_state);
 
 	for(i = 0; i < songlen; i++) {
 		for(j = 0; j < 4; j++) {
 			if(song[i].transp[j]) {
-				exportchunk(1, 1);
-				exportchunk(song[i].track[j], 6);
-				exportchunk(song[i].transp[j], 4);
+				exportchunk(&export_state, 1, 1);
+				exportchunk(&export_state, song[i].track[j], 6);
+				exportchunk(&export_state, song[i].transp[j], 4);
 			} else {
-				exportchunk(0, 1);
-				exportchunk(song[i].track[j], 6);
+				exportchunk(&export_state, 0, 1);
+				exportchunk(&export_state, song[i].track[j], 6);
 			}
 		}
 	}
 
 	for(i = 1; i < 16; i++) {
-		resources[nres++] = alignbyte();
+		p_resources[nres++] = alignbyte(&export_state);
 
 		if(instrument[i].length > 1) {
 			for(j = 0; j < instrument[i].length; j++) {
-				exportchunk(packcmd(instrument[i].line[j].cmd), 8);
-				exportchunk(instrument[i].line[j].param, 8);
+				exportchunk(&export_state, packcmd(instrument[i].line[j].cmd), 8);
+				exportchunk(&export_state, instrument[i].line[j].param, 8);
 			}
 		}
 
-		exportchunk(0, 8);
+		exportchunk(&export_state, 0, 8);
 	}
 
 	for(i = 1; i <= maxtrack; i++) {
-		resources[nres++] = alignbyte();
+		p_resources[nres++] = alignbyte(&export_state);
 
 		for(j = 0; j < tracklen; j++) {
 			u8 cmd = packcmd(track[i].line[j].cmd[0]);
 
-			exportchunk(!!track[i].line[j].note, 1);
-			exportchunk(!!track[i].line[j].instr, 1);
-			exportchunk(!!cmd, 1);
+			exportchunk(&export_state, !!track[i].line[j].note, 1);
+			exportchunk(&export_state, !!track[i].line[j].instr, 1);
+			exportchunk(&export_state, !!cmd, 1);
 
 			if(track[i].line[j].note) {
-				exportchunk(track[i].line[j].note, 7);
+				exportchunk(&export_state, track[i].line[j].note, 7);
 			}
 
 			if(track[i].line[j].instr) {
-				exportchunk(track[i].line[j].instr, 4);
+				exportchunk(&export_state, track[i].line[j].instr, 4);
 			}
 
 			if(cmd) {
-				exportchunk(cmd, 4);
-				exportchunk(track[i].line[j].param[0], 8);
+				exportchunk(&export_state, cmd, 4);
+				exportchunk(&export_state, track[i].line[j].param[0], 8);
 			}
 		}
 	}
+
+	*p_data_length = export_state.exportseek;
+	*p_resource_number = nres;
+
+	return export_state.exportseek;
 }
 
-void export() {
-	FILE *f = fopen("exported.s", "w");
-	FILE *hf = fopen("exported.h", "w");
-	int i, j;
+
+int get_export_data_information(int *p_data_length, int *p_resources_number)
+{
+	int resources[256] = {0};
+
 	int maxtrack = 0;
-	int resources[256];
-
-	exportfile = 0;
-	exportbits = 0;
-	exportcount = 0;
-	exportseek = 0;
-
-	for(i = 0; i < songlen; i++) {
-		for(j = 0; j < 4; j++) {
+	for(int i = 0; i < songlen; i++) {
+		for(int j = 0; j < 4; j++) {
 			if(maxtrack < song[i].track[j]) maxtrack = song[i].track[j];
 		}
 	}
 
-	fprintf(f, "\t.global\tsongdata\n\n");
-
-	fprintf(hf, "#define MAXTRACK\t0x%02x\n", maxtrack);
-	fprintf(hf, "#define SONGLEN\t\t0x%02x\n", songlen);
-
-	fprintf(f, "songdata:\n");
-
-	exportdata(0, maxtrack, resources);
-
-	fprintf(f, "# ");
-	for(i = 0; i < 16 + maxtrack; i++) {
-		fprintf(f, "%04x ", resources[i]);
-	}
-	fprintf(f, "\n");
-
-	exportdata(f, maxtrack, resources);
-
-	fclose(f);
-	fclose(hf);
+	generate_export_data(maxtrack, NULL, p_data_length, NULL,
+						 resources, p_resources_number);
+	return 0;
 }
 
-#endif
+int get_export_data(int *p_maxtrack, int *p_songlen, uint8_t *p_data, int *p_blanklines, int *p_resources)
+{
+	int resources[256] = {0};
+
+	int maxtrack = 0;
+	for(int i = 0; i < songlen; i++) {
+		for(int j = 0; j < 4; j++) {
+			if(maxtrack < song[i].track[j]) maxtrack = song[i].track[j];
+		}
+	}
+
+	int data_length;
+	int resources_number;
+	generate_export_data(maxtrack, NULL, &data_length, NULL, resources, &resources_number);
+	generate_export_data(maxtrack, p_data, &data_length, p_blanklines, resources, &resources_number);
+
+	memcpy(p_resources, &resources[0],  resources_number * sizeof(int));
+
+	*p_maxtrack = maxtrack;
+	*p_songlen = songlen;
+	return 0;
+}
+
