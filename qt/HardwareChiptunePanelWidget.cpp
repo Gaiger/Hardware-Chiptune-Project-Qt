@@ -101,7 +101,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	QObject::connect(p_shortcut, &QShortcut::activated,
 					 this, &HardwareChiptunePanelWidget::HandleShortcut_CTRL_P_Activated);
 
-	m_p_player->GetTuneManager()->LoadFile("../test2.song");
+	m_p_player->GetTuneManager()->LoadFile("test2.song");
 	HardwareChiptunePanelWidget::UpdateContents();
 }
 
