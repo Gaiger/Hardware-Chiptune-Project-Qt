@@ -285,6 +285,10 @@ int TuneManager::ExportFile(QString filename_string, TuneManager::EXPORT_TYPE ex
 
 	do
 	{
+		if(TuneManager::BINARY_DATA == export_type){
+			break;
+		}
+
 		out_string.clear();
 		QString basename_string = QFileInfo(filename_string).baseName();
 		out_string += QString("#ifndef _") + basename_string.toUpper() + QString("_H_\n");
