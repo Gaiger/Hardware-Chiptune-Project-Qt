@@ -297,20 +297,20 @@ void  HardwareChiptunePanelWidget::on_SaveFilePushButton_released(void)
 void HardwareChiptunePanelWidget::on_ExportDataPushButton_released(void)
 {
 	QString suggested_filename_string = QString("songdata");
-	QString export_filename_string = QFileDialog::getSaveFileName(this, QString("Export the Song File"),
+	QString filename_string = QFileDialog::getSaveFileName(this, QString("Export the Song File"),
 																  suggested_filename_string,
 																  QString("C header(*.h);;"
-																		  "binary data (*.data);;"
+																		  "binary data (*.data *.bin *.hex);;"
 																		  "AVR assembler data and C header (*.s *.h);;"
 																		  "All file (*)"));
 
 	do
 	{
-		if(true == export_filename_string.isNull()){
+		if(true == filename_string.isNull()){
 			break;
 		}
 
-		QFileInfo fileinfo(export_filename_string);
+		QFileInfo fileinfo(filename_string);
 		TuneManager::EXPORT_TYPE export_type = TuneManager::TEXT;
 		do
 		{
@@ -324,13 +324,15 @@ void HardwareChiptunePanelWidget::on_ExportDataPushButton_released(void)
 				break;
 			}
 
-			if(QString("data") == fileinfo.suffix()){
+			if(QString("data") == fileinfo.suffix()
+					|| QString("bin") == fileinfo.suffix()
+					|| QString("hex") == fileinfo.suffix()){
 				export_type = TuneManager::BINARY_DATA;
 				break;
 			}
 		}while(0);
 
-		m_p_player->GetTuneManager()->ExportFile(fileinfo.baseName(), export_type);
+		m_p_player->GetTuneManager()->ExportFile(filename_string, export_type);
 	}while(0);
 }
 

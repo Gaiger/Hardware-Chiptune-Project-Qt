@@ -3,6 +3,7 @@
 #include <QBuffer>
 #include <QDebug>
 #include <QFile>
+#include <QFileInfo>
 
 #include "song_manager.h"
 #include "TuneManager.h"
@@ -238,7 +239,7 @@ void TuneManager::SaveFile(QString filename_string)
 
 /**********************************************************************************/
 
-void TuneManager::ExportFile(QString base_name_string, TuneManager::EXPORT_TYPE export_type)
+void TuneManager::ExportFile(QString filename_string, TuneManager::EXPORT_TYPE export_type)
 {
 	int data_length;
 	int resources_number;
@@ -277,7 +278,7 @@ void TuneManager::ExportFile(QString base_name_string, TuneManager::EXPORT_TYPE 
 			out_string += QString::asprintf("\t.byte\t0x%02x\n", p_data[i]);
 		}
 
-		file.setFileName(base_name_string + ".s");
+		file.setFileName(filename_string);
 		if(false == file.open(QFile::WriteOnly|QFile::Text)){
 			break;
 		}
@@ -285,14 +286,15 @@ void TuneManager::ExportFile(QString base_name_string, TuneManager::EXPORT_TYPE 
 		file.close();
 
 		out_string.clear();
-		out_string += QString("#ifndef _") + base_name_string.toUpper() + QString("_H_\n");
-		out_string += QString("#define _") + base_name_string.toUpper() + QString("_H_\n");
+		QString basename_string = QFileInfo(filename_string).baseName();
+		out_string += QString("#ifndef _") + basename_string.toUpper() + QString("_H_\n");
+		out_string += QString("#define _") + basename_string.toUpper() + QString("_H_\n");
 		out_string += QString("\n#include <stdint.h>\n\n");
 		out_string += QString::asprintf("#define MAXTRACK\t\t\t\t\t\t\t\t\t(0x%02x)\n", maxtrack);
 		out_string += QString::asprintf("#define SONGLEN\t\t\t\t\t\t\t\t\t\t(0x%02x)\n\n", songlen);
-		out_string += QString("#endif ") + QString("/*") + base_name_string.toUpper() + QString("_H_") + QString("*/");
+		out_string += QString("#endif ") + QString("/*") + basename_string.toUpper() + QString("_H_") + QString("*/");
 
-		file.setFileName(base_name_string + ".h");
+		file.setFileName(basename_string + ".h");
 		if(false == file.open(QFile::WriteOnly|QFile::Text)){
 			break;
 		}
@@ -307,8 +309,9 @@ void TuneManager::ExportFile(QString base_name_string, TuneManager::EXPORT_TYPE 
 		}
 
 		out_string.clear();
-		out_string += QString("#ifndef _") + base_name_string.toUpper() + QString("_H_\n");
-		out_string += QString("#define _") + base_name_string.toUpper() + QString("_H_\n");
+		QString basename_in_upper_string = QFileInfo(filename_string).baseName().toUpper();
+		out_string += QString("#ifndef _") + basename_in_upper_string + QString("_H_\n");
+		out_string += QString("#define _") + basename_in_upper_string + QString("_H_\n");
 		out_string += QString("\n#include <stdint.h>\n\n");
 		out_string += QString::asprintf("#define MAXTRACK\t\t\t\t\t\t\t\t\t(0x%02x)\n", maxtrack);
 		out_string += QString::asprintf("#define SONGLEN\t\t\t\t\t\t\t\t\t\t(0x%02x)\n\n", songlen);
@@ -328,13 +331,9 @@ void TuneManager::ExportFile(QString base_name_string, TuneManager::EXPORT_TYPE 
 			kk++;
 		}
 		out_string += QString::asprintf("0x%02x \n};\n\n", p_data[data_length - 1]);
-		out_string += QString("#endif ") + QString("/*") + base_name_string.toUpper() + QString("_H_") + QString("*/");
+		out_string += QString("#endif ") + QString("/*") + basename_in_upper_string+ QString("_H_") + QString("*/");
 
-		file.setFileName(base_name_string + ".h");
-		if(TuneManager::TEXT == export_type){
-			file.setFileName(base_name_string + ".txt");
-		}
-
+		file.setFileName(filename_string);
 		if(false == file.open(QFile::WriteOnly|QFile::Text)){
 			break;
 		}
@@ -356,7 +355,7 @@ void TuneManager::ExportFile(QString base_name_string, TuneManager::EXPORT_TYPE 
 
 		//int length = data_bytearray.size();
 		//data_bytearray = QByteArray((const char *)&length, sizeof(int)) + data_bytearray;
-		file.setFileName(base_name_string + ".data");
+		file.setFileName(filename_string);
 		if(false == file.open(QFile::WriteOnly)){
 			break;
 		}

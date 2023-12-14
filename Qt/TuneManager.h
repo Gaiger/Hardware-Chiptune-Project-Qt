@@ -18,6 +18,7 @@ public:
 
 	void LoadFile(QString filename_string);
 	void SaveFile(QString filename_string);
+
 	enum EXPORT_TYPE
 	{
 		C_HEADER,
@@ -25,7 +26,7 @@ public:
 		AVR_ASM_AND_C_HEADER,
 		TEXT,
 	};Q_ENUM(EXPORT_TYPE)
-	void ExportFile(QString base_name_string, TuneManager::EXPORT_TYPE export_type = TuneManager::C_HEADER);
+	void ExportFile(QString filename_string, TuneManager::EXPORT_TYPE export_type = TuneManager::C_HEADER);
 
 	void SetHNoteAsBNote(bool is_H_note_as_B_note);
 
