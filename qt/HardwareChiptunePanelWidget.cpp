@@ -2,6 +2,7 @@
 #include <QShortcut>
 #include <QFileDialog>
 #include <QDateTime>
+#include <QMessageBox>
 
 #include <QDebug>
 #include "ui_HardwareChiptunePanelWidget.h"
@@ -101,8 +102,13 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	QObject::connect(p_shortcut, &QShortcut::activated,
 					 this, &HardwareChiptunePanelWidget::HandleShortcut_CTRL_P_Activated);
 
-	m_p_player->GetTuneManager()->LoadFile("test2.song");
-	HardwareChiptunePanelWidget::UpdateContents();
+	do
+	{
+		if(0 != m_p_player->GetTuneManager()->LoadFile("test2.song")){
+			break;
+		}
+		HardwareChiptunePanelWidget::UpdateContents();
+	}while(0);
 }
 
 /**********************************************************************************/
@@ -268,7 +274,15 @@ void  HardwareChiptunePanelWidget::on_OpenFilePushButton_released(void)
 			break;
 		}
 		m_p_player->Stop();
-		m_p_player->GetTuneManager()->LoadFile(load_filename_string);
+		int ret = m_p_player->GetTuneManager()->LoadFile(load_filename_string);
+		if(0 != ret){
+			QString error_string("File is not found.");
+			if(-2 == ret){
+				error_string = QString("file format wrong.");
+			}
+			QMessageBox::critical(this, "Load File Error", error_string);
+			break;
+		}
 		HardwareChiptunePanelWidget::UpdateContents();
 	}while(0);
 }
@@ -332,7 +346,11 @@ void HardwareChiptunePanelWidget::on_ExportDataPushButton_released(void)
 			}
 		}while(0);
 
-		m_p_player->GetTuneManager()->ExportFile(filename_string, export_type);
+		int ret = m_p_player->GetTuneManager()->ExportFile(filename_string, export_type);
+		if(0 != ret){
+			QString error_string("error occurs in file saving.");
+			QMessageBox::critical(this, "Export File Error", error_string);
+		}
 	}while(0);
 }
 

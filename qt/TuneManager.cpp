@@ -218,28 +218,33 @@ void TuneManager::SetHNoteAsBNote(bool is_H_note_as_B_note)
 
 /**********************************************************************************/
 
-void TuneManager::LoadFile(QString filename_string)
+int TuneManager::LoadFile(QString filename_string)
 {
 	QMutexLocker locker(&m_mutex);
+	if(false == QFileInfo(filename_string).isFile()){
+		return -1;
+	}
+
 	loadfile(filename_string.toLatin1().data());
 	optimize();
 	get_songlines((void**)&m_p_private->m_p_songlines, &m_p_private->m_p_number_of_songlines);
 	get_tracks((void**)&m_p_private->m_p_tracks, &m_p_private->m_number_of_tracks, &m_p_private->m_track_length);
 	get_instruments((void**)&m_p_private->m_p_instruments, &m_p_private->m_number_of_instruments);
-	return ;
+	return 0;
 }
 
 /**********************************************************************************/
 
-void TuneManager::SaveFile(QString filename_string)
+int TuneManager::SaveFile(QString filename_string)
 {
 	QMutexLocker locker(&m_mutex);
 	savefile(filename_string.toLatin1().data());
+	return 0;
 }
 
 /**********************************************************************************/
 
-void TuneManager::ExportFile(QString filename_string, TuneManager::EXPORT_TYPE export_type)
+int TuneManager::ExportFile(QString filename_string, TuneManager::EXPORT_TYPE export_type)
 {
 	int data_length;
 	int resources_number;
@@ -272,7 +277,7 @@ void TuneManager::ExportFile(QString filename_string, TuneManager::EXPORT_TYPE e
 		//data_bytearray = QByteArray((const char *)&length, sizeof(int)) + data_bytearray;
 		file.setFileName(filename_string);
 		if(false == file.open(QFile::WriteOnly)){
-			break;
+			return -1;
 		}
 		file.write(data_bytearray);
 		file.close();
@@ -313,7 +318,7 @@ void TuneManager::ExportFile(QString filename_string, TuneManager::EXPORT_TYPE e
 			file.setFileName(basename_string + ".h");
 		}
 		if(false == file.open(QFile::WriteOnly|QFile::Text)){
-			break;
+			return -1;
 		}
 		file.write(out_string.toLatin1());
 		file.close();
@@ -341,11 +346,13 @@ void TuneManager::ExportFile(QString filename_string, TuneManager::EXPORT_TYPE e
 
 		file.setFileName(filename_string);
 		if(false == file.open(QFile::WriteOnly|QFile::Text)){
-			break;
+			return -1;
 		}
 		file.write(out_string.toLatin1());
 		file.close();
 	}while(0);
+
+	return 0;
 }
 
 /**********************************************************************************/
