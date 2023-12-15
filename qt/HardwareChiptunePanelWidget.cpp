@@ -147,8 +147,15 @@ void HardwareChiptunePanelWidget::UpdateContents(void)
 		int track_length;
 		m_p_player->GetTuneManager()->GetTracks(&p_track, &number_of_tracks, &track_length);
 		ui->TrackIndexSpinBox->setRange(0 + 1, number_of_tracks - 1);
-		ui->TrackIndexSpinBox->setValue(1);
+		int spinbox_value = ui->TrackIndexSpinBox->value();
+		if(ui->TrackIndexSpinBox->minimum() > spinbox_value
+				|| ui->TrackIndexSpinBox->maximum() < spinbox_value){
+			spinbox_value = 1;
+		}
+		ui->TrackIndexSpinBox->setValue(spinbox_value);
 		ui->TrackIndexSpinBox->setEnabled(true);
+
+		m_p_track_plaintextedit->ShowTrack(spinbox_value);
 	}while(0);
 
 	do
@@ -157,8 +164,15 @@ void HardwareChiptunePanelWidget::UpdateContents(void)
 		int number_of_instruments;
 		m_p_player->GetTuneManager()->GetInstruments(&p_instruments, &number_of_instruments);
 		ui->InstrumentIndexSpinBox->setRange(0 + 1, number_of_instruments - 1);
-		ui->InstrumentIndexSpinBox->setValue(1);
+		int spinbox_value = ui->InstrumentIndexSpinBox->value();
+		if(ui->InstrumentIndexSpinBox->minimum() > spinbox_value
+				|| ui->InstrumentIndexSpinBox->maximum() < spinbox_value){
+			spinbox_value = 1;
+		}
+		ui->InstrumentIndexSpinBox->setValue(spinbox_value);
 		ui->InstrumentIndexSpinBox->setEnabled(true);
+
+		m_p_instrument_plaintextedit->ShowInstrument(spinbox_value);
 	}while(0);
 }
 
