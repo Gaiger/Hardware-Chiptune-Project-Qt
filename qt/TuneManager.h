@@ -13,12 +13,11 @@ class TuneManager : public QObject
 	Q_OBJECT
 public:
 	explicit TuneManager(QObject *parent = nullptr);
-	explicit TuneManager(QString filename, QObject *parent = nullptr);
 	~TuneManager() Q_DECL_OVERRIDE;
 
-	int LoadFile(QString filename_string);
-	int SaveFile(QString filename_string);
-
+	int LoadSongFile(QString filename_string);
+	int SaveSongFile(QString filename_string);
+	int ImportDataFile(QString filename_string);
 	enum EXPORT_TYPE
 	{
 		C_HEADER,
@@ -26,7 +25,7 @@ public:
 		AVR_ASM_AND_C_HEADER,
 		TEXT,
 	};Q_ENUM(EXPORT_TYPE)
-	int ExportFile(QString filename_string, TuneManager::EXPORT_TYPE export_type = TuneManager::C_HEADER);
+	int ExportDataFile(QString filename_string, TuneManager::EXPORT_TYPE export_type = TuneManager::C_HEADER);
 
 	void SetHNoteAsBNote(bool is_H_note_as_B_note);
 

@@ -191,16 +191,6 @@ TuneManager::TuneManager(QObject *parent)
 
 /**********************************************************************************/
 
-TuneManager::TuneManager(QString filename, QObject *parent)
-	: QObject(parent),
-	m_p_private(nullptr)
-{
-	new (this)TuneManager(parent);
-	TuneManager::LoadFile(filename);
-}
-
-/**********************************************************************************/
-
 TuneManager::~TuneManager(void)
 {
 	ResetGeneratingWave();
@@ -218,7 +208,7 @@ void TuneManager::SetHNoteAsBNote(bool is_H_note_as_B_note)
 
 /**********************************************************************************/
 
-int TuneManager::LoadFile(QString filename_string)
+int TuneManager::LoadSongFile(QString filename_string)
 {
 	QMutexLocker locker(&m_mutex);
 	if(false == QFileInfo(filename_string).isFile()){
@@ -235,7 +225,7 @@ int TuneManager::LoadFile(QString filename_string)
 
 /**********************************************************************************/
 
-int TuneManager::SaveFile(QString filename_string)
+int TuneManager::SaveSongFile(QString filename_string)
 {
 	QMutexLocker locker(&m_mutex);
 	savefile(filename_string.toLatin1().data());
@@ -244,7 +234,18 @@ int TuneManager::SaveFile(QString filename_string)
 
 /**********************************************************************************/
 
-int TuneManager::ExportFile(QString filename_string, TuneManager::EXPORT_TYPE export_type)
+int TuneManager::ImportDataFile(QString filename_string)
+{
+	if(false == QFileInfo(filename_string).isFile()){
+		return -1;
+	}
+
+	return 0;
+}
+
+/**********************************************************************************/
+
+int TuneManager::ExportDataFile(QString filename_string, TuneManager::EXPORT_TYPE export_type)
 {
 	int data_length;
 	int resources_number;

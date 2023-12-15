@@ -104,7 +104,7 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 
 	do
 	{
-		if(0 != m_p_player->GetTuneManager()->LoadFile("test2.song")){
+		if(0 != m_p_player->GetTuneManager()->LoadSongFile("test2.song")){
 			break;
 		}
 		HardwareChiptunePanelWidget::UpdateContents();
@@ -277,7 +277,7 @@ void  HardwareChiptunePanelWidget::on_OpenFilePushButton_released(void)
 			break;
 		}
 		m_p_player->Stop();
-		int ret = m_p_player->GetTuneManager()->LoadFile(load_filename_string);
+		int ret = m_p_player->GetTuneManager()->LoadSongFile(load_filename_string);
 		if(0 != ret){
 			QString error_string("File is not found.");
 			if(-2 == ret){
@@ -308,16 +308,45 @@ void  HardwareChiptunePanelWidget::on_SaveFilePushButton_released(void)
 		if(true == save_filename_string.isNull()){
 			break;
 		}
-		m_p_player->GetTuneManager()->SaveFile(save_filename_string);
+		m_p_player->GetTuneManager()->SaveSongFile(save_filename_string);
 	}while(0);
 }
+
+/**********************************************************************************/
+
+void HardwareChiptunePanelWidget::on_ImportDataPushButton_released(void)
+{
+	QString load_filename_string = QFileDialog::getOpenFileName(this, QString("Import the Binary Data File"),
+											   QString(),
+											   QString("binary data (*.data *.bin *.hex);;"
+													   "All file (*)")
+																);
+	do
+	{
+		if(true == load_filename_string.isNull()){
+			break;
+		}
+		m_p_player->Stop();
+		int ret = m_p_player->GetTuneManager()->ImportDataFile(load_filename_string);
+		if(0 != ret){
+			QString error_string("File is not found.");
+			if(-2 == ret){
+				error_string = QString("file format wrong.");
+			}
+			QMessageBox::critical(this, "Load File Error", error_string);
+			break;
+		}
+		HardwareChiptunePanelWidget::UpdateContents();
+	}while(0);
+}
+
 
 /**********************************************************************************/
 
 void HardwareChiptunePanelWidget::on_ExportDataPushButton_released(void)
 {
 	QString suggested_filename_string = QString("songdata");
-	QString filename_string = QFileDialog::getSaveFileName(this, QString("Export the Song File"),
+	QString filename_string = QFileDialog::getSaveFileName(this, QString("Export the Data File"),
 																  suggested_filename_string,
 																  QString("binary data (*.data *.bin *.hex);;"
 																		  "C header(*.h);;"
@@ -353,7 +382,7 @@ void HardwareChiptunePanelWidget::on_ExportDataPushButton_released(void)
 			}
 		}while(0);
 
-		int ret = m_p_player->GetTuneManager()->ExportFile(filename_string, export_type);
+		int ret = m_p_player->GetTuneManager()->ExportDataFile(filename_string, export_type);
 		if(0 != ret){
 			QString error_string("error occurs in file saving.");
 			QMessageBox::critical(this, "Export File Error", error_string);

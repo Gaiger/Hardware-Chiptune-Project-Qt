@@ -25,6 +25,7 @@ private :
 private slots:
 	void on_OpenFilePushButton_released(void);
 	void on_SaveFilePushButton_released(void);
+	void on_ImportDataPushButton_released(void);
 	void on_ExportDataPushButton_released(void);
 
 	void on_SongPlayPushButton_released(void);
