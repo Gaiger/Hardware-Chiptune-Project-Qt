@@ -267,7 +267,10 @@ void  HardwareChiptunePanelWidget::on_OpenFilePushButton_released(void)
 {
 	QString load_filename_string = QFileDialog::getOpenFileName(this, QString("Open the Song File"),
 											   QString(),
-											   QString("Song (*.song);; Text Files (*.txt);; All file (*)"));
+											   QString("Song (*.song);;"
+													   "Text Files (*.txt);;"
+													   "All file (*)")
+																);
 	do
 	{
 		if(true == load_filename_string.isNull()){
@@ -295,7 +298,10 @@ void  HardwareChiptunePanelWidget::on_SaveFilePushButton_released(void)
 	suggested_filename_string += ".song";
 	QString save_filename_string = QFileDialog::getSaveFileName(this, QString("Save the Song File"),
 											   suggested_filename_string,
-											   QString("Song (*.song);; Text Files (*.txt);; All file (*)"));
+											   QString("Song (*.song);;"
+													   "Text Files (*.txt);;"
+													   "All file (*)")
+																);
 
 	do
 	{
@@ -313,10 +319,11 @@ void HardwareChiptunePanelWidget::on_ExportDataPushButton_released(void)
 	QString suggested_filename_string = QString("songdata");
 	QString filename_string = QFileDialog::getSaveFileName(this, QString("Export the Song File"),
 																  suggested_filename_string,
-																  QString("C header(*.h);;"
-																		  "binary data (*.data *.bin *.hex);;"
+																  QString("binary data (*.data *.bin *.hex);;"
+																		  "C header(*.h);;"
 																		  "AVR assembler data and C header (*.s *.h);;"
-																		  "All file (*)"));
+																		  "All file (*)")
+														   );
 
 	do
 	{
