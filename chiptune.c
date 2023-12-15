@@ -46,6 +46,15 @@ const s8 sinetable[] = {
 	-71, -60, -49, -37, -25, -12
 };
 
+const u8 validcmds[] = "0dfijlmtvw~+=";
+
+enum {
+	WF_TRI,
+	WF_SAW,
+	WF_PUL,
+	WF_NOI
+};
+
 volatile struct oscillator {
 	u16	freq;
 	u16	phase;

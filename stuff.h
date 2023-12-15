@@ -6,14 +6,6 @@ typedef char s8;
 typedef short s16;
 typedef unsigned long u32;
 
-enum {
-	WF_TRI,
-	WF_SAW,
-	WF_PUL,
-	WF_NOI
-};
-
-
 struct trackline {
 	u8	note;
 	u8	instr;

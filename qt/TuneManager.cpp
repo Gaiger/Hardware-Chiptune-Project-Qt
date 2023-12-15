@@ -239,6 +239,17 @@ int TuneManager::ImportDataFile(QString filename_string)
 	if(false == QFileInfo(filename_string).isFile()){
 		return -1;
 	}
+	QByteArray readdata_bytearray;
+
+	QFile file(filename_string);
+	file.open(QFile::ReadOnly);
+	readdata_bytearray = file.readAll();
+	file.close();
+
+	int maxtrack, songlen;
+	memcpy(&maxtrack, readdata_bytearray.constData(), 4);
+	memcpy(&songlen, readdata_bytearray.constData() + 4, 4);
+	import_data(maxtrack, songlen, (uint8_t*)readdata_bytearray.constData() + 8);
 
 	return 0;
 }

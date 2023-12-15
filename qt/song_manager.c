@@ -20,21 +20,12 @@
 #include "song_manager.h"
 
 
-#define SETLO(v,x) v = ((v) & 0xf0) | (x)
-#define SETHI(v,x) v = ((v) & 0x0f) | ((x) << 4)
-
-int songx, songy, songoffs, songlen = 1;
-int trackx, tracky, trackoffs, tracklen = TRACKLEN;
-int instrx, instry, instroffs;
-int currtrack = 1, currinstr = 1;
-int currtab = 0;
-int octave = 4;
+int songlen = 1;
+int tracklen = TRACKLEN;
 
 char filename[1024];
 
-char *notenames[] = {"C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "H-"};
-
-char *validcmds = "0dfijlmtvw~+=";
+extern char validcmds[14];
 
 struct instrline {
 	u8			cmd;
@@ -55,13 +46,6 @@ struct instrument instrument[256], iclip;
 struct track track[256], tclip;
 struct songline song[256];
 
-enum {
-	PM_IDLE,
-	PM_PLAY,
-	PM_EDIT
-};
-
-int playmode = PM_IDLE;
 
 void readsong(int pos, int ch, u8 *dest) {
 	dest[0] = song[pos].track[ch];
@@ -147,6 +131,10 @@ void savefile(char *fname) {
 }
 
 void loadfile(char *fname) {
+	memset(&song[0], 0, sizeof(song));
+	memset(&track[0], 0, sizeof(track));
+	memset(&instrument[0], 0, sizeof(instrument));
+
 	FILE *f;
 	char buf[1024];
 	int cmd[3];
@@ -499,3 +487,133 @@ int get_export_data(int *p_maxtrack, int *p_songlen, uint8_t *p_data, int *p_bla
 	return 0;
 }
 
+struct unpacker
+{
+	uint8_t *p_data;
+	u16     nextbyte;
+	u8      buffer;
+	u8      bits;
+};
+
+void initup(struct unpacker *up, uint8_t * p_data, u16 offset)
+{
+	up->p_data = p_data;
+	up->nextbyte = offset;
+	up->bits = 0;
+}
+
+u8 readbit(struct unpacker *up)
+{
+	u8 val;
+
+	if(!up->bits)
+	{
+		up->buffer = up->p_data[up->nextbyte++]; //readsongbyte(up->nextbyte++);
+		up->bits = 8;
+	}
+
+	up->bits--;
+	val = up->buffer & 1;
+	up->buffer >>= 1;
+
+	return val;
+}
+
+u16 readchunk(struct unpacker *up, u8 n)
+{
+	u16 val = 0;
+	u8 i;
+
+	for(i = 0; i < n; i++)
+	{
+		if(readbit(up))
+		{
+			val |= (1 << i);
+		}
+	}
+
+	return val;
+}
+
+int import_data(int maxtrack, int songlen, uint8_t *p_data)
+{
+	memset(&song[0], 0, sizeof(song));
+	memset(&track[0], 0, sizeof(track));
+	memset(&instrument[0], 0, sizeof(instrument));
+
+	uint16_t resources[256] = {0};
+	struct unpacker songup;
+	do
+	{
+		struct unpacker up;
+		initup(&up, p_data, 0);
+		for(int i = 0; i < 16 + maxtrack; i++){
+			resources[i] = readchunk(&up, 13);
+		}
+		initup(&songup, p_data, resources[0]);
+	}while(0);
+
+	for(int i = 0; i < songlen; i++){
+		for(int j = 0; j < 4; j++){
+			uint8_t is_transp = (uint8_t)readchunk(&songup, 1);
+			uint8_t track_index = (uint8_t)readchunk(&songup, 6);
+			uint8_t transp = 0;
+			if(is_transp)
+			{
+			   transp = (uint8_t)readchunk(&songup, 4);
+			   if(transp & 0x8) {
+				   transp |= 0xf0;
+			   }
+			}
+			song[i].track[j] = track_index;
+			song[i].transp[j] = transp;
+
+			if(0 != track_index){
+				struct unpacker trackup;
+				initup(&trackup, p_data, resources[16 + track_index - 1]);
+				for(int k = 0; k < TRACKLEN; k++){
+					uint8_t note, instr, cmd, param;
+					note = instr = cmd = param = 0;
+					uint8_t fields = (uint8_t)readchunk(&trackup, 3);
+					if(fields & 1){
+						note = (uint8_t)readchunk(&trackup, 7);
+					}
+					if(fields & 2){
+						instr = (uint8_t)readchunk(&trackup, 4);
+					}
+					if(fields & 4)
+					{
+						uint8_t cmd_id = (uint8_t)readchunk(&trackup, 4);
+						param = (uint8_t)readchunk(&trackup, 8);
+						if(0 != cmd_id){
+							cmd = validcmds[cmd_id];
+						}
+					}
+
+					track[track_index].line[k].note = note;
+					track[track_index].line[k].instr = instr;
+					track[track_index].line[k].cmd[0] = cmd;
+					track[track_index].line[k].param[0] = param;
+				}
+			}
+		}
+	}
+
+	for(int i = 0; i < 16; i++){
+		instrument[i].length = (resources[i + 1] - resources[i] - 1)/2;
+		struct unpacker instrumentup;
+		initup(&instrumentup, p_data, resources[i]);
+		for(int j = 0; j < instrument[i].length; j++){
+			uint8_t cmd_id = (uint8_t)readchunk(&instrumentup, 8);
+			uint8_t param = (uint8_t)readchunk(&instrumentup, 8);
+			uint8_t cmd = 0;
+			if(0 != cmd_id){
+				cmd = validcmds[cmd_id];
+			}
+			instrument[i].line[j].cmd = cmd;
+			instrument[i].line[j].param = param;
+		}
+	}
+
+	return 0;
+}

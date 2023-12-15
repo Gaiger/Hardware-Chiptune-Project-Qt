@@ -24,10 +24,12 @@ void readinstr(int num, int pos, u8 *il);
 void loadfile(char *fname);
 void savefile(char *fname);
 
+void optimize(void);
+
 int get_export_data_information(int *p_data_length, int *p_resources_number);
 int get_export_data(int *p_maxtrack, int *p_songlen, uint8_t *p_data, int *p_blankline_number, int *p_resources);
 
-void optimize(void);
+int import_data(int maxtrack, int songlen, uint8_t *p_data);
 
 void get_songlines(void ** pp_songlines, int **pp_number_of_songlines);
 void get_tracks(void ** pp_track, int *p_track_number, int *p_track_length);
