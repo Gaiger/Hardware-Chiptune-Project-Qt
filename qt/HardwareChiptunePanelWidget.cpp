@@ -437,7 +437,6 @@ void HardwareChiptunePanelWidget::on_SongApplyPushButton_released(void)
 
 void HardwareChiptunePanelWidget::on_TrackIndexSpinBox_valueChanged(int i)
 {
-	m_p_player->Stop();
 	m_p_track_plaintextedit->ShowTrack(i);
 }
 
