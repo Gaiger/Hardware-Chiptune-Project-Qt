@@ -366,17 +366,16 @@ int alignbyte(struct export_state_t *p_export_state)
 	return p_export_state->exportseek;
 }
 
-int packcmd(u8 ch) {
+int packcmd(uint8_t ch) {
 	if(!ch) return 0;
 	if(strchr(validcmds, ch)) {
-		return strchr(validcmds, ch) - validcmds;
+		return (int)(strchr(validcmds, ch) - validcmds);
 	}
 	return 0;
 }
 
 int generate_export_data(int maxtrack, uint8_t *data_ptr, int *p_data_length,
 						 int *blankline_ptr, int *p_resources, int *p_resource_number) {
-	int i, j;
 	int nres = 0;
 
 	struct export_state_t export_state;
@@ -384,14 +383,14 @@ int generate_export_data(int maxtrack, uint8_t *data_ptr, int *p_data_length,
 	export_state.data_move_ptr = data_ptr;
 	export_state.blankline_index_move_ptr = blankline_ptr;
 
-	for(i = 0; i < 16 + maxtrack; i++) {
+	for(int i = 0; i < 16 + maxtrack; i++) {
 		exportchunk(&export_state, p_resources[i], 13);
 	}
 
 	p_resources[nres++] = alignbyte(&export_state);
 
-	for(i = 0; i < songlen; i++) {
-		for(j = 0; j < 4; j++) {
+	for(int i = 0; i < songlen; i++) {
+		for(int j = 0; j < 4; j++) {
 			if(song[i].transp[j]) {
 				exportchunk(&export_state, 1, 1);
 				exportchunk(&export_state, song[i].track[j], 6);
@@ -403,11 +402,11 @@ int generate_export_data(int maxtrack, uint8_t *data_ptr, int *p_data_length,
 		}
 	}
 
-	for(i = 1; i < 16; i++) {
+	for(int i = 1; i < 16; i++) {
 		p_resources[nres++] = alignbyte(&export_state);
 
 		if(instrument[i].length > 1) {
-			for(j = 0; j < instrument[i].length; j++) {
+			for(int j = 0; j < instrument[i].length; j++) {
 				exportchunk(&export_state, packcmd(instrument[i].line[j].cmd), 8);
 				exportchunk(&export_state, instrument[i].line[j].param, 8);
 			}
@@ -416,15 +415,15 @@ int generate_export_data(int maxtrack, uint8_t *data_ptr, int *p_data_length,
 		exportchunk(&export_state, 0, 8);
 	}
 
-	for(i = 1; i <= maxtrack; i++) {
+	for(int i = 1; i <= maxtrack; i++) {
 		p_resources[nres++] = alignbyte(&export_state);
 
-		for(j = 0; j < tracklen; j++) {
-			u8 cmd = packcmd(track[i].line[j].cmd[0]);
+		for(int j = 0; j < tracklen; j++) {
+			uint8_t cmd_id = packcmd(track[i].line[j].cmd[0]);
 
 			exportchunk(&export_state, !!track[i].line[j].note, 1);
 			exportchunk(&export_state, !!track[i].line[j].instr, 1);
-			exportchunk(&export_state, !!cmd, 1);
+			exportchunk(&export_state, !!cmd_id, 1);
 
 			if(track[i].line[j].note) {
 				exportchunk(&export_state, track[i].line[j].note, 7);
@@ -434,8 +433,8 @@ int generate_export_data(int maxtrack, uint8_t *data_ptr, int *p_data_length,
 				exportchunk(&export_state, track[i].line[j].instr, 4);
 			}
 
-			if(cmd) {
-				exportchunk(&export_state, cmd, 4);
+			if(cmd_id) {
+				exportchunk(&export_state, cmd_id, 4);
 				exportchunk(&export_state, track[i].line[j].param[0], 8);
 			}
 		}
@@ -446,7 +445,6 @@ int generate_export_data(int maxtrack, uint8_t *data_ptr, int *p_data_length,
 
 	return export_state.exportseek;
 }
-
 
 int get_export_data_information(int *p_data_length, int *p_resources_number)
 {
@@ -487,46 +485,46 @@ int get_export_data(int *p_maxtrack, int *p_songlen, uint8_t *p_data, int *p_bla
 	return 0;
 }
 
-struct unpacker
+struct unpacker_t
 {
-	uint8_t *p_data;
-	u16     nextbyte;
-	u8      buffer;
-	u8      bits;
+	uint8_t		*p_data;
+	uint16_t	nextbyte;
+	uint8_t		buffer;
+	uint8_t		bits;
 };
 
-void initup(struct unpacker *up, uint8_t * p_data, u16 offset)
+void initialize_unpacker(struct unpacker_t *p_unpacker, uint8_t * p_data, uint16_t offset)
 {
-	up->p_data = p_data;
-	up->nextbyte = offset;
-	up->bits = 0;
+	p_unpacker->p_data = p_data;
+	p_unpacker->nextbyte = offset;
+	p_unpacker->bits = 0;
 }
 
-u8 readbit(struct unpacker *up)
+uint8_t readbit(struct unpacker_t *p_unpacker)
 {
-	u8 val;
+	uint8_t val;
 
-	if(!up->bits)
+	if(0 == p_unpacker->bits)
 	{
-		up->buffer = up->p_data[up->nextbyte++]; //readsongbyte(up->nextbyte++);
-		up->bits = 8;
+		p_unpacker->buffer = p_unpacker->p_data[p_unpacker->nextbyte++];
+		p_unpacker->bits = 8;
 	}
 
-	up->bits--;
-	val = up->buffer & 1;
-	up->buffer >>= 1;
+	p_unpacker->bits--;
+	val = p_unpacker->buffer & 1;
+	p_unpacker->buffer >>= 1;
 
 	return val;
 }
 
-u16 readchunk(struct unpacker *up, u8 n)
+uint16_t readchunk(struct unpacker_t *p_unpacker, uint8_t n)
 {
-	u16 val = 0;
-	u8 i;
+	uint16_t val = 0;
+	uint8_t i;
 
 	for(i = 0; i < n; i++)
 	{
-		if(readbit(up))
+		if(readbit(p_unpacker))
 		{
 			val |= (1 << i);
 		}
@@ -542,25 +540,25 @@ int import_data(int maxtrack, int songlen, uint8_t *p_data)
 	memset(&instrument[0], 0, sizeof(instrument));
 
 	uint16_t resources[256] = {0};
-	struct unpacker songup;
+	struct unpacker_t song_unpacker;
 	do
 	{
-		struct unpacker up;
-		initup(&up, p_data, 0);
+		struct unpacker_t temp_unpacker;
+		initialize_unpacker(&temp_unpacker, p_data, 0);
 		for(int i = 0; i < 16 + maxtrack; i++){
-			resources[i] = readchunk(&up, 13);
+			resources[i] = readchunk(&temp_unpacker, 13);
 		}
-		initup(&songup, p_data, resources[0]);
+		initialize_unpacker(&song_unpacker, p_data, resources[0]);
 	}while(0);
 
 	for(int i = 0; i < songlen; i++){
 		for(int j = 0; j < 4; j++){
-			uint8_t is_transp = (uint8_t)readchunk(&songup, 1);
-			uint8_t track_index = (uint8_t)readchunk(&songup, 6);
+			uint8_t is_transp = (uint8_t)readchunk(&song_unpacker, 1);
+			uint8_t track_index = (uint8_t)readchunk(&song_unpacker, 6);
 			uint8_t transp = 0;
 			if(is_transp)
 			{
-			   transp = (uint8_t)readchunk(&songup, 4);
+			   transp = (uint8_t)readchunk(&song_unpacker, 4);
 			   if(transp & 0x8) {
 				   transp |= 0xf0;
 			   }
@@ -569,22 +567,22 @@ int import_data(int maxtrack, int songlen, uint8_t *p_data)
 			song[i].transp[j] = transp;
 
 			if(0 != track_index){
-				struct unpacker trackup;
-				initup(&trackup, p_data, resources[16 + track_index - 1]);
+				struct unpacker_t track_unpacker;
+				initialize_unpacker(&track_unpacker, p_data, resources[16 + track_index - 1]);
 				for(int k = 0; k < TRACKLEN; k++){
 					uint8_t note, instr, cmd, param;
 					note = instr = cmd = param = 0;
-					uint8_t fields = (uint8_t)readchunk(&trackup, 3);
+					uint8_t fields = (uint8_t)readchunk(&track_unpacker, 3);
 					if(fields & 1){
-						note = (uint8_t)readchunk(&trackup, 7);
+						note = (uint8_t)readchunk(&track_unpacker, 7);
 					}
 					if(fields & 2){
-						instr = (uint8_t)readchunk(&trackup, 4);
+						instr = (uint8_t)readchunk(&track_unpacker, 4);
 					}
 					if(fields & 4)
 					{
-						uint8_t cmd_id = (uint8_t)readchunk(&trackup, 4);
-						param = (uint8_t)readchunk(&trackup, 8);
+						uint8_t cmd_id = (uint8_t)readchunk(&track_unpacker, 4);
+						param = (uint8_t)readchunk(&track_unpacker, 8);
 						if(0 != cmd_id){
 							cmd = validcmds[cmd_id];
 						}
@@ -601,11 +599,11 @@ int import_data(int maxtrack, int songlen, uint8_t *p_data)
 
 	for(int i = 0; i < 16; i++){
 		instrument[i].length = (resources[i + 1] - resources[i] - 1)/2;
-		struct unpacker instrumentup;
-		initup(&instrumentup, p_data, resources[i]);
+		struct unpacker_t instrument_unpacker;
+		initialize_unpacker(&instrument_unpacker, p_data, resources[i]);
 		for(int j = 0; j < instrument[i].length; j++){
-			uint8_t cmd_id = (uint8_t)readchunk(&instrumentup, 8);
-			uint8_t param = (uint8_t)readchunk(&instrumentup, 8);
+			uint8_t cmd_id = (uint8_t)readchunk(&instrument_unpacker, 8);
+			uint8_t param = (uint8_t)readchunk(&instrument_unpacker, 8);
 			uint8_t cmd = 0;
 			if(0 != cmd_id){
 				cmd = validcmds[cmd_id];
