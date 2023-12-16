@@ -6,9 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-//#include <ncurses.h>
 #include <math.h>
-//#include <err.h?
 
 #ifndef _STUFF_H_
 #define _STUFF_H_
@@ -538,7 +536,6 @@ int import_data(int maxtrack, int songlen, uint8_t *p_data)
 	memset(&song[0], 0, sizeof(song));
 	memset(&track[0], 0, sizeof(track));
 	memset(&instrument[0], 0, sizeof(instrument));
-
 	uint16_t resources[256] = {0};
 	struct unpacker_t song_unpacker;
 	do
@@ -551,6 +548,7 @@ int import_data(int maxtrack, int songlen, uint8_t *p_data)
 		initialize_unpacker(&song_unpacker, p_data, resources[0]);
 	}while(0);
 
+	bool is_track_unpacked_map[256] = {false};
 	for(int i = 0; i < songlen; i++){
 		for(int j = 0; j < 4; j++){
 			uint8_t is_transp = (uint8_t)readchunk(&song_unpacker, 1);
@@ -566,12 +564,21 @@ int import_data(int maxtrack, int songlen, uint8_t *p_data)
 			song[i].track[j] = track_index;
 			song[i].transp[j] = transp;
 
-			if(0 != track_index){
+			do
+			{
+				if(0 == track_index){
+					break;
+				}
+				if(true == is_track_unpacked_map[track_index]){
+					break;
+				}
+
 				struct unpacker_t track_unpacker;
 				initialize_unpacker(&track_unpacker, p_data, resources[16 + track_index - 1]);
 				for(int k = 0; k < TRACKLEN; k++){
 					uint8_t note, instr, cmd, param;
 					note = instr = cmd = param = 0;
+
 					uint8_t fields = (uint8_t)readchunk(&track_unpacker, 3);
 					if(fields & 1){
 						note = (uint8_t)readchunk(&track_unpacker, 7);
@@ -579,8 +586,7 @@ int import_data(int maxtrack, int songlen, uint8_t *p_data)
 					if(fields & 2){
 						instr = (uint8_t)readchunk(&track_unpacker, 4);
 					}
-					if(fields & 4)
-					{
+					if(fields & 4){
 						uint8_t cmd_id = (uint8_t)readchunk(&track_unpacker, 4);
 						param = (uint8_t)readchunk(&track_unpacker, 8);
 						if(0 != cmd_id){
@@ -593,7 +599,8 @@ int import_data(int maxtrack, int songlen, uint8_t *p_data)
 					track[track_index].line[k].cmd[0] = cmd;
 					track[track_index].line[k].param[0] = param;
 				}
-			}
+				is_track_unpacked_map[track_index] = true;
+			}while(0);
 		}
 	}
 
