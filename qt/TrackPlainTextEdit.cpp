@@ -30,9 +30,9 @@ void TrackPlainTextEdit::ShowTrack(int index)
 	QList<QString> note_name_list = m_p_tune_manager->GetNoteNameList();
 
 	TuneManager::track *p_tracks;
-	int numberf_of_tracks;
+	int number_of_tracks;
 	int track_length;
-	m_p_tune_manager->GetTracks(&p_tracks, &numberf_of_tracks, &track_length);
+	m_p_tune_manager->GetTracks(&p_tracks, &number_of_tracks, &track_length);
 	TuneManager::track *p_current_track = &p_tracks[index];
 
 	QString whole_text;

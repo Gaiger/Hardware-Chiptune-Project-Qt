@@ -308,63 +308,75 @@ void optimize() {
 	}
 }
 
-struct export_state_t
-{
-	uint8_t *data_move_ptr;
-	int exportbits;
-	int exportcount;
-	int exportseek;
+#define PACKING_INSTRUMENT_NUMBER					(15)
+#define PACKING_TRACK_CMD_NUMBER					(1)
 
-	int *blankline_index_move_ptr;
+/**********************************************************************************/
+
+struct packer_t
+{
+	uint8_t *p_chunk;
+	int bits;
+	int bit_counter;
+	int chunk_length;
+
+	int *p_section_index;
 };
 
-void putbit(struct export_state_t *p_export_state, int x) {
+/**********************************************************************************/
+
+static void put_one_bit(struct packer_t *p_packer, int x) {
 	if(x) {
-		p_export_state->exportbits |= (1 << p_export_state->exportcount);
+		p_packer->bits |= (1 << p_packer->bit_counter);
 	}
-	p_export_state->exportcount += 1;
-	if(p_export_state->exportcount == 8) {
-		if(p_export_state->data_move_ptr) {
-			p_export_state->data_move_ptr[0] = p_export_state->exportbits;
-			p_export_state->data_move_ptr += 1;
+	p_packer->bit_counter += 1;
+	if(p_packer->bit_counter == 8) {
+		if(p_packer->p_chunk) {
+			p_packer->p_chunk[0] = p_packer->bits;
+			p_packer->p_chunk += 1;
 		}
-		p_export_state->exportseek += 1;
-		p_export_state->exportbits = 0;
-		p_export_state->exportcount = 0;
+		p_packer->chunk_length += 1;
+		p_packer->bits = 0;
+		p_packer->bit_counter = 0;
 	}
 }
 
-void exportchunk(struct export_state_t *p_export_state, int data, int bits) {
-	int i;
+/**********************************************************************************/
 
-	for(i = 0; i < bits; i++) {
-		putbit(p_export_state, !!(data & (1 << i)));
-	}
-}
-
-int alignbyte(struct export_state_t *p_export_state)
+static void put_data(struct packer_t *p_packer, int data, int bits)
 {
-	if(p_export_state->exportcount) {
-		if(p_export_state->data_move_ptr) {
-			p_export_state->data_move_ptr[0] = p_export_state->exportbits;
-			p_export_state->data_move_ptr += 1;
-		}
-		p_export_state->exportseek += 1;
-		p_export_state->exportbits = 0;
-		p_export_state->exportcount = 0;
+	for(int i = 0; i < bits; i++) {
+		put_one_bit(p_packer, !!(data & (1 << i)));
 	}
-
-	if(NULL != p_export_state->data_move_ptr){
-		if(NULL != p_export_state->blankline_index_move_ptr){
-			p_export_state->blankline_index_move_ptr[0] = p_export_state->exportseek;
-			p_export_state->blankline_index_move_ptr += 1;
-		}
-	}
-
-	return p_export_state->exportseek;
 }
 
-int packcmd(uint8_t ch) {
+/**********************************************************************************/
+
+static int align_to_byte(struct packer_t *p_packer)
+{
+	if(p_packer->bit_counter) {
+		if(p_packer->p_chunk) {
+			p_packer->p_chunk[0] = p_packer->bits;
+			p_packer->p_chunk += 1;
+		}
+		p_packer->chunk_length += 1;
+		p_packer->bits = 0;
+		p_packer->bit_counter = 0;
+	}
+
+	if(NULL != p_packer->p_chunk){
+		if(NULL != p_packer->p_section_index){
+			p_packer->p_section_index[0] = p_packer->chunk_length;
+			p_packer->p_section_index += 1;
+		}
+	}
+
+	return p_packer->chunk_length;
+}
+
+/**********************************************************************************/
+
+static int convert_to_cmd_id(uint8_t ch) {
 	if(!ch) return 0;
 	if(strchr(validcmds, ch)) {
 		return (int)(strchr(validcmds, ch) - validcmds);
@@ -372,97 +384,89 @@ int packcmd(uint8_t ch) {
 	return 0;
 }
 
-int generate_export_data(int maxtrack, uint8_t *data_ptr, int *p_data_length,
-						 int *blankline_ptr, int *p_resources, int *p_resource_number) {
-	int nres = 0;
+/**********************************************************************************/
 
-	struct export_state_t export_state;
-	memset(&export_state,0, sizeof(struct export_state_t));
-	export_state.data_move_ptr = data_ptr;
-	export_state.blankline_index_move_ptr = blankline_ptr;
+static int convert_to_chunks(int maxtrack, uint8_t *p_chunks, int *p_chunk_length,
+						 int *p_section_begin_indexes, int *p_offsets, int *p_offet_number) {
 
-	for(int i = 0; i < 16 + maxtrack; i++) {
-		exportchunk(&export_state, p_resources[i], 13);
+	struct packer_t packer;
+	memset(&packer,0, sizeof(struct packer_t));
+	packer.p_chunk = p_chunks;
+	packer.p_section_index = p_section_begin_indexes;
+
+	for(int i = 0; i < 1 + PACKING_INSTRUMENT_NUMBER + maxtrack; i++) {
+		put_data(&packer, p_offsets[i], 13);
 	}
 
-	p_resources[nres++] = alignbyte(&export_state);
+	int nres = 0;
+	p_offsets[nres++] = align_to_byte(&packer);
 
 	for(int i = 0; i < songlen; i++) {
 		for(int j = 0; j < 4; j++) {
 			if(song[i].transp[j]) {
-				exportchunk(&export_state, 1, 1);
-				exportchunk(&export_state, song[i].track[j], 6);
-				exportchunk(&export_state, song[i].transp[j], 4);
+				put_data(&packer, 1, 1);
+				put_data(&packer, song[i].track[j], 6);
+				put_data(&packer, song[i].transp[j], 4);
 			} else {
-				exportchunk(&export_state, 0, 1);
-				exportchunk(&export_state, song[i].track[j], 6);
+				put_data(&packer, 0, 1);
+				put_data(&packer, song[i].track[j], 6);
 			}
 		}
 	}
 
-	for(int i = 1; i < 16; i++) {
-		p_resources[nres++] = alignbyte(&export_state);
+	for(int i = 1; i < 1 + PACKING_INSTRUMENT_NUMBER ; i++) {
+		p_offsets[nres++] = align_to_byte(&packer);
 
 		if(instrument[i].length > 1) {
 			for(int j = 0; j < instrument[i].length; j++) {
-				exportchunk(&export_state, packcmd(instrument[i].line[j].cmd), 8);
-				exportchunk(&export_state, instrument[i].line[j].param, 8);
+				put_data(&packer, convert_to_cmd_id(instrument[i].line[j].cmd), 8);
+				put_data(&packer, instrument[i].line[j].param, 8);
 			}
 		}
 
-		exportchunk(&export_state, 0, 8);
+		put_data(&packer, 0, 8);
 	}
 
 	for(int i = 1; i <= maxtrack; i++) {
-		p_resources[nres++] = alignbyte(&export_state);
+		p_offsets[nres++] = align_to_byte(&packer);
 
 		for(int j = 0; j < tracklen; j++) {
-			uint8_t cmd_id = packcmd(track[i].line[j].cmd[0]);
+			put_data(&packer, !!track[i].line[j].note, 1);
+			put_data(&packer, !!track[i].line[j].instr, 1);
 
-			exportchunk(&export_state, !!track[i].line[j].note, 1);
-			exportchunk(&export_state, !!track[i].line[j].instr, 1);
-			exportchunk(&export_state, !!cmd_id, 1);
+			for(int k = 0; k < PACKING_TRACK_CMD_NUMBER; k++){
+				uint8_t cmd_id = convert_to_cmd_id(track[i].line[j].cmd[k]);
+				put_data(&packer, !!cmd_id, 1);
+			}
 
 			if(track[i].line[j].note) {
-				exportchunk(&export_state, track[i].line[j].note, 7);
+				put_data(&packer, track[i].line[j].note, 7);
 			}
 
 			if(track[i].line[j].instr) {
-				exportchunk(&export_state, track[i].line[j].instr, 4);
+				put_data(&packer, track[i].line[j].instr, 4);
 			}
 
-			if(cmd_id) {
-				exportchunk(&export_state, cmd_id, 4);
-				exportchunk(&export_state, track[i].line[j].param[0], 8);
+			for(int k = 0; k < PACKING_TRACK_CMD_NUMBER; k++){
+				uint8_t cmd_id = convert_to_cmd_id(track[i].line[j].cmd[k]);
+				if(cmd_id) {
+					put_data(&packer, cmd_id, 4);
+					put_data(&packer, track[i].line[j].param[k], 8);
+				}
 			}
 		}
 	}
 
-	*p_data_length = export_state.exportseek;
-	*p_resource_number = nres;
-
-	return export_state.exportseek;
-}
-
-int get_export_data_information(int *p_data_length, int *p_resources_number)
-{
-	int resources[256] = {0};
-
-	int maxtrack = 0;
-	for(int i = 0; i < songlen; i++) {
-		for(int j = 0; j < 4; j++) {
-			if(maxtrack < song[i].track[j]) maxtrack = song[i].track[j];
-		}
-	}
-
-	generate_export_data(maxtrack, NULL, p_data_length, NULL,
-						 resources, p_resources_number);
+	*p_chunk_length = packer.chunk_length;
+	*p_offet_number = nres;
 	return 0;
 }
 
-int get_export_data(int *p_maxtrack, int *p_songlen, uint8_t *p_data, int *p_blanklines, int *p_resources)
+/**********************************************************************************/
+
+int get_chunk_information(int *p_chunk_length, int *p_offet_number)
 {
-	int resources[256] = {0};
+	int offsets[256] = {0};
 
 	int maxtrack = 0;
 	for(int i = 0; i < songlen; i++) {
@@ -471,17 +475,33 @@ int get_export_data(int *p_maxtrack, int *p_songlen, uint8_t *p_data, int *p_bla
 		}
 	}
 
-	int data_length;
-	int resources_number;
-	generate_export_data(maxtrack, NULL, &data_length, NULL, resources, &resources_number);
-	generate_export_data(maxtrack, p_data, &data_length, p_blanklines, resources, &resources_number);
+	convert_to_chunks(maxtrack, NULL, p_chunk_length, NULL,
+						 offsets, p_offet_number);
+	return 0;
+}
 
-	memcpy(p_resources, &resources[0],  resources_number * sizeof(int));
+/**********************************************************************************/
+
+int get_chunks(int *p_maxtrack, int *p_songlen, uint8_t *p_chunks, int *p_section_begin_indexes, int *p_offsets)
+{
+	int maxtrack = 0;
+	for(int i = 0; i < songlen; i++) {
+		for(int j = 0; j < 4; j++) {
+			if(maxtrack < song[i].track[j]) maxtrack = song[i].track[j];
+		}
+	}
+
+	int chunks_length;
+	int offet_number;
+	convert_to_chunks(maxtrack, NULL, &chunks_length, NULL, p_offsets, &offet_number);
+	convert_to_chunks(maxtrack, p_chunks, &chunks_length, p_section_begin_indexes, p_offsets, &offet_number);
 
 	*p_maxtrack = maxtrack;
 	*p_songlen = songlen;
 	return 0;
 }
+
+/**********************************************************************************/
 
 struct unpacker_t
 {
@@ -491,6 +511,8 @@ struct unpacker_t
 	uint8_t		bits;
 };
 
+/**********************************************************************************/
+
 void initialize_unpacker(struct unpacker_t *p_unpacker, uint8_t * p_data, uint16_t offset)
 {
 	p_unpacker->p_data = p_data;
@@ -498,7 +520,9 @@ void initialize_unpacker(struct unpacker_t *p_unpacker, uint8_t * p_data, uint16
 	p_unpacker->bits = 0;
 }
 
-uint8_t readbit(struct unpacker_t *p_unpacker)
+/**********************************************************************************/
+
+uint8_t fetch_one_bit(struct unpacker_t *p_unpacker)
 {
 	uint8_t val;
 
@@ -515,14 +539,16 @@ uint8_t readbit(struct unpacker_t *p_unpacker)
 	return val;
 }
 
-uint16_t readchunk(struct unpacker_t *p_unpacker, uint8_t n)
+/**********************************************************************************/
+
+uint16_t fetch_bits(struct unpacker_t *p_unpacker, uint8_t n)
 {
 	uint16_t val = 0;
 	uint8_t i;
 
 	for(i = 0; i < n; i++)
 	{
-		if(readbit(p_unpacker))
+		if(fetch_one_bit(p_unpacker))
 		{
 			val |= (1 << i);
 		}
@@ -531,32 +557,34 @@ uint16_t readchunk(struct unpacker_t *p_unpacker, uint8_t n)
 	return val;
 }
 
+/**********************************************************************************/
+
 int import_data(int maxtrack, int songlen, uint8_t *p_data)
 {
 	memset(&song[0], 0, sizeof(song));
 	memset(&track[0], 0, sizeof(track));
 	memset(&instrument[0], 0, sizeof(instrument));
-	uint16_t resources[256] = {0};
+	uint16_t offsets[256] = {0};
 	struct unpacker_t song_unpacker;
 	do
 	{
 		struct unpacker_t temp_unpacker;
 		initialize_unpacker(&temp_unpacker, p_data, 0);
-		for(int i = 0; i < 16 + maxtrack; i++){
-			resources[i] = readchunk(&temp_unpacker, 13);
+		for(int i = 0; i < 1 + PACKING_INSTRUMENT_NUMBER + maxtrack; i++){
+			offsets[i] = fetch_bits(&temp_unpacker, 13);
 		}
-		initialize_unpacker(&song_unpacker, p_data, resources[0]);
 	}while(0);
 
+	initialize_unpacker(&song_unpacker, p_data, offsets[0]);
 	bool is_track_unpacked_map[256] = {false};
 	for(int i = 0; i < songlen; i++){
 		for(int j = 0; j < 4; j++){
-			uint8_t is_transp = (uint8_t)readchunk(&song_unpacker, 1);
-			uint8_t track_index = (uint8_t)readchunk(&song_unpacker, 6);
+			uint8_t is_transp = (uint8_t)fetch_bits(&song_unpacker, 1);
+			uint8_t track_index = (uint8_t)fetch_bits(&song_unpacker, 6);
 			uint8_t transp = 0;
 			if(is_transp)
 			{
-			   transp = (uint8_t)readchunk(&song_unpacker, 4);
+			   transp = (uint8_t)fetch_bits(&song_unpacker, 4);
 			   if(transp & 0x8) {
 				   transp |= 0xf0;
 			   }
@@ -574,43 +602,49 @@ int import_data(int maxtrack, int songlen, uint8_t *p_data)
 				}
 
 				struct unpacker_t track_unpacker;
-				initialize_unpacker(&track_unpacker, p_data, resources[16 + track_index - 1]);
+				initialize_unpacker(&track_unpacker, p_data, offsets[1 + PACKING_INSTRUMENT_NUMBER + (track_index - 1)]);
 				for(int k = 0; k < TRACKLEN; k++){
-					uint8_t note, instr, cmd, param;
-					note = instr = cmd = param = 0;
+					uint8_t note = 0;
+					uint8_t instr = 0;
+					uint8_t cmd[2] = {0};
+					uint8_t	param[2] = {0};
 
-					uint8_t fields = (uint8_t)readchunk(&track_unpacker, 3);
-					if(fields & 1){
-						note = (uint8_t)readchunk(&track_unpacker, 7);
+					uint8_t fields = (uint8_t)fetch_bits(&track_unpacker, 2 + PACKING_TRACK_CMD_NUMBER);
+					if((fields >> 0) & 0x01){
+						note = (uint8_t)fetch_bits(&track_unpacker, 7);
 					}
-					if(fields & 2){
-						instr = (uint8_t)readchunk(&track_unpacker, 4);
+					if((fields >> 1) & 0x01){
+						instr = (uint8_t)fetch_bits(&track_unpacker, 4);
 					}
-					if(fields & 4){
-						uint8_t cmd_id = (uint8_t)readchunk(&track_unpacker, 4);
-						param = (uint8_t)readchunk(&track_unpacker, 8);
-						if(0 != cmd_id){
-							cmd = validcmds[cmd_id];
+					for(int m = 0; m < PACKING_TRACK_CMD_NUMBER; m++){
+						if((fields >> (m + 2)) & 0x01){
+							uint8_t cmd_id = (uint8_t)fetch_bits(&track_unpacker, 4);
+							if(0 != cmd_id){
+								cmd[m] = validcmds[cmd_id];
+								param[m] = (uint8_t)fetch_bits(&track_unpacker, 8);
+							}
 						}
 					}
 
 					track[track_index].line[k].note = note;
 					track[track_index].line[k].instr = instr;
-					track[track_index].line[k].cmd[0] = cmd;
-					track[track_index].line[k].param[0] = param;
+					for(int m = 0; m < 2; m++){
+						track[track_index].line[k].cmd[m] = cmd[m];
+						track[track_index].line[k].param[m] = param[m];
+					}
 				}
 				is_track_unpacked_map[track_index] = true;
 			}while(0);
 		}
 	}
 
-	for(int i = 0; i < 16; i++){
-		instrument[i].length = (resources[i + 1] - resources[i] - 1)/2;
+	for(int i = 0; i < PACKING_INSTRUMENT_NUMBER; i++){
+		instrument[i].length = (offsets[i + 1] - offsets[i] - 1)/2;
 		struct unpacker_t instrument_unpacker;
-		initialize_unpacker(&instrument_unpacker, p_data, resources[i]);
+		initialize_unpacker(&instrument_unpacker, p_data, offsets[i]);
 		for(int j = 0; j < instrument[i].length; j++){
-			uint8_t cmd_id = (uint8_t)readchunk(&instrument_unpacker, 8);
-			uint8_t param = (uint8_t)readchunk(&instrument_unpacker, 8);
+			uint8_t cmd_id = (uint8_t)fetch_bits(&instrument_unpacker, 8);
+			uint8_t param = (uint8_t)fetch_bits(&instrument_unpacker, 8);
 			uint8_t cmd = 0;
 			if(0 != cmd_id){
 				cmd = validcmds[cmd_id];

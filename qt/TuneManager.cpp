@@ -258,17 +258,20 @@ int TuneManager::ImportDataFile(QString filename_string)
 
 int TuneManager::ExportDataFile(QString filename_string, TuneManager::EXPORT_TYPE export_type)
 {
-	int data_length;
-	int resources_number;
+	int chunk_length;
+	int offset_number;
 
-	get_export_data_information(&data_length, &resources_number);
+	get_chunk_information(&chunk_length, &offset_number);
 
-	uint8_t *p_data = (uint8_t*)alloca(data_length);
-	int *p_blanklines = (int*)alloca(resources_number * sizeof(int));
-	int *p_resources = (int*)alloca(resources_number * sizeof(int));
+	uint8_t *p_chunks = (uint8_t*)alloca(chunk_length);
+	int *p_section_begin_indexes = (int*)alloca(offset_number * sizeof(int));
+	int *p_offsets = (int*)alloca(offset_number * sizeof(int));
 	int maxtrack, songlen;
 
-	get_export_data(&maxtrack, &songlen, p_data, p_blanklines, p_resources);
+	memset(p_chunks, 0, chunk_length);
+	memset(p_section_begin_indexes, 0, offset_number * sizeof(int));
+	memset(p_offsets, 0, offset_number * sizeof(int));
+	get_chunks(&maxtrack, &songlen, p_chunks, p_section_begin_indexes, p_offsets);
 
 	QFile file;
 	QString out_string;
@@ -279,19 +282,13 @@ int TuneManager::ExportDataFile(QString filename_string, TuneManager::EXPORT_TYP
 			break;
 		}
 
-		QByteArray data_bytearray((const char *)p_data, data_length);
-		data_bytearray =
-				QByteArray((const char *)&maxtrack, sizeof(int))
-				+ QByteArray((const char *)&songlen, sizeof(int))
-				+ data_bytearray;
-
-		//int length = data_bytearray.size();
-		//data_bytearray = QByteArray((const char *)&length, sizeof(int)) + data_bytearray;
 		file.setFileName(filename_string);
 		if(false == file.open(QFile::WriteOnly)){
 			return -1;
 		}
-		file.write(data_bytearray);
+		file.write((const char *)&maxtrack, sizeof(int));
+		file.write((const char *)&songlen, sizeof(int));
+		file.write((const char *)p_chunks, chunk_length);
 		file.close();
 	}while(0);
 
@@ -313,8 +310,8 @@ int TuneManager::ExportDataFile(QString filename_string, TuneManager::EXPORT_TYP
 			out_string += QString("const uint8_t songdata[] = {");
 			int ii = 0;
 			int kk = 0;
-			for(int i = 0; i < data_length - 1; i++){
-				if(i == p_blanklines[ii]){
+			for(int i = 0; i < chunk_length - 1; i++){
+				if(i == p_section_begin_indexes[ii]){
 					out_string += QString::asprintf("\n");
 					ii++;
 					kk = 0;
@@ -322,10 +319,10 @@ int TuneManager::ExportDataFile(QString filename_string, TuneManager::EXPORT_TYP
 				if(0 == kk % 12){
 					out_string += QString::asprintf("\n\t");
 				}
-				out_string += QString::asprintf("0x%02x, ", p_data[i]);
+				out_string += QString::asprintf("0x%02x, ", p_chunks[i]);
 				kk++;
 			}
-			out_string += QString::asprintf("0x%02x \n};\n\n", p_data[data_length - 1]);
+			out_string += QString::asprintf("0x%02x \n};\n\n", p_chunks[chunk_length - 1]);
 		}
 		out_string += QString("#endif ") + QString("/*") + basename_string.toUpper() + QString("_H_") + QString("*/");
 
@@ -348,16 +345,16 @@ int TuneManager::ExportDataFile(QString filename_string, TuneManager::EXPORT_TYP
 		out_string += QString::asprintf("songdata:\n");
 		out_string += QString::asprintf("# ");
 		for(int i = 0; i < 16 + maxtrack; i++) {
-			out_string += QString::asprintf("%04x ", p_resources[i]);
+			out_string += QString::asprintf("%04x ", p_offsets[i]);
 		}
 		QString::asprintf("\n");
 		int ii = 0;
-		for(int i = 0; i < data_length; i++){
-			if(i == p_blanklines[ii]){
+		for(int i = 0; i < chunk_length; i++){
+			if(i == p_section_begin_indexes[ii]){
 				out_string += QString::asprintf("\n");
 				ii++;
 			}
-			out_string += QString::asprintf("\t.byte\t0x%02x\n", p_data[i]);
+			out_string += QString::asprintf("\t.byte\t0x%02x\n", p_chunks[i]);
 		}
 
 		file.setFileName(filename_string);
@@ -497,3 +494,25 @@ void TuneManager::ResetGeneratingWave()
 }
 
 /**********************************************************************************/
+
+bool TuneManager::IsGeneratingWave(int *p_tune_type)
+{
+	do
+	{
+		if(true == m_p_private->m_is_generating_song){
+			if(nullptr != p_tune_type){
+				*p_tune_type = TuneManager::SONG;
+			}
+			return true;
+		}
+
+		if(true == m_p_private->m_is_generating_track){
+			if(nullptr != p_tune_type){
+				*p_tune_type = TuneManager::TRACK;
+			}
+			return true;
+		}
+	}while(0);
+
+	return false;
+}

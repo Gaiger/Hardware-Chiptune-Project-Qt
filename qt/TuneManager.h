@@ -69,6 +69,7 @@ public :
 	};Q_ENUM(TUNE_TYPE)
 	void SetGeneratingWave(int tune_type, int index);
 	void ResetGeneratingWave();
+	bool IsGeneratingWave(int *p_tune_type = nullptr);
 	QByteArray FetchWave(int const length);
 
 public:

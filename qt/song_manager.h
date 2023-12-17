@@ -26,8 +26,8 @@ void savefile(char *fname);
 
 void optimize(void);
 
-int get_export_data_information(int *p_data_length, int *p_resources_number);
-int get_export_data(int *p_maxtrack, int *p_songlen, uint8_t *p_data, int *p_blankline_number, int *p_resources);
+int get_chunk_information(int *p_chunk_length, int *p_offet_number);
+int get_chunks(int *p_maxtrack, int *p_songlen, uint8_t *p_chunks, int *p_section_begin_indexes, int *p_offsets);
 
 int import_data(int maxtrack, int songlen, uint8_t *p_data);
 
