@@ -234,7 +234,7 @@ int TuneManager::SaveSongFile(QString filename_string)
 
 /**********************************************************************************/
 
-int TuneManager::ImportDataFile(QString filename_string)
+int TuneManager::ImportChunkDataFile(QString filename_string)
 {
 	if(false == QFileInfo(filename_string).isFile()){
 		return -1;
@@ -249,14 +249,14 @@ int TuneManager::ImportDataFile(QString filename_string)
 	int maxtrack, songlen;
 	memcpy(&maxtrack, readdata_bytearray.constData(), 4);
 	memcpy(&songlen, readdata_bytearray.constData() + 4, 4);
-	import_data(maxtrack, songlen, (uint8_t*)readdata_bytearray.constData() + 8);
+	set_chunks(maxtrack, songlen, (uint8_t*)readdata_bytearray.constData() + 8, readdata_bytearray.size() - 8);
 
 	return 0;
 }
 
 /**********************************************************************************/
 
-int TuneManager::ExportDataFile(QString filename_string, TuneManager::EXPORT_TYPE export_type)
+int TuneManager::ExportChunkDataFile(QString filename_string, TuneManager::EXPORT_TYPE export_type)
 {
 	int chunk_length;
 	int offset_number;

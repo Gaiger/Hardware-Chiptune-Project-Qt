@@ -559,8 +559,9 @@ uint16_t fetch_bits(struct unpacker_t *p_unpacker, uint8_t n)
 
 /**********************************************************************************/
 
-int import_data(int maxtrack, int songlen, uint8_t *p_data)
+int set_chunks(int maxtrack, int songlen, uint8_t *p_chunks, int chunk_length)
 {
+	(void)chunk_length;
 	memset(&song[0], 0, sizeof(song));
 	memset(&track[0], 0, sizeof(track));
 	memset(&instrument[0], 0, sizeof(instrument));
@@ -569,13 +570,13 @@ int import_data(int maxtrack, int songlen, uint8_t *p_data)
 	do
 	{
 		struct unpacker_t temp_unpacker;
-		initialize_unpacker(&temp_unpacker, p_data, 0);
+		initialize_unpacker(&temp_unpacker, p_chunks, 0);
 		for(int i = 0; i < 1 + PACKING_INSTRUMENT_NUMBER + maxtrack; i++){
 			offsets[i] = fetch_bits(&temp_unpacker, 13);
 		}
 	}while(0);
 
-	initialize_unpacker(&song_unpacker, p_data, offsets[0]);
+	initialize_unpacker(&song_unpacker, p_chunks, offsets[0]);
 	bool is_track_unpacked_map[256] = {false};
 	for(int i = 0; i < songlen; i++){
 		for(int j = 0; j < 4; j++){
@@ -602,7 +603,7 @@ int import_data(int maxtrack, int songlen, uint8_t *p_data)
 				}
 
 				struct unpacker_t track_unpacker;
-				initialize_unpacker(&track_unpacker, p_data, offsets[1 + PACKING_INSTRUMENT_NUMBER + (track_index - 1)]);
+				initialize_unpacker(&track_unpacker, p_chunks, offsets[1 + PACKING_INSTRUMENT_NUMBER + (track_index - 1)]);
 				for(int k = 0; k < TRACKLEN; k++){
 					uint8_t note = 0;
 					uint8_t instr = 0;
@@ -641,7 +642,7 @@ int import_data(int maxtrack, int songlen, uint8_t *p_data)
 	for(int i = 0; i < PACKING_INSTRUMENT_NUMBER; i++){
 		instrument[i].length = (offsets[i + 1] - offsets[i] - 1)/2;
 		struct unpacker_t instrument_unpacker;
-		initialize_unpacker(&instrument_unpacker, p_data, offsets[i]);
+		initialize_unpacker(&instrument_unpacker, p_chunks, offsets[i]);
 		for(int j = 0; j < instrument[i].length; j++){
 			uint8_t cmd_id = (uint8_t)fetch_bits(&instrument_unpacker, 8);
 			uint8_t param = (uint8_t)fetch_bits(&instrument_unpacker, 8);

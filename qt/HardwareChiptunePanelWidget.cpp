@@ -328,7 +328,7 @@ void  HardwareChiptunePanelWidget::on_SaveFilePushButton_released(void)
 
 /**********************************************************************************/
 
-void HardwareChiptunePanelWidget::on_ImportDataPushButton_released(void)
+void HardwareChiptunePanelWidget::on_ImportChunkDataPushButton_released(void)
 {
 	QString load_filename_string = QFileDialog::getOpenFileName(this, QString("Import the Binary Data File"),
 											   QString(),
@@ -341,7 +341,7 @@ void HardwareChiptunePanelWidget::on_ImportDataPushButton_released(void)
 			break;
 		}
 		m_p_player->Stop();
-		int ret = m_p_player->GetTuneManager()->ImportDataFile(load_filename_string);
+		int ret = m_p_player->GetTuneManager()->ImportChunkDataFile(load_filename_string);
 		if(0 != ret){
 			QString error_string("File is not found.");
 			if(-2 == ret){
@@ -357,7 +357,7 @@ void HardwareChiptunePanelWidget::on_ImportDataPushButton_released(void)
 
 /**********************************************************************************/
 
-void HardwareChiptunePanelWidget::on_ExportDataPushButton_released(void)
+void HardwareChiptunePanelWidget::on_ExportChunkDataPushButton_released(void)
 {
 	QString suggested_filename_string = QString("songdata");
 	QString filename_string = QFileDialog::getSaveFileName(this, QString("Export the Data File"),
@@ -396,7 +396,7 @@ void HardwareChiptunePanelWidget::on_ExportDataPushButton_released(void)
 			}
 		}while(0);
 
-		int ret = m_p_player->GetTuneManager()->ExportDataFile(filename_string, export_type);
+		int ret = m_p_player->GetTuneManager()->ExportChunkDataFile(filename_string, export_type);
 		if(0 != ret){
 			QString error_string("error occurs in file saving.");
 			QMessageBox::critical(this, "Export File Error", error_string);

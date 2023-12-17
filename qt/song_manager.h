@@ -29,7 +29,7 @@ void optimize(void);
 int get_chunk_information(int *p_chunk_length, int *p_offet_number);
 int get_chunks(int *p_maxtrack, int *p_songlen, uint8_t *p_chunks, int *p_section_begin_indexes, int *p_offsets);
 
-int import_data(int maxtrack, int songlen, uint8_t *p_data);
+int set_chunks(int maxtrack, int songlen, uint8_t *p_chunks, int chunk_length);
 
 void get_songlines(void ** pp_songlines, int **pp_number_of_songlines);
 void get_tracks(void ** pp_track, int *p_track_number, int *p_track_length);
