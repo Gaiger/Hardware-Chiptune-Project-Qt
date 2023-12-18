@@ -17,17 +17,21 @@
 #endif
 #include "song_manager.h"
 
+int const get_track_length(void);
+int get_song_length(void);
+void set_song_length(int songlen);
+uint8_t get_track_position(void);
+uint8_t get_song_position(void);
+bool is_generating_song(void);
+bool is_generating_track(void);
 
-int songlen = 1;
-int tracklen = TRACKLEN;
 
-char filename[1024];
 
 extern char validcmds[14];
 
 struct instrline {
-	u8			cmd;
-	u8			param;
+	uint8_t			cmd;
+	uint8_t			param;
 };
 
 struct instrument {
@@ -36,21 +40,25 @@ struct instrument {
 };
 
 struct songline {
-	u8			track[4];
-	u8			transp[4];
+	uint8_t			track[4];
+	uint8_t			transp[4];
 };
+
+static int s_song_length;
+int get_song_length(void){return s_song_length;}
 
 struct instrument instrument[256], iclip;
 struct track track[256], tclip;
 struct songline song[256];
 
 
-void readsong(int pos, int ch, u8 *dest) {
+
+static void readsong(int pos, int ch, uint8_t *dest) {
 	dest[0] = song[pos].track[ch];
 	dest[1] = song[pos].transp[ch];
 }
 
-void readtrack(int num, int pos, struct trackline *tl) {
+static void readtrack(int num, int pos, struct trackline *tl) {
 	tl->note = track[num].line[pos].note;
 	tl->instr = track[num].line[pos].instr;
 	tl->cmd[0] = track[num].line[pos].cmd[0];
@@ -59,7 +67,7 @@ void readtrack(int num, int pos, struct trackline *tl) {
 	tl->param[1] = track[num].line[pos].param[1];
 }
 
-void readinstr(int num, int pos, u8 *il) {
+static void readinstr(int num, int pos, uint8_t *il) {
 	if(pos >= instrument[num].length) {
 		il[0] = 0;
 		il[1] = 0;
@@ -67,6 +75,15 @@ void readinstr(int num, int pos, u8 *il) {
 		il[0] = instrument[num].line[pos].cmd;
 		il[1] = instrument[num].line[pos].param;
 	}
+}
+
+extern void initchip(void (*p_handle_read_song)(int pos, int ch, uint8_t *dest),
+						  void (*p_handle_read_track)(int num, int pos, struct trackline *tl),
+						  void (*p_handle_read_instr)(int num, int pos, uint8_t *il));
+
+void initialize_chip(void)
+{
+	initchip(readsong, readtrack, readinstr);
 }
 
 void savefile(char *fname) {
@@ -82,7 +99,7 @@ void savefile(char *fname) {
 	fprintf(f, "musicchip tune\n");
 	fprintf(f, "version 1\n");
 	fprintf(f, "\n");
-	for(i = 0; i < songlen; i++) {
+	for(i = 0; i < s_song_length; i++) {
 		fprintf(f, "songline %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
 			i,
 			song[i].track[0],
@@ -96,7 +113,7 @@ void savefile(char *fname) {
 	}
 	fprintf(f, "\n");
 	for(i = 1; i < 256; i++) {
-		for(j = 0; j < tracklen; j++) {
+		for(j = 0; j < get_track_length(); j++) {
 			struct trackline *tl = &track[i].line[j];
 
 			if(tl->note || tl->instr || tl->cmd[0] || tl->cmd[1]) {
@@ -139,14 +156,12 @@ void loadfile(char *fname) {
 	int i1, i2, trk[4], transp[4], param[3], note, instr;
 	int i;
 
-	snprintf(filename, sizeof(filename), "%s", fname);
-
 	f = fopen(fname, "r");
 	if(!f) {
 		return;
 	}
 
-	songlen = 1;
+	s_song_length = 1;
 	while(!feof(f) && fgets(buf, sizeof(buf), f)) {
 		if(9 == sscanf(buf, "songline %x %x %x %x %x %x %x %x %x",
 			&i1,
@@ -163,7 +178,7 @@ void loadfile(char *fname) {
 				song[i1].track[i] = trk[i];
 				song[i1].transp[i] = transp[i];
 			}
-			if(songlen <= i1) songlen = i1 + 1;
+			if(s_song_length <= i1) s_song_length = i1 + 1;
 		} else if(8 == sscanf(buf, "trackline %x %x %x %x %x %x %x %x",
 			&i1,
 			&i2,
@@ -195,20 +210,26 @@ void loadfile(char *fname) {
 	fclose(f);
 }
 
-void get_songlines(void** pp_songlines, int **pp_number_of_songlines)
+void get_songlines(void** pp_songlines, int *p_number_of_songlines)
 {
 	*pp_songlines = (void**)&song[0];
-	*pp_number_of_songlines = &songlen;
+	*p_number_of_songlines = s_song_length;
 	return;
+}
+
+void set_songlines(void* p_songlines, int number_of_songlines)
+{
+	//TODO :: p_songlines
+	s_song_length = number_of_songlines;
 }
 
 bool is_song_playing(int *p_processing_song_index)
 {
-	if(0 == playsong){
+	if(false == is_generating_song()){
 		return false;
 	}
 
-	*p_processing_song_index = songpos;
+	*p_processing_song_index = get_song_position();
 	return true;
 }
 
@@ -216,39 +237,39 @@ void get_tracks(void ** pp_track, int *p_track_number, int *p_track_length)
 {
 	*pp_track = (void**)&track[0];
 	*p_track_number = sizeof(track)/sizeof(struct track);
-	*p_track_length = tracklen;
+	*p_track_length = get_track_length();
 }
 
 struct channel {
-	u8	tnum;
-	s8	transp;
-	u8	tnote;
-	u8	lastinstr;
-	u8	inum;
-	u8	iptr;
-	u8	iwait;
-	u8	inote;
-	s8	bendd;
-	s16	bend;
-	s8	volumed;
-	s16	dutyd;
-	u8	vdepth;
-	u8	vrate;
-	u8	vpos;
-	s16	inertia;
-	u16	slur;
+	uint8_t	tnum;
+	int8_t	transp;
+	uint8_t	tnote;
+	uint8_t	lastinstr;
+	uint8_t	inum;
+	uint8_t	iptr;
+	uint8_t	iwait;
+	uint8_t	inote;
+	int8_t	bendd;
+	int16_t	bend;
+	int8_t	volumed;
+	int16_t	dutyd;
+	uint8_t	vdepth;
+	uint8_t	vrate;
+	uint8_t	vpos;
+	int16_t	inertia;
+	uint16_t	slur;
 } ;
 
 extern struct channel channel[4];
 
 bool is_track_playing(int *p_playing_track_index, int *p_playing_line_index)
 {
-	if(0 == playtrack){
+	if(false == is_generating_track()){
 		return false;
 	}
 
 	*p_playing_track_index = channel[0].tnum;
-	*p_playing_line_index = trackpos;
+	*p_playing_line_index = get_track_position();
 	return true;
 }
 
@@ -260,11 +281,11 @@ void get_instruments(void ** pp_instruments, int *p_instrument_number)
 
 
 void optimize() {
-	u8 used[256], replace[256];
+	uint8_t used[256], replace[256];
 	int i, j;
 
 	memset(used, 0, sizeof(used));
-	for(i = 0; i < songlen; i++) {
+	for(i = 0; i < s_song_length; i++) {
 		for(j = 0; j < 4; j++) {
 			used[song[i].track[j]] = 1;
 		}
@@ -287,16 +308,16 @@ void optimize() {
 		}
 	}
 
-	for(i = 0; i < songlen; i++) {
+	for(i = 0; i < s_song_length; i++) {
 		for(j = 0; j < 4; j++) {
 			song[i].track[j] = replace[song[i].track[j]];
 		}
 	}
 
 	for(i = 1; i < 256; i++) {
-		u8 last = 255;
+		uint8_t last = 255;
 
-		for(j = 0; j < tracklen; j++) {
+		for(j = 0; j < get_track_length(); j++) {
 			if(track[i].line[j].instr) {
 				if(track[i].line[j].instr == last) {
 					track[i].line[j].instr = 0;
@@ -318,7 +339,7 @@ struct packer_t
 	uint8_t *p_chunk;
 	int bits;
 	int bit_counter;
-	int chunk_length;
+	int chunk_size;
 
 	int *p_section_index;
 };
@@ -335,7 +356,7 @@ static void put_one_bit(struct packer_t *p_packer, int x) {
 			p_packer->p_chunk[0] = p_packer->bits;
 			p_packer->p_chunk += 1;
 		}
-		p_packer->chunk_length += 1;
+		p_packer->chunk_size += 1;
 		p_packer->bits = 0;
 		p_packer->bit_counter = 0;
 	}
@@ -359,19 +380,19 @@ static int align_to_byte(struct packer_t *p_packer)
 			p_packer->p_chunk[0] = p_packer->bits;
 			p_packer->p_chunk += 1;
 		}
-		p_packer->chunk_length += 1;
+		p_packer->chunk_size += 1;
 		p_packer->bits = 0;
 		p_packer->bit_counter = 0;
 	}
 
 	if(NULL != p_packer->p_chunk){
 		if(NULL != p_packer->p_section_index){
-			p_packer->p_section_index[0] = p_packer->chunk_length;
+			p_packer->p_section_index[0] = p_packer->chunk_size;
 			p_packer->p_section_index += 1;
 		}
 	}
 
-	return p_packer->chunk_length;
+	return p_packer->chunk_size;
 }
 
 /**********************************************************************************/
@@ -386,7 +407,7 @@ static int convert_to_cmd_id(uint8_t ch) {
 
 /**********************************************************************************/
 
-static int convert_to_chunks(int maxtrack, uint8_t *p_chunks, int *p_chunk_length,
+static int convert_to_chunks(int max_track, uint8_t *p_chunks, int *p_chunk_size,
 						 int *p_section_begin_indexes, int *p_offsets, int *p_offet_number) {
 
 	struct packer_t packer;
@@ -394,14 +415,13 @@ static int convert_to_chunks(int maxtrack, uint8_t *p_chunks, int *p_chunk_lengt
 	packer.p_chunk = p_chunks;
 	packer.p_section_index = p_section_begin_indexes;
 
-	for(int i = 0; i < 1 + PACKING_INSTRUMENT_NUMBER + maxtrack; i++) {
+	for(int i = 0; i < 1 + PACKING_INSTRUMENT_NUMBER + max_track; i++) {
 		put_data(&packer, p_offsets[i], 13);
 	}
 
 	int nres = 0;
 	p_offsets[nres++] = align_to_byte(&packer);
-
-	for(int i = 0; i < songlen; i++) {
+	for(int i = 0; i < s_song_length; i++) {
 		for(int j = 0; j < 4; j++) {
 			if(song[i].transp[j]) {
 				put_data(&packer, 1, 1);
@@ -427,10 +447,10 @@ static int convert_to_chunks(int maxtrack, uint8_t *p_chunks, int *p_chunk_lengt
 		put_data(&packer, 0, 8);
 	}
 
-	for(int i = 1; i <= maxtrack; i++) {
+	for(int i = 1; i <= max_track; i++) {
 		p_offsets[nres++] = align_to_byte(&packer);
 
-		for(int j = 0; j < tracklen; j++) {
+		for(int j = 0; j < get_track_length(); j++) {
 			put_data(&packer, !!track[i].line[j].note, 1);
 			put_data(&packer, !!track[i].line[j].instr, 1);
 
@@ -457,47 +477,47 @@ static int convert_to_chunks(int maxtrack, uint8_t *p_chunks, int *p_chunk_lengt
 		}
 	}
 
-	*p_chunk_length = packer.chunk_length;
+	*p_chunk_size = packer.chunk_size;
 	*p_offet_number = nres;
 	return 0;
 }
 
 /**********************************************************************************/
 
-int get_chunk_information(int *p_chunk_length, int *p_offet_number)
+int get_chunk_information(int *p_chunk_size, int *p_offet_number)
 {
 	int offsets[256] = {0};
 
-	int maxtrack = 0;
-	for(int i = 0; i < songlen; i++) {
+	int max_track = 0;
+	for(int i = 0; i < s_song_length; i++) {
 		for(int j = 0; j < 4; j++) {
-			if(maxtrack < song[i].track[j]) maxtrack = song[i].track[j];
+			if(max_track < song[i].track[j]) max_track = song[i].track[j];
 		}
 	}
 
-	convert_to_chunks(maxtrack, NULL, p_chunk_length, NULL,
+	convert_to_chunks(max_track, NULL, p_chunk_size, NULL,
 						 offsets, p_offet_number);
 	return 0;
 }
 
 /**********************************************************************************/
 
-int get_chunks(int *p_maxtrack, int *p_songlen, uint8_t *p_chunks, int *p_section_begin_indexes, int *p_offsets)
+int get_chunks(int *p_max_track, int *p_song_length, uint8_t *p_chunks, int *p_section_begin_indexes, int *p_offsets)
 {
-	int maxtrack = 0;
-	for(int i = 0; i < songlen; i++) {
+	int max_track = 0;
+	for(int i = 0; i < s_song_length; i++) {
 		for(int j = 0; j < 4; j++) {
-			if(maxtrack < song[i].track[j]) maxtrack = song[i].track[j];
+			if(max_track < song[i].track[j]) max_track = song[i].track[j];
 		}
 	}
 
 	int chunks_length;
 	int offet_number;
-	convert_to_chunks(maxtrack, NULL, &chunks_length, NULL, p_offsets, &offet_number);
-	convert_to_chunks(maxtrack, p_chunks, &chunks_length, p_section_begin_indexes, p_offsets, &offet_number);
+	convert_to_chunks(max_track, NULL, &chunks_length, NULL, p_offsets, &offet_number);
+	convert_to_chunks(max_track, p_chunks, &chunks_length, p_section_begin_indexes, p_offsets, &offet_number);
 
-	*p_maxtrack = maxtrack;
-	*p_songlen = songlen;
+	*p_max_track = max_track;
+	*p_song_length = s_song_length;
 	return 0;
 }
 
@@ -559,9 +579,10 @@ uint16_t fetch_bits(struct unpacker_t *p_unpacker, uint8_t n)
 
 /**********************************************************************************/
 
-int set_chunks(int maxtrack, int songlen, uint8_t *p_chunks, int chunk_length)
+int set_chunks(int max_track, int song_length, uint8_t *p_chunks, int chunk_size)
 {
-	(void)chunk_length;
+	(void)chunk_size;
+	s_song_length = song_length;
 	memset(&song[0], 0, sizeof(song));
 	memset(&track[0], 0, sizeof(track));
 	memset(&instrument[0], 0, sizeof(instrument));
@@ -571,14 +592,14 @@ int set_chunks(int maxtrack, int songlen, uint8_t *p_chunks, int chunk_length)
 	{
 		struct unpacker_t temp_unpacker;
 		initialize_unpacker(&temp_unpacker, p_chunks, 0);
-		for(int i = 0; i < 1 + PACKING_INSTRUMENT_NUMBER + maxtrack; i++){
+		for(int i = 0; i < 1 + PACKING_INSTRUMENT_NUMBER + max_track; i++){
 			offsets[i] = fetch_bits(&temp_unpacker, 13);
 		}
 	}while(0);
 
 	initialize_unpacker(&song_unpacker, p_chunks, offsets[0]);
 	bool is_track_unpacked_map[256] = {false};
-	for(int i = 0; i < songlen; i++){
+	for(int i = 0; i < s_song_length; i++){
 		for(int j = 0; j < 4; j++){
 			uint8_t is_transp = (uint8_t)fetch_bits(&song_unpacker, 1);
 			uint8_t track_index = (uint8_t)fetch_bits(&song_unpacker, 6);

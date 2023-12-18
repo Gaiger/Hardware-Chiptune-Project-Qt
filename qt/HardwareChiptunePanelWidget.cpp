@@ -131,9 +131,9 @@ void HardwareChiptunePanelWidget::UpdateContents(void)
 
 	do{
 		TuneManager::songline *p_songlines;
-		int *p_number_of_songlines;
-		m_p_player->GetTuneManager()->GetSongLines(&p_songlines, &p_number_of_songlines);
-		ui->SongIndexSpinBox->setRange(0, *p_number_of_songlines - 1);
+		int number_of_songlines;
+		m_p_player->GetTuneManager()->GetSongLines(&p_songlines, &number_of_songlines);
+		ui->SongIndexSpinBox->setRange(0, number_of_songlines - 1);
 		ui->SongIndexSpinBox->setValue(0);
 		ui->SongIndexSpinBox->setEnabled(true);
 

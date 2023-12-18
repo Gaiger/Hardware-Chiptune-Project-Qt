@@ -1,18 +1,37 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdlib.h>
+
 #include "stuff.h"
 
-volatile u8 callbackwait;
+int const s_track_length = TRACKLEN;
 
-volatile u8 test;
-volatile u8 testwait;
+volatile uint8_t callbackwait;
 
-u8 trackwait;
-u8 trackpos;
-u8 songpos;
+static uint8_t s_trackwait;
+static uint8_t s_track_position;
+static uint8_t s_song_position;
 
-u8 playsong;
-u8 playtrack;
+static bool s_is_generating_song;
+static bool s_is_generating_track;
 
-/*const u16 freqtable[] = {
+
+int const get_track_length(void){return s_track_length;}
+
+uint8_t get_song_position(void){return s_song_position;}
+uint8_t get_track_position(void){return s_track_position;}
+
+bool is_generating_song(void){return s_is_generating_song;}
+bool is_generating_track(void){return s_is_generating_track;}
+
+static void (*s_p_handle_read_song)(int pos, int ch, uint8_t *dest) = NULL;
+static void (*s_p_handle_read_track)(int num, int pos, struct trackline *tl) = NULL;
+static void (*s_p_handle_read_instr)(int num, int pos, uint8_t *il) = NULL;
+
+
+int get_song_length(void);
+
+/*const uint16_t freqtable[] = {
 	0x010b, 0x011b, 0x012c, 0x013e, 0x0151, 0x0165, 0x017a, 0x0191, 0x01a9,
 	0x01c2, 0x01dd, 0x01f9, 0x0217, 0x0237, 0x0259, 0x027d, 0x02a3, 0x02cb,
 	0x02f5, 0x0322, 0x0352, 0x0385, 0x03ba, 0x03f3, 0x042f, 0x046f, 0x04b2,
@@ -25,7 +44,7 @@ u8 playtrack;
 	0x70a3, 0x7756, 0x7e6f
 };*/
 
-const u16 freqtable[] = {
+const uint16_t freqtable[] = {
 	0x0085, 0x008d, 0x0096, 0x009f, 0x00a8, 0x00b2, 0x00bd, 0x00c8, 0x00d4,
 	0x00e1, 0x00ee, 0x00fc, 0x010b, 0x011b, 0x012c, 0x013e, 0x0151, 0x0165,
 	0x017a, 0x0191, 0x01a9, 0x01c2, 0x01dd, 0x01f9, 0x0217, 0x0237, 0x0259,
@@ -38,7 +57,7 @@ const u16 freqtable[] = {
 	0x3851, 0x3bab, 0x3f37
 };
 
-const s8 sinetable[] = {
+const int8_t sinetable[] = {
 	0, 12, 25, 37, 49, 60, 71, 81, 90, 98, 106, 112, 117, 122, 125, 126,
 	127, 126, 125, 122, 117, 112, 106, 98, 90, 81, 71, 60, 49, 37, 25, 12,
 	0, -12, -25, -37, -49, -60, -71, -81, -90, -98, -106, -112, -117, -122,
@@ -46,7 +65,7 @@ const s8 sinetable[] = {
 	-71, -60, -49, -37, -25, -12
 };
 
-const u8 validcmds[] = "0dfijlmtvw~+=";
+const uint8_t validcmds[] = "0dfijlmtvw~+=";
 
 enum {
 	WF_TRI,
@@ -55,45 +74,49 @@ enum {
 	WF_NOI
 };
 
-volatile struct oscillator {
-	u16	freq;
-	u16	phase;
-	u16	duty;
-	u8	waveform;
-	u8	volume;	// 0-255
+volatile struct oscillator
+{
+	uint16_t	freq;
+	uint16_t	phase;
+	uint16_t	duty;
+	uint8_t		waveform;
+	uint8_t		volume;	// 0-255
 } osc[4];
 
-struct channel {
-	u8	tnum;
-	s8	transp;
-	u8	tnote;
-	u8	lastinstr;
-	u8	inum;
-	u8	iptr;
-	u8	iwait;
-	u8	inote;
-	s8	bendd;
-	s16	bend;
-	s8	volumed;
-	s16	dutyd;
-	u8	vdepth;
-	u8	vrate;
-	u8	vpos;
-	s16	inertia;
-	u16	slur;
+struct channel
+{
+	uint8_t		tnum;
+	int8_t		transp;
+	uint8_t		tnote;
+	uint8_t		lastinstr;
+	uint8_t		inum;
+	uint8_t		iptr;
+	uint8_t		iwait;
+	uint8_t		inote;
+	int8_t		bendd;
+	int16_t		bend;
+	int8_t		volumed;
+	int16_t		dutyd;
+	uint8_t		vdepth;
+	uint8_t		vrate;
+	uint8_t		vpos;
+	int16_t		inertia;
+	uint16_t	slur;
 } channel[4];
 
-void silence() {
-	u8 i;
+void silence()
+{
+	uint8_t i;
 
 	for(i = 0; i < 4; i++) {
 		osc[i].volume = 0;
 	}
-	playsong = 0;
-	playtrack = 0;
+	s_is_generating_song = false;
+	s_is_generating_track = false;
 }
 
-void runcmd(u8 ch, u8 cmd, u8 param) {
+void runcmd(uint8_t ch, uint8_t cmd, uint8_t param)
+{
 	switch(cmd) {
 		case 0:
 			channel[ch].inum = 0;
@@ -153,58 +176,60 @@ void iedplonk(int note, int instr) {
 	channel[0].vdepth = 0;
 }
 
-void startplaytrack(int t) {
-	channel[0].tnum = t;
+void start_generating_track(int track_index)
+{
+	channel[0].tnum = track_index;
 	channel[1].tnum = 0;
 	channel[2].tnum = 0;
 	channel[3].tnum = 0;
-	trackpos = 0;
-	trackwait = 0;
-	playtrack = 1;
-	playsong = 0;
+	s_track_position = 0;
+	s_trackwait = 0;
+	s_is_generating_track = true;
+	s_is_generating_song = false;
 }
 
-void startplaysong(int p) {
-	songpos = p;
-	trackpos = 0;
-	trackwait = 0;
-	playtrack = 0;
-	playsong = 1;
+void start_generating_song(int song_position)
+{
+	s_song_position = song_position;
+	s_track_position = 0;
+	s_trackwait = 0;
+	s_is_generating_track = false;
+	s_is_generating_song = true;
 }
 
 void playroutine() {			// called at 50 Hz
-	u8 ch;
+	uint8_t ch;
 
-	if(playtrack || playsong) {
-		if(trackwait) {
-			trackwait--;
+	if(true == s_is_generating_track || true == s_is_generating_song) {
+		if(s_trackwait) {
+			s_trackwait--;
 		} else {
-			trackwait = 4;
+			s_trackwait = 4;
 
-			if(!trackpos) {
-				if(playsong) {
-					if(songpos >= songlen) {
-						playsong = 0;
+			if(!s_track_position) {
+				if(true == s_is_generating_song) {
+					if(s_song_position >= get_song_length()) {
+						s_is_generating_song = false;
 					} else {
 						for(ch = 0; ch < 4; ch++) {
-							u8 tmp[2];
+							uint8_t tmp[2];
 
-							readsong(songpos, ch, tmp);
+							s_p_handle_read_song(s_song_position, ch, tmp);
 							channel[ch].tnum = tmp[0];
 							channel[ch].transp = tmp[1];
 						}
-						songpos++;
+						s_song_position++;
 					}
 				}
 			}
 
-			if(playtrack || playsong) {
+			if(true == s_is_generating_track || true == s_is_generating_song) {
 				for(ch = 0; ch < 4; ch++) {
 					if(channel[ch].tnum) {
 						struct trackline tl;
-						u8 instr = 0;
+						uint8_t instr = 0;
 
-						readtrack(channel[ch].tnum, trackpos, &tl);
+						s_p_handle_read_track(channel[ch].tnum, s_track_position, &tl);
 						if(tl.note) {
 							channel[ch].tnote = tl.note + channel[ch].transp;
 							instr = channel[ch].lastinstr;
@@ -230,21 +255,21 @@ void playroutine() {			// called at 50 Hz
 					}
 				}
 
-				trackpos++;
-				trackpos &= 31;
+				s_track_position++;
+				s_track_position %= s_track_length;
 			}
 		}
 	}
 
 	for(ch = 0; ch < 4; ch++) {
-		s16 vol;
-		u16 duty;
-		u16 slur;
+		int16_t vol;
+		uint16_t duty;
+		uint16_t slur;
 
 		while(channel[ch].inum && !channel[ch].iwait) {
-			u8 il[2];
+			uint8_t il[2];
 
-			readinstr(channel[ch].inum, channel[ch].iptr, il);
+			s_p_handle_read_instr(channel[ch].inum, channel[ch].iptr, il);
 			channel[ch].iptr++;
 
 			runcmd(ch, il[0], il[1]);
@@ -252,7 +277,7 @@ void playroutine() {			// called at 50 Hz
 		if(channel[ch].iwait) channel[ch].iwait--;
 
 		if(channel[ch].inertia) {
-			s16 diff;
+			int16_t diff;
 
 			slur = channel[ch].slur;
 			diff = freqtable[channel[ch].inote] - slur;
@@ -275,7 +300,7 @@ void playroutine() {			// called at 50 Hz
 		vol = osc[ch].volume + channel[ch].volumed;
 		if(vol < 0) vol = 0;
 		if(vol > 255) vol = 255;
-		osc[ch].volume = vol;
+		osc[ch].volume = (uint8_t)vol;
 
 		duty = osc[ch].duty + channel[ch].dutyd;
 		if(duty > 0xe000) duty = 0x2000;
@@ -286,11 +311,18 @@ void playroutine() {			// called at 50 Hz
 	}
 }
 
-void initchip() {
-	trackwait = 0;
-	trackpos = 0;
-	playsong = 0;
-	playtrack = 0;
+void initchip(void (*p_handle_read_song)(int pos, int ch, uint8_t *dest),
+			  void (*p_handle_read_track)(int num, int pos, struct trackline *tl),
+			  void (*p_handle_read_instr)(int num, int pos, uint8_t *il)) {
+
+	s_p_handle_read_song = p_handle_read_song;
+	s_p_handle_read_track = p_handle_read_track;
+	s_p_handle_read_instr = p_handle_read_instr;
+
+	s_trackwait = 0;
+	s_track_position = 0;
+	s_is_generating_song = false;
+	s_is_generating_track = false;
 
 	osc[0].volume = 0;
 	channel[0].inum = 0;
@@ -302,12 +334,13 @@ void initchip() {
 	channel[3].inum = 0;
 }
 
-u8 interrupthandler()
+static uint32_t noiseseed = 1;
+
+uint8_t interrupthandler()
 {
-	u8 i;
-	s16 acc;
-	static u32 noiseseed = 1;
-	u8 newbit;
+	uint8_t i;
+	int16_t acc;
+	uint8_t newbit;
 
 	newbit = 0;
 	if(noiseseed & 0x80000000L) newbit ^= 1;
@@ -325,7 +358,7 @@ u8 interrupthandler()
 
 	acc = 0;
 	for(i = 0; i < 4; i++) {
-		s8 value; // [-32,31]
+		int8_t value; // [-32,31]
 
 		switch(osc[i].waveform) {
 			case WF_TRI:

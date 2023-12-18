@@ -43,9 +43,8 @@ bool IsValidChar(QChar character)
 void SongPlainTextEdit::ShowSong(void)
 {
 	TuneManager::songline *p_songlines;
-	int * p_number_of_songlines;
-	m_p_tune_manager->GetSongLines(&p_songlines, &p_number_of_songlines);
-	int number_of_songlines = *p_number_of_songlines;
+	int  number_of_songlines;
+	m_p_tune_manager->GetSongLines(&p_songlines, &number_of_songlines);
 
 	QString whole_text;
 	for(int i = 0; i < number_of_songlines; i++) {
@@ -162,8 +161,8 @@ int SongPlainTextEdit::ParseTokensToSongline(QList<QString> songline_string_list
 int SongPlainTextEdit::ParseDocument(bool is_update_to_memory)
 {
 	TuneManager::songline *p_songlines;
-	int *p_number_of_songlines;
-	m_p_tune_manager->GetSongLines(&p_songlines, &p_number_of_songlines);
+	int number_of_songlines;
+	m_p_tune_manager->GetSongLines(&p_songlines, &number_of_songlines);
 
 	QTextDocument *p_textdocument = QPlainTextEdit::document();
 
@@ -223,7 +222,7 @@ int SongPlainTextEdit::ParseDocument(bool is_update_to_memory)
 	}
 
 	if(true == is_update_to_memory){
-		memcpy(p_number_of_songlines, &ii, sizeof(int));
+		m_p_tune_manager->SetSongLines(p_songlines, ii);
 	}
 
 	return 0;

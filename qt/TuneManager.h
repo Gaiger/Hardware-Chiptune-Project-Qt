@@ -33,7 +33,8 @@ public:
 		uint8_t			track[4];
 		uint8_t			transp[4];
 	};
-	void GetSongLines(TuneManager::songline **pp_songlines, int ** pp_number_of_songlines);
+	void GetSongLines(TuneManager::songline ** pp_songlines, int * p_number_of_songlines);
+	void SetSongLines(TuneManager::songline * p_songlines, int number_of_songlines);
 
 	struct trackline {
 		uint8_t	note;
@@ -74,7 +75,7 @@ public :
 
 public:
 	signals:
-	void GeneratingSongStateChanged(bool is_generating_song, int generating_song_index);
+	void GeneratingSongStateChanged(bool s_is_generating_song, int generating_song_index);
 	void GeneratingTrackStateChanged(bool is_generating_track, int generating_track_index, int generating_line_index);
 
 private slots:
