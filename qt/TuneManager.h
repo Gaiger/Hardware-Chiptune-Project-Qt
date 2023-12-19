@@ -62,6 +62,7 @@ public:
 
 	const QList<QString> GetNoteNameList(void);
 
+	void UpdateTunes(void);
 public :
 	enum TUNE_TYPE
 	{

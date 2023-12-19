@@ -226,6 +226,7 @@ int InstrumentPlainTextEdit::UpdateTimbre(void)
 		return ret;
 	}
 	ParseDocument(true);
+	m_p_tune_manager->UpdateTunes();
 	ShowInstrument(m_current_shown_index);
 	return 0;
 }

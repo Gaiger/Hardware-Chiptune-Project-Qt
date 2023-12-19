@@ -238,6 +238,7 @@ int SongPlainTextEdit::UpdateScores(void)
 	}
 
 	ParseDocument(true);
+	m_p_tune_manager->UpdateTunes();
 	ShowSong();
 	return 0;
 }

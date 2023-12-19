@@ -222,6 +222,7 @@ int TuneManager::SaveSongFile(QString filename_string)
 
 int TuneManager::ImportChunkDataFile(QString filename_string)
 {
+	QMutexLocker locker(&m_mutex);
 	if(false == QFileInfo(filename_string).isFile()){
 		return -1;
 	}
@@ -244,6 +245,7 @@ int TuneManager::ImportChunkDataFile(QString filename_string)
 
 int TuneManager::ExportChunkDataFile(QString filename_string, TuneManager::EXPORT_TYPE export_type)
 {
+	QMutexLocker locker(&m_mutex);
 	int chunk_size;
 	int offset_number;
 
@@ -386,6 +388,15 @@ void TuneManager::SetSongLines(TuneManager::songline * p_songlines, int number_o
 {
 	set_songlines(p_songlines, number_of_songlines);
 }
+
+/**********************************************************************************/
+
+void TuneManager::UpdateTunes(void)
+{
+	QMutexLocker locker(&m_mutex);
+	optimize();
+}
+
 /**********************************************************************************/
 
 const QList<QString> TuneManager::GetNoteNameList(void)
@@ -490,6 +501,7 @@ void TuneManager::ResetGeneratingWave()
 
 bool TuneManager::IsGeneratingWave(int *p_tune_type)
 {
+	QMutexLocker locker(&m_mutex);
 	do
 	{
 		if(true == m_p_private->m_s_is_generating_song){

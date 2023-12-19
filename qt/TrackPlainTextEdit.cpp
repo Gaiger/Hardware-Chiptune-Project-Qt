@@ -329,6 +329,7 @@ int TrackPlainTextEdit::UpdateMeasure(void)
 	}
 
 	ParseDocument(true);
+	m_p_tune_manager->UpdateTunes();
 	ShowTrack(m_current_shown_track_index);
 	return 0;
 }

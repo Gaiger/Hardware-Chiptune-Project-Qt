@@ -15,6 +15,7 @@ static uint8_t s_song_position;
 static bool s_is_generating_song;
 static bool s_is_generating_track;
 
+static bool s_is_read_raw = false;
 
 int const get_track_length(void){return s_track_length;}
 
@@ -28,8 +29,10 @@ static void (*s_p_handle_read_song)(int pos, int ch, uint8_t *dest) = NULL;
 static void (*s_p_handle_read_track)(int num, int pos, struct trackline *tl) = NULL;
 static void (*s_p_handle_read_instr)(int num, int pos, uint8_t *il) = NULL;
 
-
 int get_song_length(void);
+int get_max_track(void);
+uint8_t * get_chunks_ptr(void);
+
 
 /*const uint16_t freqtable[] = {
 	0x010b, 0x011b, 0x012c, 0x013e, 0x0151, 0x0165, 0x017a, 0x0191, 0x01a9,
@@ -66,6 +69,7 @@ const int8_t sinetable[] = {
 };
 
 const uint8_t validcmds[] = "0dfijlmtvw~+=";
+uint16_t s_offsets[256];
 
 enum {
 	WF_TRI,
@@ -103,6 +107,79 @@ struct channel
 	int16_t		inertia;
 	uint16_t	slur;
 } channel[4];
+
+
+struct unpacker_t
+{
+	uint8_t		*p_data;
+	uint16_t	next_byte_offset;
+	uint8_t		working_byte;
+	uint8_t		remain_bit_number;
+};
+
+struct unpacker_t s_song_unpacker;
+
+/**********************************************************************************/
+
+static void initialize_unpacker(struct unpacker_t *p_unpacker, uint8_t * p_data, uint16_t offset)
+{
+	p_unpacker->p_data = p_data;
+	p_unpacker->next_byte_offset = offset;
+	p_unpacker->remain_bit_number = 0;
+}
+
+/**********************************************************************************/
+
+static uint8_t fetch_one_bit(struct unpacker_t *p_unpacker)
+{
+	uint8_t val;
+
+	if(0 == p_unpacker->remain_bit_number)
+	{
+		p_unpacker->working_byte = p_unpacker->p_data[p_unpacker->next_byte_offset++];
+		p_unpacker->remain_bit_number = 8;
+	}
+
+	p_unpacker->remain_bit_number--;
+	val = p_unpacker->working_byte & 1;
+	p_unpacker->working_byte >>= 1;
+
+	return val;
+}
+
+/**********************************************************************************/
+
+static uint16_t fetch_bits(struct unpacker_t *p_unpacker, uint8_t n)
+{
+	uint16_t val = 0;
+	uint8_t i;
+
+	for(i = 0; i < n; i++)
+	{
+		if(fetch_one_bit(p_unpacker))
+		{
+			val |= (1 << i);
+		}
+	}
+
+	return val;
+}
+
+static void get_instrument(uint8_t instrument_index, uint8_t line_index,
+								uint8_t * p_cmd_param)
+{
+	uint8_t cmd_id = *(get_chunks_ptr() + s_offsets[instrument_index] + 2 * line_index + 0);
+	uint8_t param = *(get_chunks_ptr() + s_offsets[instrument_index] + 2 * line_index  + 1);
+	uint8_t cmd = 0;
+	if(0 != cmd_id){
+		cmd = validcmds[cmd_id];
+	}
+
+	p_cmd_param[0] = cmd;
+	p_cmd_param[1] = param;
+}
+
+/**********************************************************************************/
 
 void silence()
 {
@@ -188,6 +265,9 @@ void start_generating_track(int track_index)
 	s_is_generating_song = false;
 }
 
+#define PACKING_INSTRUMENT_NUMBER					(15)
+#define PACKING_TRACK_CMD_NUMBER					(1)
+
 void start_generating_song(int song_position)
 {
 	s_song_position = song_position;
@@ -195,7 +275,27 @@ void start_generating_song(int song_position)
 	s_trackwait = 0;
 	s_is_generating_track = false;
 	s_is_generating_song = true;
+
+	do
+	{
+		struct unpacker_t temp_unpacker;
+		initialize_unpacker(&temp_unpacker, get_chunks_ptr(), 0);
+		for(int i = 0; i < 1 + PACKING_INSTRUMENT_NUMBER + get_max_track(); i++){
+			s_offsets[i] = fetch_bits(&temp_unpacker, 13);
+		}
+	}while(0);
+	initialize_unpacker(&s_song_unpacker, get_chunks_ptr(), s_offsets[0]);
+
+	for(int i = 0; i < song_position * 4; i++){
+		uint8_t is_transp = (uint8_t)fetch_bits(&s_song_unpacker, 1);
+		fetch_bits(&s_song_unpacker, 6);
+		if(0 != is_transp){
+			fetch_bits(&s_song_unpacker, 4);
+		}
+	}
 }
+
+struct unpacker_t s_track_unpacker[4];
 
 void playroutine() {			// called at 50 Hz
 	uint8_t ch;
@@ -206,58 +306,137 @@ void playroutine() {			// called at 50 Hz
 		} else {
 			s_trackwait = 4;
 
-			if(!s_track_position) {
+			if(0 == s_track_position) {
 				if(true == s_is_generating_song) {
 					if(s_song_position >= get_song_length()) {
 						s_is_generating_song = false;
 					} else {
 						for(ch = 0; ch < 4; ch++) {
-							uint8_t tmp[2];
+							do
+							{
+								if(true == s_is_read_raw){
+									uint8_t tmp[2];
+									s_p_handle_read_song(s_song_position, ch, tmp);
+									channel[ch].tnum = tmp[0];
+									channel[ch].transp = tmp[1];
+									break;
+								}
 
-							s_p_handle_read_song(s_song_position, ch, tmp);
-							channel[ch].tnum = tmp[0];
-							channel[ch].transp = tmp[1];
+								uint8_t is_transp = (uint8_t)fetch_bits(&s_song_unpacker, 1);
+								uint8_t track_index = (uint8_t)fetch_bits(&s_song_unpacker, 6);
+								uint8_t transp = 0;
+								if(0 != is_transp)
+								{
+									transp = (uint8_t)fetch_bits(&s_song_unpacker, 4);
+									if(transp & 0x8) {
+										transp |= 0xf0;
+									}
+								}
+								channel[ch].tnum = track_index;
+								channel[ch].transp = transp;
+							}while(0);
 						}
 						s_song_position++;
 					}
 				}
 			}
 
-			if(true == s_is_generating_track || true == s_is_generating_song) {
-				for(ch = 0; ch < 4; ch++) {
-					if(channel[ch].tnum) {
-						struct trackline tl;
-						uint8_t instr = 0;
+			do
+			{
+				if(false == s_is_generating_track && false == s_is_generating_song){
+					break;
+				}
 
-						s_p_handle_read_track(channel[ch].tnum, s_track_position, &tl);
-						if(tl.note) {
-							channel[ch].tnote = tl.note + channel[ch].transp;
-							instr = channel[ch].lastinstr;
-						}
-						if(tl.instr) {
-							instr = tl.instr;
-						}
-						if(instr) {
-							channel[ch].lastinstr = instr;
-							channel[ch].inum = instr;
-							channel[ch].iptr = 0;
-							channel[ch].iwait = 0;
-							channel[ch].bend = 0;
-							channel[ch].bendd = 0;
-							channel[ch].volumed = 0;
-							channel[ch].dutyd = 0;
-							channel[ch].vdepth = 0;
-						}
-						if(tl.cmd[0])
-							runcmd(ch, tl.cmd[0], tl.param[0]);
-						/*if(tl.cmd[1])
-							runcmd(ch, tl.cmd[1], tl.param[1]);*/
+				do
+				{
+					if(true == s_is_read_raw){
+						break;
 					}
+
+					if(0 == s_track_position){
+						for(ch = 0; ch < 4; ch++) {
+							if(0 == channel[ch].tnum){
+								continue;
+							}
+							initialize_unpacker(&s_track_unpacker[ch], get_chunks_ptr(),
+												s_offsets[1 + PACKING_INSTRUMENT_NUMBER + (channel[ch].tnum - 1)]);
+						}
+					}
+				}while(0);
+
+				for(ch = 0; ch < 4; ch++) {
+					if(0 == channel[ch].tnum) {
+						continue;
+					}
+
+					struct trackline tl;
+					uint8_t instr = 0;
+					do
+					{
+						if(true == s_is_read_raw){
+							s_p_handle_read_track(channel[ch].tnum, s_track_position, &tl);
+							break;
+						}
+						uint8_t note = 0;
+						uint8_t instr = 0;
+						uint8_t cmd[2] = {0};
+						uint8_t	param[2] = {0};
+
+						uint8_t fields = (uint8_t)fetch_bits(&s_track_unpacker[ch], 2 + PACKING_TRACK_CMD_NUMBER);
+						if((fields >> 0) & 0x01){
+							note = (uint8_t)fetch_bits(&s_track_unpacker[ch], 7);
+						}
+						if((fields >> 1) & 0x01){
+							instr = (uint8_t)fetch_bits(&s_track_unpacker[ch], 4);
+						}
+						for(int k = 0; k < PACKING_TRACK_CMD_NUMBER; k++){
+							if(0 == ((fields >> (k + 2)) & 0x01)){
+								continue;
+							}
+							uint8_t cmd_id = (uint8_t)fetch_bits(&s_track_unpacker[ch], 4);
+							if(0 == cmd_id){
+								continue;
+							}
+							cmd[k] = validcmds[cmd_id];
+							param[k] = (uint8_t)fetch_bits(&s_track_unpacker[ch], 8);
+						}
+
+						tl.note = note;
+						tl.instr = instr;
+						for(int k = 0; k < 2; k++){
+							tl.cmd[k] = cmd[k];
+							tl.param[k] = param[k];
+						}
+					}while(0);
+
+					if(tl.note) {
+						channel[ch].tnote = tl.note + channel[ch].transp;
+						instr = channel[ch].lastinstr;
+					}
+					if(tl.instr) {
+						instr = tl.instr;
+					}
+					if(instr) {
+						channel[ch].lastinstr = instr;
+						channel[ch].inum = instr;
+						channel[ch].iptr = 0;
+						channel[ch].iwait = 0;
+						channel[ch].bend = 0;
+						channel[ch].bendd = 0;
+						channel[ch].volumed = 0;
+						channel[ch].dutyd = 0;
+						channel[ch].vdepth = 0;
+					}
+					if(tl.cmd[0])
+						runcmd(ch, tl.cmd[0], tl.param[0]);
+					/*if(tl.cmd[1])
+						runcmd(ch, tl.cmd[1], tl.param[1]);*/
+
 				}
 
 				s_track_position++;
 				s_track_position %= s_track_length;
-			}
+			}while(0);
 		}
 	}
 
@@ -269,7 +448,14 @@ void playroutine() {			// called at 50 Hz
 		while(channel[ch].inum && !channel[ch].iwait) {
 			uint8_t il[2];
 
-			s_p_handle_read_instr(channel[ch].inum, channel[ch].iptr, il);
+			do
+			{
+				if(true == s_is_read_raw){
+					s_p_handle_read_instr(channel[ch].inum, channel[ch].iptr, il);
+					break;
+				}
+				get_instrument(channel[ch].inum, channel[ch].iptr, il);
+			}while(0);
 			channel[ch].iptr++;
 
 			runcmd(ch, il[0], il[1]);
@@ -311,14 +497,18 @@ void playroutine() {			// called at 50 Hz
 	}
 }
 
-void initchip(void (*p_handle_read_song)(int pos, int ch, uint8_t *dest),
-			  void (*p_handle_read_track)(int num, int pos, struct trackline *tl),
-			  void (*p_handle_read_instr)(int num, int pos, uint8_t *il)) {
-
+void setup_raw_data_reader( void (*p_handle_read_song)(int pos, int ch, uint8_t *dest),
+							  void (*p_handle_read_track)(int num, int pos, struct trackline *tl),
+							  void (*p_handle_read_instr)(int num, int pos, uint8_t *il))
+{
 	s_p_handle_read_song = p_handle_read_song;
 	s_p_handle_read_track = p_handle_read_track;
 	s_p_handle_read_instr = p_handle_read_instr;
+	s_is_read_raw = true;
+}
 
+void initchip(void)
+{
 	s_trackwait = 0;
 	s_track_position = 0;
 	s_is_generating_song = false;
