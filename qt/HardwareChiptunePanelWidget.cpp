@@ -354,7 +354,6 @@ void HardwareChiptunePanelWidget::on_ImportChunkDataPushButton_released(void)
 	}while(0);
 }
 
-
 /**********************************************************************************/
 
 void HardwareChiptunePanelWidget::on_ExportChunkDataPushButton_released(void)
@@ -427,10 +426,13 @@ void HardwareChiptunePanelWidget::on_SongPlayPushButton_released(void)
 
 void HardwareChiptunePanelWidget::on_SongApplyPushButton_released(void)
 {
-	if(0 == m_p_song_plaintextedit->UpdateScores()){
-		ui->SongApplyPushButton->setEnabled(false);
-		ui->ErrorMessageLabel->setText("");
+	if(0 != m_p_song_plaintextedit->UpdateScores()){
+		return ;
 	}
+
+	ui->SongApplyPushButton->setEnabled(false);
+	ui->ErrorMessageLabel->setText("");
+	HardwareChiptunePanelWidget::UpdateContents();
 }
 
 /**********************************************************************************/
@@ -468,10 +470,12 @@ void HardwareChiptunePanelWidget::on_TrackPlayPushButton_released(void)
 
 void HardwareChiptunePanelWidget::on_TrackApplyPushButton_released(void)
 {
-	if(0 == m_p_track_plaintextedit->UpdateMeasure()){
-		ui->InstrumentApplyPushButton->setEnabled(false);
-		ui->ErrorMessageLabel->setText("");
+	if(0 != m_p_track_plaintextedit->UpdateMeasure()){
+		return ;
 	}
+	ui->InstrumentApplyPushButton->setEnabled(false);
+	ui->ErrorMessageLabel->setText("");
+	//HardwareChiptunePanelWidget::UpdateContents();
 }
 
 /**********************************************************************************/
@@ -485,9 +489,11 @@ void HardwareChiptunePanelWidget::on_InstrumentIndexSpinBox_valueChanged(int i)
 
 void HardwareChiptunePanelWidget::on_InstrumentApplyPushButton_released(void)
 {
-	if(0 == m_p_instrument_plaintextedit->UpdateTimbre()){
-		ui->InstrumentApplyPushButton->setEnabled(false);
-		ui->ErrorMessageLabel->setText("");
+	if(0 != m_p_instrument_plaintextedit->UpdateTimbre()){
+		return ;
 	}
+	ui->InstrumentApplyPushButton->setEnabled(false);
+	ui->ErrorMessageLabel->setText("");
+	//HardwareChiptunePanelWidget::UpdateContents();
 }
 
