@@ -649,14 +649,14 @@ int set_chunks(int max_track, int song_length, uint8_t *p_chunks, int chunk_size
 			uint8_t	param[2] = {0};
 
 			uint8_t fields = (uint8_t)fetch_bits(&track_unpacker, 2 + PACKING_TRACK_CMD_NUMBER);
-			if((fields >> 0) & 0x01){
+			if(0x01 & (fields >> 0) ){
 				note = (uint8_t)fetch_bits(&track_unpacker, 7);
 			}
-			if((fields >> 1) & 0x01){
+			if(0x01 & (fields >> 1) ){
 				instr = (uint8_t)fetch_bits(&track_unpacker, 4);
 			}
 			for(int k = 0; k < PACKING_TRACK_CMD_NUMBER; k++){
-				if((fields >> (k + 2)) & 0x01){
+				if(0x01 & (fields >> (k + 2)) ){
 					uint8_t cmd_id = (uint8_t)fetch_bits(&track_unpacker, 4);
 					if(0 != cmd_id){
 						cmd[k] = validcmds[cmd_id];

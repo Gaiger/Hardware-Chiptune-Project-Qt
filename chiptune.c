@@ -294,145 +294,156 @@ void start_generating_song(int song_position)
 
 
 void playroutine() {			// called at 50 Hz
-	uint8_t ch;
 
-	if(true == s_is_generating_track || true == s_is_generating_song) {
-		if(s_trackwait) {
-			s_trackwait--;
-		} else {
-			s_trackwait = 4;
+	do
+	{
+		if(false == s_is_generating_track && false == s_is_generating_song){
+			break;
+		}
 
-			if(0 == s_track_position) {
-				if(true == s_is_generating_song) {
-					if(s_song_position >= get_song_length()) {
-						s_is_generating_song = false;
-					} else {
-						for(ch = 0; ch < 4; ch++) {
-							do
-							{
-								if(true == s_is_read_raw){
-									uint8_t tmp[2];
-									s_p_handle_read_song(s_song_position, ch, tmp);
-									channel[ch].tnum = tmp[0];
-									channel[ch].transp = tmp[1];
-									break;
-								}
+		if(0 != s_trackwait){
+			s_trackwait -= 1;
+			break;
+		}
+		s_trackwait = 4;
 
-								uint8_t is_transp = (uint8_t)fetch_bits(&s_song_unpacker, 1);
-								uint8_t track_index = (uint8_t)fetch_bits(&s_song_unpacker, 6);
-								uint8_t transp = 0;
-								if(0 != is_transp)
-								{
-									transp = (uint8_t)fetch_bits(&s_song_unpacker, 4);
-									if(transp & 0x8) {
-										transp |= 0xf0;
-									}
-								}
-								channel[ch].tnum = track_index;
-								channel[ch].transp = transp;
-
-								initialize_unpacker(&s_track_unpacker[ch], get_chunks_ptr(),
-													s_offsets[1 + PACKING_INSTRUMENT_NUMBER + (channel[ch].tnum - 1)]);
-							}while(0);
-						}
-						s_song_position++;
-					}
-				}
+		do
+		{
+			if(0 != s_track_position){
+				break;
 			}
 
-			do
-			{
-				if(false == s_is_generating_track && false == s_is_generating_song){
-					break;
-				}
+			if(false == s_is_generating_song){
+				break;
+			}
 
-				for(ch = 0; ch < 4; ch++) {
-					if(0 == channel[ch].tnum) {
-						continue;
+			if( get_song_length() <= s_song_position) {
+				s_is_generating_song = false;
+				break;
+			}
+
+			for(uint8_t ch = 0; ch < 4; ch++) {
+				do
+				{
+					if(true == s_is_read_raw){
+						uint8_t tmp[2];
+						s_p_handle_read_song(s_song_position, ch, tmp);
+						channel[ch].tnum = tmp[0];
+						channel[ch].transp = tmp[1];
+						break;
 					}
 
-					struct trackline tl;
+					uint8_t is_transp = (uint8_t)fetch_bits(&s_song_unpacker, 1);
+					uint8_t track_index = (uint8_t)fetch_bits(&s_song_unpacker, 6);
+					uint8_t transp = 0;
+					if(0 != is_transp){
+						transp = (uint8_t)fetch_bits(&s_song_unpacker, 4);
+						if(transp & 0x8) {
+							transp |= 0xf0;
+						}
+					}
+					channel[ch].tnum = track_index;
+					channel[ch].transp = transp;
+
+					if(false == s_is_read_raw){
+						initialize_unpacker(&s_track_unpacker[ch], get_chunks_ptr(),
+										s_offsets[1 + PACKING_INSTRUMENT_NUMBER + (channel[ch].tnum - 1)]);
+					}
+				}while(0);
+			}
+			s_song_position++;
+		}while(0);
+
+		do
+		{
+			if(false == s_is_generating_track && false == s_is_generating_song){
+				break;
+			}
+
+			for(uint8_t ch = 0; ch < 4; ch++) {
+				if(0 == channel[ch].tnum) {
+					continue;
+				}
+
+				struct trackline tl;
+				uint8_t instr = 0;
+				do
+				{
+					if(true == s_is_read_raw){
+						s_p_handle_read_track(channel[ch].tnum, s_track_position, &tl);
+						break;
+					}
+
+					uint8_t note = 0;
 					uint8_t instr = 0;
-					do
-					{
-						if(true == s_is_read_raw){
-							s_p_handle_read_track(channel[ch].tnum, s_track_position, &tl);
-							break;
-						}
-						uint8_t note = 0;
-						uint8_t instr = 0;
-						uint8_t cmd[2] = {0};
-						uint8_t	param[2] = {0};
+					uint8_t cmd[2] = {0};
+					uint8_t	param[2] = {0};
 
-						uint8_t fields = (uint8_t)fetch_bits(&s_track_unpacker[ch], 2 + PACKING_TRACK_CMD_NUMBER);
-						if((fields >> 0) & 0x01){
-							note = (uint8_t)fetch_bits(&s_track_unpacker[ch], 7);
-						}
-						if((fields >> 1) & 0x01){
-							instr = (uint8_t)fetch_bits(&s_track_unpacker[ch], 4);
-						}
-						for(int k = 0; k < PACKING_TRACK_CMD_NUMBER; k++){
-							if(0 == ((fields >> (k + 2)) & 0x01)){
-								continue;
-							}
+					uint8_t fields = (uint8_t)fetch_bits(&s_track_unpacker[ch], 2 + PACKING_TRACK_CMD_NUMBER);
+					if(0x01 & (fields >> 0)){
+						note = (uint8_t)fetch_bits(&s_track_unpacker[ch], 7);
+					}
+					if(0x01 & (fields >> 1)){
+						instr = (uint8_t)fetch_bits(&s_track_unpacker[ch], 4);
+					}
+					for(int k = 0; k < PACKING_TRACK_CMD_NUMBER; k++){
+						if(0x01 & (fields >> (k + 2)) ){
 							uint8_t cmd_id = (uint8_t)fetch_bits(&s_track_unpacker[ch], 4);
-							if(0 == cmd_id){
-								continue;
+							if(0 != cmd_id){
+								cmd[k] = validcmds[cmd_id];
+								param[k] = (uint8_t)fetch_bits(&s_track_unpacker[ch], 8);
 							}
-							cmd[k] = validcmds[cmd_id];
-							param[k] = (uint8_t)fetch_bits(&s_track_unpacker[ch], 8);
 						}
-
-						tl.note = note;
-						tl.instr = instr;
-						for(int k = 0; k < 2; k++){
-							tl.cmd[k] = cmd[k];
-							tl.param[k] = param[k];
-						}
-					}while(0);
-
-					if(tl.note) {
-						channel[ch].tnote = tl.note + channel[ch].transp;
-						instr = channel[ch].lastinstr;
 					}
-					if(tl.instr) {
-						instr = tl.instr;
-					}
-					if(instr) {
-						channel[ch].lastinstr = instr;
-						channel[ch].inum = instr;
-						channel[ch].iptr = 0;
-						channel[ch].iwait = 0;
-						channel[ch].bend = 0;
-						channel[ch].bendd = 0;
-						channel[ch].volumed = 0;
-						channel[ch].dutyd = 0;
-						channel[ch].vdepth = 0;
-					}
-					if(tl.cmd[0])
-						runcmd(ch, tl.cmd[0], tl.param[0]);
-					/*if(tl.cmd[1])
-						runcmd(ch, tl.cmd[1], tl.param[1]);*/
 
+					tl.note = note;
+					tl.instr = instr;
+					for(int k = 0; k < 2; k++){
+						tl.cmd[k] = cmd[k];
+						tl.param[k] = param[k];
+					}
+				}while(0);
+
+				if(tl.note) {
+					channel[ch].tnote = tl.note + channel[ch].transp;
+					instr = channel[ch].lastinstr;
 				}
+				if(tl.instr) {
+					instr = tl.instr;
+				}
+				if(instr) {
+					channel[ch].lastinstr = instr;
+					channel[ch].inum = instr;
+					channel[ch].iptr = 0;
+					channel[ch].iwait = 0;
+					channel[ch].bend = 0;
+					channel[ch].bendd = 0;
+					channel[ch].volumed = 0;
+					channel[ch].dutyd = 0;
+					channel[ch].vdepth = 0;
+				}
+				if(tl.cmd[0])
+					runcmd(ch, tl.cmd[0], tl.param[0]);
+				/*if(tl.cmd[1])
+					runcmd(ch, tl.cmd[1], tl.param[1]);*/
+			}
 
-				s_track_position++;
-				s_track_position %= s_track_length;
-			}while(0);
-		}
-	}
+			s_track_position++;
+			s_track_position %= s_track_length;
+		}while(0);
+	}while(0);
 
-	for(ch = 0; ch < 4; ch++) {
+	for(uint8_t ch = 0; ch < 4; ch++) {
 		int16_t vol;
 		uint16_t duty;
 		uint16_t slur;
 
 		while(channel[ch].inum && !channel[ch].iwait) {
 			uint8_t il[2];
-
 			do
 			{
-				if(true == s_is_read_raw){
+				if(true == s_is_read_raw)
+				{
 					s_p_handle_read_instr(channel[ch].inum, channel[ch].iptr, il);
 					break;
 				}
@@ -442,37 +453,61 @@ void playroutine() {			// called at 50 Hz
 
 			runcmd(ch, il[0], il[1]);
 		}
-		if(channel[ch].iwait) channel[ch].iwait--;
+		if(channel[ch].iwait) {
+			channel[ch].iwait--;
+		}
 
-		if(channel[ch].inertia) {
+		slur = freqtable[channel[ch].inote];
+		do
+		{
+			if (0 == channel[ch].inertia) {
+				break;
+			}
+
 			int16_t diff;
-
 			slur = channel[ch].slur;
 			diff = freqtable[channel[ch].inote] - slur;
 			//diff >>= channel[ch].inertia;
-			if(diff > 0) {
-				if(diff > channel[ch].inertia) diff = channel[ch].inertia;
-			} else if(diff < 0) {
-				if(diff < -channel[ch].inertia) diff = -channel[ch].inertia;
-			}
+			do
+			{
+				if(0 < diff){
+					if(diff > channel[ch].inertia) {
+						diff = channel[ch].inertia;
+					}
+					break;
+				}
+
+				if(0 > diff){
+					if(diff < -channel[ch].inertia) {
+						diff = -channel[ch].inertia;
+					}
+				}
+			}while(0);
 			slur += diff;
 			channel[ch].slur = slur;
-		} else {
-			slur = freqtable[channel[ch].inote];
-		}
+		}while(0);
+
 		osc[ch].freq =
 			slur +
 			channel[ch].bend +
 			((channel[ch].vdepth * sinetable[channel[ch].vpos & 63]) >> 2);
 		channel[ch].bend += channel[ch].bendd;
 		vol = osc[ch].volume + channel[ch].volumed;
-		if(vol < 0) vol = 0;
-		if(vol > 255) vol = 255;
+		if(vol < 0) {
+			vol = 0;
+		}
+		if(vol > 255) {
+			vol = 255;
+		}
 		osc[ch].volume = (uint8_t)vol;
 
 		duty = osc[ch].duty + channel[ch].dutyd;
-		if(duty > 0xe000) duty = 0x2000;
-		if(duty < 0x2000) duty = 0xe000;
+		if(duty > 0xe000) {
+			duty = 0x2000;
+		}
+		if(duty < 0x2000) {
+			duty = 0xe000;
+		}
 		osc[ch].duty = duty;
 
 		channel[ch].vpos += channel[ch].vrate;
