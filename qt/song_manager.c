@@ -28,12 +28,6 @@ uint8_t * get_chunks_ptr(void){ return &s_chunks[0]; }
 
 
 int const get_track_length(void);
-int get_song_length(void);
-void set_song_length(int songlen);
-uint8_t get_track_position(void);
-uint8_t get_song_position(void);
-bool is_generating_song(void);
-bool is_generating_track(void);
 
 extern char validcmds[14];
 
@@ -230,54 +224,11 @@ void set_songlines(void* p_songlines, int number_of_songlines)
 	s_song_length = number_of_songlines;
 }
 
-bool is_song_playing(int *p_processing_song_index)
-{
-	if(false == is_generating_song()){
-		return false;
-	}
-
-	*p_processing_song_index = get_song_position();
-	return true;
-}
-
 void get_tracks(void ** pp_track, int *p_track_number, int *p_track_length)
 {
 	*pp_track = (void**)&track[0];
 	*p_track_number = sizeof(track)/sizeof(struct track);
 	*p_track_length = get_track_length();
-}
-
-struct channel {
-	uint8_t	tnum;
-	int8_t	transp;
-	uint8_t	tnote;
-	uint8_t	lastinstr;
-	uint8_t	inum;
-	uint8_t	iptr;
-	uint8_t	iwait;
-	uint8_t	inote;
-	int8_t	bendd;
-	int16_t	bend;
-	int8_t	volumed;
-	int16_t	dutyd;
-	uint8_t	vdepth;
-	uint8_t	vrate;
-	uint8_t	vpos;
-	int16_t	inertia;
-	uint16_t	slur;
-} ;
-
-extern struct channel channel[4];
-
-bool is_track_playing(int *p_playing_track_index, int *p_playing_line_index)
-{
-	if(false == is_generating_track()){
-		return false;
-	}
-
-	*p_playing_track_index = channel[0].tnum;
-	*p_playing_line_index = get_track_position();
-	return true;
 }
 
 void get_instruments(void ** pp_instruments, int *p_instrument_number)

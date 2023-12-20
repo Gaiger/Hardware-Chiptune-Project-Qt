@@ -54,7 +54,7 @@ public:
 	void CleanAll(void)
 	{
 		ResetGeneratingWave();
-		m_s_is_generating_song = false;
+		m_is_generating_song = false;
 		m_is_generating_track = false;
 		m_is_B_note_as_H_note = false;
 	}
@@ -64,14 +64,14 @@ public:
 		bool is_changed = false;
 		int generating_song_index = -1;
 
-		bool s_is_generating_song = is_song_playing(&generating_song_index);
+		bool is_generating_song = is_song_generating(&generating_song_index);
 		do
 		{
-			if(s_is_generating_song != m_s_is_generating_song){
+			if(is_generating_song != m_is_generating_song){
 				is_changed = true;
 			}
 
-			if(false == s_is_generating_song){
+			if(false == is_generating_song){
 				break;
 			}
 
@@ -80,7 +80,7 @@ public:
 			}
 		}while(0);
 
-		m_s_is_generating_song = s_is_generating_song;
+		m_is_generating_song = is_generating_song;
 		m_generating_song_index = generating_song_index;
 		return is_changed;
 	}
@@ -91,7 +91,7 @@ public:
 		int generating_track_index = -1;
 		int generating_line_index = -1;
 
-		bool is_generating_track = is_track_playing(&generating_track_index, &generating_line_index);
+		bool is_generating_track = is_track_generating(&generating_track_index, &generating_line_index);
 		do
 		{
 			if(is_generating_track != m_is_generating_track)
@@ -118,7 +118,7 @@ public:
 	void InquireGeneratingState(void)
 	{
 		if(true == TuneManagerPrivate::IsGeneratingSongStateChanged()){
-			emit m_p_public->GeneratingSongStateChanged(m_s_is_generating_song, m_generating_song_index);
+			emit m_p_public->GeneratingSongStateChanged(m_is_generating_song, m_generating_song_index);
 		}
 
 		if(true == TuneManagerPrivate::IsGeneratingTrackStateChanged()){
@@ -128,7 +128,7 @@ public:
 		}
 
 	#if(0)
-		if(false == m_p_private->m_s_is_generating_song &&
+		if(false == m_p_private->is_generating_song &&
 				false == m_p_private->m_is_generating_track)
 		{
 			emit GeneratingWaveStopped();
@@ -145,7 +145,7 @@ public:
 
 	QTimer m_inquiring_playing_state_timer;
 
-	bool m_s_is_generating_song;
+	bool m_is_generating_song;
 	int m_generating_song_index;
 
 	bool m_is_generating_track;
@@ -518,7 +518,7 @@ bool TuneManager::IsGeneratingWave(int *p_tune_type)
 	QMutexLocker locker(&m_mutex);
 	do
 	{
-		if(true == m_p_private->m_s_is_generating_song){
+		if(true == m_p_private->m_is_generating_song){
 			if(nullptr != p_tune_type){
 				*p_tune_type = TuneManager::SONG;
 			}
