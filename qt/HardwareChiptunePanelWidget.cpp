@@ -362,7 +362,7 @@ void HardwareChiptunePanelWidget::on_ExportChunkDataPushButton_released(void)
 	QString filename_string = QFileDialog::getSaveFileName(this, QString("Export the Data File"),
 																  suggested_filename_string,
 																  QString("binary data (*.data *.bin *.hex);;"
-																		  "C header(*.h);;"
+																		  "C source code(*.c);;"
 																		  "AVR assembler data and C header (*.s *.h);;"
 																		  "All file (*)")
 														   );
@@ -382,8 +382,8 @@ void HardwareChiptunePanelWidget::on_ExportChunkDataPushButton_released(void)
 				break;
 			}
 
-			if(QString("h") == fileinfo.suffix()){
-				export_type = TuneManager::C_HEADER;
+			if(QString("c") == fileinfo.suffix()){
+				export_type = TuneManager::C_SOURCECODE;
 				break;
 			}
 

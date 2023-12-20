@@ -20,12 +20,12 @@ public:
 	int ImportChunkDataFile(QString filename_string);
 	enum EXPORT_TYPE
 	{
-		C_HEADER,
+		C_SOURCECODE,
 		BINARY_DATA,
 		AVR_ASM_AND_C_HEADER,
 		TEXT,
 	};Q_ENUM(EXPORT_TYPE)
-	int ExportChunkDataFile(QString filename_string, TuneManager::EXPORT_TYPE export_type = TuneManager::C_HEADER);
+	int ExportChunkDataFile(QString filename_string, TuneManager::EXPORT_TYPE export_type = TuneManager::C_SOURCECODE);
 
 	void SetHNoteAsBNote(bool is_H_note_as_B_note);
 

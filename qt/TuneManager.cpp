@@ -282,51 +282,65 @@ int TuneManager::ExportChunkDataFile(QString filename_string, TuneManager::EXPOR
 
 	do
 	{
-		if(TuneManager::BINARY_DATA == export_type){
+		if(true == (TuneManager::C_SOURCECODE != export_type
+					 && TuneManager::TEXT != export_type)){
+			break;
+		}
+
+		out_string.clear();
+		out_string += QString("#include <stdint.h>\n\n");
+		out_string += QString::asprintf("static int s_max_track = 0x%02d\n", max_track);
+		out_string += QString::asprintf("static int s_song_length = 0x%02d\n\n", song_length);
+		out_string += QString("static uint8_t s_chunks[] = {");
+		int ii = 0;
+		int kk = 0;
+		for(int i = 0; i < chunk_size - 1; i++){
+			if(i == p_section_begin_indexes[ii]){
+				out_string += QString::asprintf("\n");
+				ii++;
+				kk = 0;
+			}
+			if(0 == kk % 12){
+				out_string += QString::asprintf("\n\t");
+			}
+			out_string += QString::asprintf("0x%02x, ", p_chunks[i]);
+			kk++;
+		}
+		out_string += QString::asprintf("0x%02x \n};\n\n", p_chunks[chunk_size - 1]);
+
+		out_string += QString::asprintf("int get_max_track(void){ return s_max_track; }\n");
+		out_string += QString::asprintf("int get_song_length(void){ return s_song_length; }\n");
+		out_string += QString::asprintf("uint8_t * get_chunks_ptr(void){ return &s_chunks[0]; }\n");
+
+		file.setFileName(filename_string);
+		if(false == file.open(QFile::WriteOnly|QFile::Text)){
+			return -1;
+		}
+		file.write(out_string.toLatin1());
+		file.close();
+	}while(0);
+
+
+	do
+	{
+		if(TuneManager::AVR_ASM_AND_C_HEADER != export_type){
 			break;
 		}
 
 		out_string.clear();
 		QString basename_string = QFileInfo(filename_string).baseName();
 		out_string += QString("#ifndef _") + basename_string.toUpper() + QString("_H_\n");
-		out_string += QString("#define _") + basename_string.toUpper() + QString("_H_\n");
-		out_string += QString("\n#include <stdint.h>\n\n");
+		out_string += QString("#define _") + basename_string.toUpper() + QString("_H_\n\n");
 		out_string += QString::asprintf("#define MAX_TRACK\t\t\t\t\t\t\t\t\t(0x%02x)\n", max_track);
-		out_string += QString::asprintf("#define SONG_LENGTH\t\t\t\t\t\t\t\t\t\t(0x%02x)\n\n", song_length);
-		if(TuneManager::C_HEADER == export_type ||
-				TuneManager::TEXT == export_type){
-			out_string += QString("const uint8_t chunks[] = {");
-			int ii = 0;
-			int kk = 0;
-			for(int i = 0; i < chunk_size - 1; i++){
-				if(i == p_section_begin_indexes[ii]){
-					out_string += QString::asprintf("\n");
-					ii++;
-					kk = 0;
-				}
-				if(0 == kk % 12){
-					out_string += QString::asprintf("\n\t");
-				}
-				out_string += QString::asprintf("0x%02x, ", p_chunks[i]);
-				kk++;
-			}
-			out_string += QString::asprintf("0x%02x \n};\n\n", p_chunks[chunk_size - 1]);
-		}
-		out_string += QString("#endif ") + QString("/*") + basename_string.toUpper() + QString("_H_") + QString("*/");
+		out_string += QString::asprintf("#define SONG_LENGTH\t\t\t\t\t\t\t\t\t(0x%02x)\n\n", song_length);
+		out_string += QString("#endif ") + QString("/*_") + basename_string.toUpper() + QString("_H_") + QString("*/");
 
-		file.setFileName(filename_string);
-		if(TuneManager::AVR_ASM_AND_C_HEADER == export_type){
-			file.setFileName(basename_string + ".h");
-		}
+		file.setFileName(basename_string + ".h");
 		if(false == file.open(QFile::WriteOnly|QFile::Text)){
 			return -1;
 		}
 		file.write(out_string.toLatin1());
 		file.close();
-
-		if(TuneManager::AVR_ASM_AND_C_HEADER != export_type){
-			break;
-		}
 
 		out_string.clear();
 		out_string += QString::asprintf("\t.global\tsongdata\n\n");

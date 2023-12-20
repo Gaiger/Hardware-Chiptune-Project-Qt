@@ -17,14 +17,14 @@
 #endif
 #include "song_manager.h"
 
-static int s_song_length;
 static int s_max_track;
+static int s_song_length;
 uint8_t s_chunks[24 * 1024] = {0};
 int s_chunk_size = 0;
 
-int get_max_track(void){return s_max_track;}
-int get_song_length(void){return s_song_length;}
-uint8_t * get_chunks_ptr(void){return &s_chunks[0];}
+int get_max_track(void){ return s_max_track; }
+int get_song_length(void){ return s_song_length; }
+uint8_t * get_chunks_ptr(void){ return &s_chunks[0]; }
 
 
 int const get_track_length(void);
