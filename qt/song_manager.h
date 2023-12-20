@@ -8,14 +8,6 @@ extern "C"
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifndef _STUFF_H_
-#define _STUFF_H_
-	#if defined TRACKLEN
-		#undef TRACKLEN
-	#endif
-	#include "../stuff.h"
-#endif
-
 
 void initialize_chip(void);
 
@@ -35,8 +27,18 @@ void set_songlines(void* p_songlines, int number_of_songlines);
 void get_tracks(void ** pp_track, int *p_track_number, int *p_track_length);
 void get_instruments(void ** pp_instruments, int *p_instrument_number);
 
+
+
+void start_generating_song(int);
+void start_generating_track(int);
+
+void silence();
+void iedplonk(int, int);
+
+uint8_t interrupthandler();
 bool is_song_generating(int *p_processing_song_index);
 bool is_track_generating(int *p_generating_track_index, int *p_generating_line_index);
+
 #ifdef __cplusplus
 }
 #endif

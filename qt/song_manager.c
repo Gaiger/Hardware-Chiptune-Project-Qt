@@ -8,13 +8,6 @@
 #include <stdbool.h>
 #include <math.h>
 
-#ifndef _STUFF_H_
-#define _STUFF_H_
-	#if defined TRACKLEN
-		#undef TRACKLEN
-	#endif
-	#include "../stuff.h"
-#endif
 #include "song_manager.h"
 
 static int s_max_track;
@@ -31,6 +24,25 @@ int const get_track_length(void);
 
 extern char validcmds[14];
 
+
+#define TRACKLEN									(32)
+
+struct songline {
+	uint8_t			track[4];
+	uint8_t			transp[4];
+};
+
+struct trackline {
+	uint8_t	note;
+	uint8_t	instr;
+	uint8_t	cmd[2];
+	uint8_t	param[2];
+	};
+
+struct track {
+	struct trackline	line[TRACKLEN];
+};
+
 struct instrline {
 	uint8_t			cmd;
 	uint8_t			param;
@@ -39,11 +51,6 @@ struct instrline {
 struct instrument {
 	int			length;
 	struct instrline	line[256];
-};
-
-struct songline {
-	uint8_t			track[4];
-	uint8_t			transp[4];
 };
 
 struct instrument instrument[256], iclip;

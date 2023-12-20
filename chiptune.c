@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "stuff.h"
+#define TRACKLEN									(32)
 
 int const s_track_length = TRACKLEN;
 
@@ -17,6 +17,7 @@ static bool s_is_generating_track;
 
 static bool s_is_read_raw = false;
 
+struct trackline;
 static void (*s_p_handle_read_song)(int pos, int ch, uint8_t *dest) = NULL;
 static void (*s_p_handle_read_track)(int num, int pos, struct trackline *tl) = NULL;
 static void (*s_p_handle_read_instr)(int num, int pos, uint8_t *il) = NULL;
@@ -100,6 +101,12 @@ struct channel
 	uint16_t	slur;
 } channel[4];
 
+struct trackline {
+	uint8_t	note;
+	uint8_t	instr;
+	uint8_t	cmd[2];
+	uint8_t	param[2];
+};
 
 struct unpacker_t
 {

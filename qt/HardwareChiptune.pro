@@ -25,7 +25,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    ../stuff.h \
     AudioPlayer.h \
     HardwareChiptunePanelWidget.h \
     HighlightWholeLinePlainTextEdit.h \
