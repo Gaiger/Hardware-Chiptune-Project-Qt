@@ -282,6 +282,7 @@ void start_generating_song(int song_position)
 	s_is_generating_track = false;
 	s_is_generating_song = true;
 
+	initialize_unpacker(&s_song_unpacker, get_chunks_ptr(), s_offsets[0]);
 	for(int i = 0; i < song_position * 4; i++){
 		uint8_t is_transp = (uint8_t)fetch_bits(&s_song_unpacker, 1);
 		fetch_bits(&s_song_unpacker, 6);
