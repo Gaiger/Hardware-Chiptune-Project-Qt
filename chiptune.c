@@ -118,6 +118,7 @@ struct unpacker_t
 };
 
 struct unpacker_t s_song_unpacker;
+struct unpacker_t s_track_unpacker[4];
 
 /**********************************************************************************/
 
@@ -253,6 +254,10 @@ void iedplonk(int note, int instr) {
 	channel[0].vdepth = 0;
 }
 
+
+#define PACKING_INSTRUMENT_NUMBER					(15)
+#define PACKING_TRACK_CMD_NUMBER					(1)
+
 void start_generating_track(int track_index)
 {
 	channel[0].tnum = track_index;
@@ -263,10 +268,11 @@ void start_generating_track(int track_index)
 	s_trackwait = 0;
 	s_is_generating_track = true;
 	s_is_generating_song = false;
+
+	initialize_unpacker(&s_track_unpacker[0], get_chunks_ptr(),
+						s_offsets[1 + PACKING_INSTRUMENT_NUMBER + (channel[0].tnum - 1)]);
 }
 
-#define PACKING_INSTRUMENT_NUMBER					(15)
-#define PACKING_TRACK_CMD_NUMBER					(1)
 
 void start_generating_song(int song_position)
 {
@@ -275,16 +281,6 @@ void start_generating_song(int song_position)
 	s_trackwait = 0;
 	s_is_generating_track = false;
 	s_is_generating_song = true;
-
-	do
-	{
-		struct unpacker_t temp_unpacker;
-		initialize_unpacker(&temp_unpacker, get_chunks_ptr(), 0);
-		for(int i = 0; i < 1 + PACKING_INSTRUMENT_NUMBER + get_max_track(); i++){
-			s_offsets[i] = fetch_bits(&temp_unpacker, 13);
-		}
-	}while(0);
-	initialize_unpacker(&s_song_unpacker, get_chunks_ptr(), s_offsets[0]);
 
 	for(int i = 0; i < song_position * 4; i++){
 		uint8_t is_transp = (uint8_t)fetch_bits(&s_song_unpacker, 1);
@@ -295,7 +291,6 @@ void start_generating_song(int song_position)
 	}
 }
 
-struct unpacker_t s_track_unpacker[4];
 
 void playroutine() {			// called at 50 Hz
 	uint8_t ch;
@@ -334,6 +329,9 @@ void playroutine() {			// called at 50 Hz
 								}
 								channel[ch].tnum = track_index;
 								channel[ch].transp = transp;
+
+								initialize_unpacker(&s_track_unpacker[ch], get_chunks_ptr(),
+													s_offsets[1 + PACKING_INSTRUMENT_NUMBER + (channel[ch].tnum - 1)]);
 							}while(0);
 						}
 						s_song_position++;
@@ -346,23 +344,6 @@ void playroutine() {			// called at 50 Hz
 				if(false == s_is_generating_track && false == s_is_generating_song){
 					break;
 				}
-
-				do
-				{
-					if(true == s_is_read_raw){
-						break;
-					}
-
-					if(0 == s_track_position){
-						for(ch = 0; ch < 4; ch++) {
-							if(0 == channel[ch].tnum){
-								continue;
-							}
-							initialize_unpacker(&s_track_unpacker[ch], get_chunks_ptr(),
-												s_offsets[1 + PACKING_INSTRUMENT_NUMBER + (channel[ch].tnum - 1)]);
-						}
-					}
-				}while(0);
 
 				for(ch = 0; ch < 4; ch++) {
 					if(0 == channel[ch].tnum) {
@@ -522,6 +503,15 @@ void initchip(void)
 	channel[2].inum = 0;
 	osc[3].volume = 0;
 	channel[3].inum = 0;
+
+	do
+	{
+		struct unpacker_t temp_unpacker;
+		initialize_unpacker(&temp_unpacker, get_chunks_ptr(), 0);
+		for(int i = 0; i < 1 + PACKING_INSTRUMENT_NUMBER + get_max_track(); i++){
+			s_offsets[i] = fetch_bits(&temp_unpacker, 13);
+		}
+	}while(0);
 }
 
 static uint32_t noiseseed = 1;
