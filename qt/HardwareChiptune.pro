@@ -17,7 +17,6 @@ SOURCES += \
         TrackPlainTextEdit.cpp \
         TuneManager.cpp \
         main.cpp \
-        song_manager.c \
         tune_manager.cpp
 
 # Default rules for deployment.
@@ -26,6 +25,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    ../chiptune.h \
     AudioPlayer.h \
     HardwareChiptunePanelWidget.h \
     HighlightWholeLinePlainTextEdit.h \
@@ -33,7 +33,6 @@ HEADERS += \
     SongPlainTextEdit.h \
     TrackPlainTextEdit.h \
     TuneManager.h \
-    song_manager.h \
     tune_manager.h
 
 FORMS += \

@@ -63,6 +63,8 @@ public:
 	const QList<QString> GetNoteNameList(void);
 
 	void UpdateTunes(void);
+	int GetMaxTrack(void);
+	uint8_t *GetChunksPtr(void);
 public :
 	enum TUNE_TYPE
 	{

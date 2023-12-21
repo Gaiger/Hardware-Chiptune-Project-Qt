@@ -9,8 +9,10 @@
 #include <QFile>
 #include <QFileInfo>
 
-#include "song_manager.h"
 #include "TuneManager.h"
+#include "tune_manager.h"
+
+#include "../chiptune.h"
 
 
 class TuneManagerPrivate
@@ -21,7 +23,7 @@ public:
 		QByteArray generated_bytearray;
 		generated_bytearray.reserve(length);
 		for(int i = 0; i < length; i++) {
-			uint8_t value = interrupthandler();
+			uint8_t value = chiptune_interrupthandler();
 			generated_bytearray += value;
 		}
 
@@ -31,7 +33,7 @@ public:
 	void ResetGeneratingWave(void)
 	{
 		m_inquiring_playing_state_timer.stop();
-		silence();
+		chiptune_silence();
 		m_wave_bytearray.clear();
 		m_wave_prebuffer_length = 0;
 
@@ -44,10 +46,10 @@ public:
 		do
 		{
 			if(TuneManager::TRACK == tune_type){
-				start_generating_track(index);
+				chiptune_start_generating_track(index);
 				break;
 			}
-			start_generating_song(index);
+			chiptune_start_generating_song(index);
 		}while(0);
 
 		InquireGeneratingState();
@@ -68,7 +70,7 @@ public:
 		bool is_changed = false;
 		int generating_song_index = -1;
 
-		bool is_generating_song = is_song_generating(&generating_song_index);
+		bool is_generating_song = chiptune_is_song_generating(&generating_song_index);
 		do
 		{
 			if(is_generating_song != m_is_generating_song){
@@ -95,7 +97,7 @@ public:
 		int generating_track_index = -1;
 		int generating_line_index = -1;
 
-		bool is_generating_track = is_track_generating(&generating_track_index, &generating_line_index);
+		bool is_generating_track = chiptune_is_track_generating(&generating_track_index, &generating_line_index);
 		do
 		{
 			if(is_generating_track != m_is_generating_track)
@@ -257,10 +259,78 @@ public:
 		}
 
 		fclose(file_ptr);
-
 		return 0;
 	}
 
+	void OrganizeTracks(void)
+	{
+		uint8_t used[256], replace[256];
+		memset(used, 0, sizeof(used));
+
+		int i, j;
+
+
+		for(i = 0; i < m_song_length; i++) {
+			for(j = 0; j < 4; j++) {
+				used[m_songlines[i].track[j]] = 1;
+			}
+		}
+
+		j = 1;
+		replace[0] = 0;
+		for(i = 1; i < 256; i++) {
+			if(used[i]) {
+				replace[i] = j;
+				j++;
+			} else {
+				replace[i] = 0;
+			}
+		}
+
+		for(i = 1; i < 256; i++) {
+			if(replace[i] && replace[i] != i) {
+				memcpy(&m_tracks[replace[i]], &m_tracks[i], sizeof(TuneManager::track));
+			}
+		}
+
+		for(i = 0; i < m_song_length; i++) {
+			for(j = 0; j < 4; j++) {
+				m_songlines[i].track[j] = replace[m_songlines[i].track[j]];
+			}
+		}
+
+		for(i = 1; i < 256; i++) {
+			uint8_t last = 255;
+
+			for(j = 0; j < TRACKLEN; j++) {
+				if(m_tracks[i].line[j].instr) {
+					if(m_tracks[i].line[j].instr == last) {
+						m_tracks[i].line[j].instr = 0;
+					} else {
+						last = m_tracks[i].line[j].instr;
+					}
+				}
+			}
+		}
+	}
+
+	void UpdateChunks(void)
+	{
+		m_chunks_bytearray.clear();
+		int chunk_size;
+		int offset_number;
+
+		get_packing_into_chunk_information(m_song_length, &m_songlines[0], &m_tracks[0],
+							  &m_instruments[0], &chunk_size, &offset_number);
+
+		m_chunks_bytearray.reserve(chunk_size);
+		m_chunks_bytearray.resize(chunk_size);
+
+		pack_into_chunks(m_song_length, &m_songlines[0], &m_tracks[0],
+				 &m_instruments[0], &m_max_track, (uint8_t*)m_chunks_bytearray.constData(), nullptr, nullptr);
+
+		chiptune_initialize(false);
+	}
 
 public:
 	bool m_is_B_note_as_H_note;
@@ -282,20 +352,13 @@ public:
 	TuneManager::track m_tracks[256];
 	TuneManager::instrument m_instruments[256];
 
+	int m_max_track;
+	QByteArray m_chunks_bytearray;
+
 	TuneManager *m_p_public;
 };
 
 /**********************************************************************************/
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-void set_tune_mananger(void *p_tune_manager);
-
-#ifdef __cplusplus
-}
-#endif
 
 TuneManager::TuneManager(QObject *parent)
 	: QObject(parent),
@@ -309,14 +372,14 @@ TuneManager::TuneManager(QObject *parent)
 			qRegisterMetaType<TuneManager::TUNE_TYPE>("TUNE_TYPE");
 	}
 
-	initialize_chip();
 	m_p_private = new TuneManagerPrivate();
 	m_p_private->CleanAll();
 	m_p_private->m_p_public = this;
 	QObject::connect(&m_p_private->m_inquiring_playing_state_timer, &QTimer::timeout,
 					this, &TuneManager::InquireGeneratingState);
 
-	set_tune_mananger((void*)this);
+	set_tune_mananger(this);
+	setup_chiptune_raw_reader();
 }
 
 /**********************************************************************************/
@@ -346,11 +409,9 @@ int TuneManager::LoadSongFile(QString filename_string)
 	}
 
 	m_p_private->LoadSongFile(filename_string);
-	set_songs(m_p_private->m_song_length,
-			  (void*)&m_p_private->m_songlines[0], (void*)&m_p_private->m_tracks[0],
-			(void*)&m_p_private->m_instruments[0]);
-	optimize();
-
+	m_p_private->OrganizeTracks();
+	m_p_private->UpdateChunks();
+	chiptune_initialize(false);
 	return 0;
 }
 
@@ -378,22 +439,21 @@ int TuneManager::ImportChunkDataFile(QString filename_string)
 	readdata_bytearray = file.readAll();
 	file.close();
 
-	int max_track, songlen;
-	memcpy(&max_track, readdata_bytearray.constData(), 4);
-	memcpy(&m_p_private->m_song_length, readdata_bytearray.constData() + 4, 4);
 
+	memcpy(&m_p_private->m_max_track, readdata_bytearray.constData(), 4);
+	memcpy(&m_p_private->m_song_length, readdata_bytearray.constData() + 4, 4);
+	m_p_private->m_chunks_bytearray = readdata_bytearray.mid(8, -1);
 	memset(&m_p_private->m_songlines[0], 0, sizeof(m_p_private->m_songlines));
 	memset(&m_p_private->m_tracks[0], 0, sizeof(m_p_private->m_tracks));
 	memset(&m_p_private->m_instruments[0], 0, sizeof(m_p_private->m_instruments));
-	set_songs(m_p_private->m_song_length,
-			  (void*)&m_p_private->m_songlines[0], (void*)&m_p_private->m_tracks[0],
-			(void*)&m_p_private->m_instruments[0]);
 
-	set_chunks(max_track, m_p_private->m_song_length, (uint8_t*)readdata_bytearray.constData() + 8, readdata_bytearray.size() - 8);
+	unpack_from_chunks(m_p_private->m_max_track, m_p_private->m_song_length,
+			 (uint8_t*) m_p_private->m_chunks_bytearray.constData(),
+			 m_p_private->m_chunks_bytearray.size(),
+			 &m_p_private->m_songlines[0], &m_p_private->m_tracks[0], &m_p_private->m_instruments[0]);
 
-
-	optimize();
-
+	m_p_private->OrganizeTracks();
+	chiptune_initialize(false);
 	return 0;
 }
 
@@ -405,17 +465,20 @@ int TuneManager::ExportChunkDataFile(QString filename_string, TuneManager::EXPOR
 	int chunk_size;
 	int offset_number;
 
-	get_chunk_information(&chunk_size, &offset_number);
+	get_packing_into_chunk_information(m_p_private->m_song_length, &m_p_private->m_songlines[0], &m_p_private->m_tracks[0],
+						  &m_p_private->m_instruments[0], &chunk_size, &offset_number);
 
 	uint8_t *p_chunks = (uint8_t*)alloca(chunk_size);
 	int *p_section_begin_indexes = (int*)alloca(offset_number * sizeof(int));
 	int *p_offsets = (int*)alloca(offset_number * sizeof(int));
 	int max_track, song_length;
 
+	song_length = m_p_private->m_song_length;
 	memset(p_chunks, 0, chunk_size);
 	memset(p_section_begin_indexes, 0, offset_number * sizeof(int));
 	memset(p_offsets, 0, offset_number * sizeof(int));
-	get_chunks(&max_track, &song_length, p_chunks, p_section_begin_indexes, p_offsets);
+	pack_into_chunks(m_p_private->m_song_length, &m_p_private->m_songlines[0], &m_p_private->m_tracks[0],
+			&m_p_private->m_instruments[0], &max_track, p_chunks, p_section_begin_indexes, p_offsets);
 
 	QFile file;
 	QString out_string;
@@ -466,7 +529,7 @@ int TuneManager::ExportChunkDataFile(QString filename_string, TuneManager::EXPOR
 
 		out_string += QString::asprintf("int get_max_track(void){ return s_max_track; }\n");
 		out_string += QString::asprintf("int get_song_length(void){ return s_song_length; }\n");
-		out_string += QString::asprintf("uint8_t * get_chunks_ptr(void){ return &s_chunks[0]; }\n");
+		out_string += QString::asprintf("uint8_t * pack_into_chunks_ptr(void){ return &s_chunks[0]; }\n");
 
 		file.setFileName(filename_string);
 		if(false == file.open(QFile::WriteOnly|QFile::Text)){
@@ -557,9 +620,6 @@ void TuneManager::SetSongLines(TuneManager::songline * p_songlines, int number_o
 {
 	Q_UNUSED(p_songlines);
 	m_p_private->m_song_length = number_of_songlines;
-	set_songs(m_p_private->m_song_length,
-			  (void*)&m_p_private->m_songlines[0], (void*)&m_p_private->m_tracks[0],
-			(void*)&m_p_private->m_instruments[0]);
 }
 
 /**********************************************************************************/
@@ -567,7 +627,7 @@ void TuneManager::SetSongLines(TuneManager::songline * p_songlines, int number_o
 void TuneManager::UpdateTunes(void)
 {
 	QMutexLocker locker(&m_mutex);
-	optimize();
+	m_p_private->UpdateChunks();
 }
 
 /**********************************************************************************/
@@ -693,4 +753,18 @@ bool TuneManager::IsGeneratingWave(int *p_tune_type)
 	}while(0);
 
 	return false;
+}
+
+/**********************************************************************************/
+
+int TuneManager::GetMaxTrack(void)
+{
+	return m_p_private->m_max_track;
+}
+
+/**********************************************************************************/
+
+uint8_t* TuneManager::GetChunksPtr(void)
+{
+	return (uint8_t*)m_p_private->m_chunks_bytearray.constData();
 }
