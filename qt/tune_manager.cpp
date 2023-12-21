@@ -29,9 +29,19 @@ static uint8_t get_chunk_datum(int index)
 	return *(s_p_tune_manager->GetChunksPtr() + index);
 }
 
-void setup_chiptune_callback_functions(void)
+void setup_chiptune_data_callback_functions(void)
 {
-	chiptune_setup_callback_functions(get_max_track, get_song_length, get_chunk_datum);
+	chiptune_setup_data_callback_functions(get_max_track, get_song_length, get_chunk_datum);
+}
+
+void set_lights_enabled(uint8_t light_bits)
+{
+	s_p_tune_manager->SetLightBits(light_bits);
+}
+
+void setup_chiptune_lights_callback_function(void)
+{
+	chiptune_setup_lights_callback_function(set_lights_enabled);
 }
 
 /**********************************************************************************/

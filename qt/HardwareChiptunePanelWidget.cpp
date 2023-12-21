@@ -93,6 +93,9 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingTrackStateChanged,
 					 this, &HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged, Qt::QueuedConnection);
 
+	QObject::connect(p_player->GetTuneManager(), &TuneManager::LightChanged,
+					 this, &HardwareChiptunePanelWidget::HandleLightChanged);
+
 	QShortcut *p_shortcut;
 	p_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this);
 	QObject::connect(p_shortcut, &QShortcut::activated,
@@ -219,6 +222,26 @@ void HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged(bool is_gene
 			break;
 		}
 		ui->TrackPlayPushButton->setText(QString(UNICODE_PLAY_ICON));
+	}while(0);
+}
+
+/**********************************************************************************/
+
+void HardwareChiptunePanelWidget::HandleLightChanged(int light_index, bool is_turn_on)
+{
+	QString text_string = "background-color: rgb(36, 36, 36);";
+	if(true == is_turn_on){
+		text_string = "background-color: rgb(72, 72, 72);";
+	}
+
+	do
+	{
+
+		if(0 == light_index){
+			ui->LightWidget0->setStyleSheet(text_string);
+			break;
+		}
+		ui->LightWidget1->setStyleSheet(text_string);
 	}while(0);
 }
 

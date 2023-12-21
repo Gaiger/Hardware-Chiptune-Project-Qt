@@ -10,7 +10,8 @@ extern "C"
 #include "TuneManager.h"
 
 void set_tune_mananger(void *p_tune_manager);
-void setup_chiptune_callback_functions(void);
+void setup_chiptune_data_callback_functions(void);
+void setup_chiptune_lights_callback_function(void);
 void setup_chiptune_raw_reader(void);
 
 int get_packing_into_chunk_information(int song_length, TuneManager::songline *p_songines,

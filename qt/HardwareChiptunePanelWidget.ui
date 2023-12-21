@@ -453,6 +453,36 @@ color: rgb(208, 208, 208);
     <bool>false</bool>
    </property>
   </widget>
+  <widget class="QWidget" name="LightWidget0" native="true">
+   <property name="geometry">
+    <rect>
+     <x>776</x>
+     <y>590</y>
+     <width>48</width>
+     <height>48</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget {
+background-color: rgb(36, 36, 36); 
+}</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="LightWidget1" native="true">
+   <property name="geometry">
+    <rect>
+     <x>856</x>
+     <y>590</y>
+     <width>48</width>
+     <height>48</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget {
+background-color: rgb(36, 36, 36); 
+}</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

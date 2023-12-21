@@ -63,6 +63,7 @@ public:
 		m_is_generating_song = false;
 		m_is_generating_track = false;
 		m_is_B_note_as_H_note = false;
+		m_lights_bits = 0;
 	}
 
 	bool IsGeneratingSongStateChanged(void)
@@ -354,7 +355,7 @@ public:
 
 	int m_max_track;
 	QByteArray m_chunks_bytearray;
-
+	uint8_t m_lights_bits;
 	TuneManager *m_p_public;
 };
 
@@ -379,7 +380,8 @@ TuneManager::TuneManager(QObject *parent)
 					this, &TuneManager::InquireGeneratingState);
 
 	set_tune_mananger(this);
-	setup_chiptune_callback_functions();
+	setup_chiptune_data_callback_functions();
+	setup_chiptune_lights_callback_function();
 	setup_chiptune_raw_reader();
 }
 
@@ -531,9 +533,9 @@ int TuneManager::ExportChunkDataFile(QString filename_string, TuneManager::EXPOR
 		out_string += QString::asprintf("static int get_max_track(void){ return s_max_track; }\n");
 		out_string += QString::asprintf("static int get_song_length(void){ return s_song_length; }\n");
 		out_string += QString::asprintf("uint8_t get_chunk_datum(int index){ return s_chunks[index]; }\n");
-		out_string += QString::asprintf("void setup_chiptune_callback_functions(void)\n");
+		out_string += QString::asprintf("void setup_chiptune_data_callback_functions(void)\n");
 		out_string += QString::asprintf("{\n");
-		out_string += QString::asprintf("chiptune_setup_callback_functions(get_max_track,"
+		out_string += QString::asprintf("chiptune_setup_data_callback_functions(get_max_track,"
 										" get_song_length, get_chunk_datum);\n");
 		out_string += QString::asprintf("}\n");
 		file.setFileName(filename_string);
@@ -773,3 +775,19 @@ uint8_t* TuneManager::GetChunksPtr(void)
 {
 	return (uint8_t*)m_p_private->m_chunks_bytearray.constData();
 }
+
+/**********************************************************************************/
+
+void TuneManager::SetLightBits(uint8_t light_bits)
+{
+	if(((m_p_private->m_lights_bits >> 0 )& 0x01) != ((light_bits >> 0) & 0x01)){
+		emit LightChanged(0, (light_bits >> 0) & 0x01);
+	}
+
+	if(((m_p_private->m_lights_bits >> 1 )& 0x01) != ((light_bits >> 1) & 0x01)){
+		emit LightChanged(1, (light_bits >> 1) & 0x01);
+	}
+
+	m_p_private->m_lights_bits = light_bits;
+}
+

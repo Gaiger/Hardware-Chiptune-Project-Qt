@@ -17,11 +17,13 @@ static bool s_is_generating_track;
 
 static bool s_is_read_raw = false;
 
+static uint8_t s_light_counter[2] = {0};
 
 static int (*s_handle_get_max_track)(void) = NULL;
 static int (*s_handle_get_song_length)(void) = NULL;
 static uint8_t (*s_handle_get_chunk_datum)(int index) = NULL;
 
+static void (*s_handle_set_lights_enabled)(uint8_t light_bits) = NULL;
 
 static void (*s_handle_read_song)(int pos, int ch, uint8_t *dest) = NULL;
 static void (*s_handle_read_track)(int num, int pos, struct trackline *tl) = NULL;
@@ -379,7 +381,6 @@ void generate_routine() {			// called at 50 Hz
 					}
 
 					uint8_t note = 0;
-					uint8_t instr = 0;
 					uint8_t cmd[2] = {0};
 					uint8_t	param[2] = {0};
 
@@ -410,12 +411,26 @@ void generate_routine() {			// called at 50 Hz
 
 				if(tl.note) {
 					channel[ch].tnote = tl.note + channel[ch].transp;
-					instr = channel[ch].lastinstr;
+					if(0 == tl.instr){
+						instr = channel[ch].lastinstr;
+					}
 				}
-				if(tl.instr) {
-					instr = tl.instr;
-				}
+
 				if(instr) {
+
+					if(instr == 2) {
+						s_light_counter[1] = 5;
+					}
+					if(instr == 1) {
+						s_light_counter[0] = 5;
+						if(channel[ch].tnum == 4) {
+							s_light_counter[0] = s_light_counter[1] = 3;
+						}
+					}
+					if(instr == 7) {
+						s_light_counter[0] = s_light_counter[1] = 30;
+					}
+
 					channel[ch].lastinstr = instr;
 					channel[ch].inum = instr;
 					channel[ch].iptr = 0;
@@ -516,6 +531,34 @@ void generate_routine() {			// called at 50 Hz
 
 		channel[ch].vpos += channel[ch].vrate;
 	}
+
+	if(NULL != s_handle_set_lights_enabled){
+		uint8_t light_bits = 0;
+		if(0 != s_light_counter[0]) {
+			s_light_counter[0] -= 1;
+			light_bits |= 0x01;
+		}
+
+		if(0 != s_light_counter[1]) {
+			s_light_counter[1] -= 1;
+			light_bits |= (0x01 << 1);
+		}
+		s_handle_set_lights_enabled(light_bits);
+	}
+}
+
+void chiptune_setup_data_callback_functions( int(*handle_get_max_track)(void),
+										int(*handle_get_song_length)(void),
+										uint8_t(*handle_get_chunk_datum)(int index))
+{
+	s_handle_get_max_track = handle_get_max_track;
+	s_handle_get_song_length = handle_get_song_length;
+	s_handle_get_chunk_datum = handle_get_chunk_datum;
+}
+
+void chiptune_setup_lights_callback_function(void (*handle_set_lights_enabled)(uint8_t light_bits))
+{
+	s_handle_set_lights_enabled = handle_set_lights_enabled;
 }
 
 void chiptune_setup_raw_data_reader( void (*handle_read_song)(int pos, int ch, uint8_t *dest),
@@ -527,15 +570,6 @@ void chiptune_setup_raw_data_reader( void (*handle_read_song)(int pos, int ch, u
 	s_handle_read_instr = handle_read_instr;
 }
 
-
-void chiptune_setup_callback_functions( int(*handle_get_max_track)(void),
-										int(*handle_get_song_length)(void),
-										uint8_t(*handle_get_chunk_datum)(int index))
-{
-	s_handle_get_max_track = handle_get_max_track;
-	s_handle_get_song_length = handle_get_song_length;
-	s_handle_get_chunk_datum = handle_get_chunk_datum;
-}
 
 void chiptune_initialize(bool is_read_raw)
 {

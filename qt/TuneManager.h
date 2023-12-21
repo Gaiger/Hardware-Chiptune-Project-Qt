@@ -65,6 +65,7 @@ public:
 	void UpdateTunes(void);
 	int GetMaxTrack(void);
 	uint8_t *GetChunksPtr(void);
+	void SetLightBits(uint8_t light_bits);
 public :
 	enum TUNE_TYPE
 	{
@@ -80,7 +81,7 @@ public:
 	signals:
 	void GeneratingSongStateChanged(bool is_generating_song, int generating_song_index);
 	void GeneratingTrackStateChanged(bool is_generating_track, int generating_track_index, int generating_line_index);
-
+	void LightChanged(int light_index, bool is_turn_on);
 private slots:
 	void InquireGeneratingState(void);
 
