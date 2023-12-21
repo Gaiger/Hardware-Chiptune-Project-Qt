@@ -17,14 +17,15 @@ static bool s_is_generating_track;
 
 static bool s_is_read_raw = false;
 
-struct trackline;
-static void (*s_p_handle_read_song)(int pos, int ch, uint8_t *dest) = NULL;
-static void (*s_p_handle_read_track)(int num, int pos, struct trackline *tl) = NULL;
-static void (*s_p_handle_read_instr)(int num, int pos, uint8_t *il) = NULL;
 
-int get_song_length(void);
-int get_max_track(void);
-uint8_t * pack_into_chunks_ptr(void);
+static int (*s_handle_get_max_track)(void) = NULL;
+static int (*s_handle_get_song_length)(void) = NULL;
+static uint8_t (*s_handle_get_chunk_datum)(int index) = NULL;
+
+
+static void (*s_handle_read_song)(int pos, int ch, uint8_t *dest) = NULL;
+static void (*s_handle_read_track)(int num, int pos, struct trackline *tl) = NULL;
+static void (*s_handle_read_instr)(int num, int pos, uint8_t *il) = NULL;
 
 
 /*const uint16_t freqtable[] = {
@@ -105,7 +106,6 @@ struct channel
 
 struct unpacker_t
 {
-	uint8_t		*p_data;
 	uint16_t	next_byte_offset;
 	uint8_t		working_byte;
 	uint8_t		remain_bit_number;
@@ -116,9 +116,8 @@ struct unpacker_t s_track_unpacker[4];
 
 /**********************************************************************************/
 
-static void initialize_unpacker(struct unpacker_t *p_unpacker, uint8_t * p_data, uint16_t offset)
+static void initialize_unpacker(struct unpacker_t *p_unpacker, uint16_t offset)
 {
-	p_unpacker->p_data = p_data;
 	p_unpacker->next_byte_offset = offset;
 	p_unpacker->remain_bit_number = 0;
 }
@@ -131,7 +130,7 @@ static uint8_t fetch_one_bit(struct unpacker_t *p_unpacker)
 
 	if(0 == p_unpacker->remain_bit_number)
 	{
-		p_unpacker->working_byte = p_unpacker->p_data[p_unpacker->next_byte_offset++];
+		p_unpacker->working_byte = s_handle_get_chunk_datum(p_unpacker->next_byte_offset++);
 		p_unpacker->remain_bit_number = 8;
 	}
 
@@ -163,8 +162,8 @@ static uint16_t fetch_bits(struct unpacker_t *p_unpacker, uint8_t n)
 static void get_instrument(uint8_t instrument_index, uint8_t line_index,
 								uint8_t * p_cmd_param)
 {
-	uint8_t cmd_id = *(pack_into_chunks_ptr() + s_offsets[instrument_index] + 2 * line_index + 0);
-	uint8_t param = *(pack_into_chunks_ptr() + s_offsets[instrument_index] + 2 * line_index  + 1);
+	uint8_t cmd_id = s_handle_get_chunk_datum(s_offsets[instrument_index] + 2 * line_index + 0);
+	uint8_t param =s_handle_get_chunk_datum(s_offsets[instrument_index] + 2 * line_index  + 1);
 	uint8_t cmd = 0;
 	if(0 != cmd_id){
 		cmd = validcmds[cmd_id];
@@ -273,7 +272,7 @@ void chiptune_start_generating_song(int song_position)
 		if(true == s_is_read_raw){
 			break;
 		}
-		initialize_unpacker(&s_song_unpacker, pack_into_chunks_ptr(), s_offsets[0]);
+		initialize_unpacker(&s_song_unpacker, s_offsets[0]);
 		for(int i = 0; i < song_position * 4; i++){
 			uint8_t is_transp = (uint8_t)fetch_bits(&s_song_unpacker, 1);
 			fetch_bits(&s_song_unpacker, 6);
@@ -309,7 +308,7 @@ void generate_routine() {			// called at 50 Hz
 				break;
 			}
 
-			if( get_song_length() <= s_song_index) {
+			if( s_handle_get_song_length() <= s_song_index) {
 				s_is_generating_song = false;
 				break;
 			}
@@ -319,7 +318,7 @@ void generate_routine() {			// called at 50 Hz
 				{
 					if(true == s_is_read_raw){
 						uint8_t tmp[2];
-						s_p_handle_read_song(s_song_index, ch, tmp);
+						s_handle_read_song(s_song_index, ch, tmp);
 						channel[ch].tnum = tmp[0];
 						channel[ch].transp = tmp[1];
 						break;
@@ -358,7 +357,7 @@ void generate_routine() {			// called at 50 Hz
 						if(0 == channel[ch].tnum){
 							continue;
 						}
-						initialize_unpacker(&s_track_unpacker[ch], pack_into_chunks_ptr(),
+						initialize_unpacker(&s_track_unpacker[ch],
 											s_offsets[1 + PACKING_INSTRUMENT_NUMBER + (channel[ch].tnum - 1)]);
 					}
 				}
@@ -375,7 +374,7 @@ void generate_routine() {			// called at 50 Hz
 				do
 				{
 					if(true == s_is_read_raw){
-						s_p_handle_read_track(channel[ch].tnum, s_track_line_index, &tl);
+						s_handle_read_track(channel[ch].tnum, s_track_line_index, &tl);
 						break;
 					}
 
@@ -449,7 +448,7 @@ void generate_routine() {			// called at 50 Hz
 			{
 				if(true == s_is_read_raw)
 				{
-					s_p_handle_read_instr(channel[ch].inum, channel[ch].iptr, il);
+					s_handle_read_instr(channel[ch].inum, channel[ch].iptr, il);
 					break;
 				}
 				get_instrument(channel[ch].inum, channel[ch].iptr, il);
@@ -519,13 +518,23 @@ void generate_routine() {			// called at 50 Hz
 	}
 }
 
-void chiptune_setup_raw_data_reader( void (*p_handle_read_song)(int pos, int ch, uint8_t *dest),
-							  void (*p_handle_read_track)(int num, int pos, struct trackline *tl),
-							  void (*p_handle_read_instr)(int num, int pos, uint8_t *il))
+void chiptune_setup_raw_data_reader( void (*handle_read_song)(int pos, int ch, uint8_t *dest),
+							  void (*handle_read_track)(int num, int pos, struct trackline *tl),
+							  void (*handle_read_instr)(int num, int pos, uint8_t *il))
 {
-	s_p_handle_read_song = p_handle_read_song;
-	s_p_handle_read_track = p_handle_read_track;
-	s_p_handle_read_instr = p_handle_read_instr;
+	s_handle_read_song = handle_read_song;
+	s_handle_read_track = handle_read_track;
+	s_handle_read_instr = handle_read_instr;
+}
+
+
+void chiptune_setup_callback_functions( int(*handle_get_max_track)(void),
+										int(*handle_get_song_length)(void),
+										uint8_t(*handle_get_chunk_datum)(int index))
+{
+	s_handle_get_max_track = handle_get_max_track;
+	s_handle_get_song_length = handle_get_song_length;
+	s_handle_get_chunk_datum = handle_get_chunk_datum;
 }
 
 void chiptune_initialize(bool is_read_raw)
@@ -548,8 +557,8 @@ void chiptune_initialize(bool is_read_raw)
 	do
 	{
 		struct unpacker_t temp_unpacker;
-		initialize_unpacker(&temp_unpacker, pack_into_chunks_ptr(), 0);
-		for(int i = 0; i < 1 + PACKING_INSTRUMENT_NUMBER + get_max_track(); i++){
+		initialize_unpacker(&temp_unpacker, 0);
+		for(int i = 0; i < 1 + PACKING_INSTRUMENT_NUMBER + s_handle_get_max_track(); i++){
 			s_offsets[i] = fetch_bits(&temp_unpacker, 13);
 		}
 	}while(0);

@@ -33,9 +33,13 @@ struct trackline {
 	uint8_t	param[2];
 };
 
-void chiptune_setup_raw_data_reader( void (*p_handle_read_song)(int pos, int ch, uint8_t *dest),
-							  void (*p_handle_read_track)(int num, int pos, struct trackline *tl),
-							  void (*p_handle_read_instr)(int num, int pos, uint8_t *il));
+void chiptune_setup_callback_functions( int(*handle_get_max_track)(void),
+										int(*handle_get_song_length)(void),
+										uint8_t(*handle_get_chunk_datum)(int index));
+
+void chiptune_setup_raw_data_reader( void (*handle_read_song)(int pos, int ch, uint8_t *dest),
+							  void (*handle_read_track)(int num, int pos, struct trackline *tl),
+							  void (*handle_read_instr)(int num, int pos, uint8_t *il));
 
 #ifdef __cplusplus
 }

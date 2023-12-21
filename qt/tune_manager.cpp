@@ -9,7 +9,14 @@ void set_tune_mananger(void *p_tune_manager)
 	s_p_tune_manager = (TuneManager*)p_tune_manager;
 }
 
-int get_song_length(void)
+
+static int get_max_track(void)
+{
+	return s_p_tune_manager->GetMaxTrack();
+}
+
+
+static int get_song_length(void)
 {
 	TuneManager::songline * p_songlines;
 	int song_length;
@@ -17,6 +24,17 @@ int get_song_length(void)
 	return song_length;
 }
 
+static uint8_t get_chunk_datum(int index)
+{
+	return *(s_p_tune_manager->GetChunksPtr() + index);
+}
+
+void setup_chiptune_callback_functions(void)
+{
+	chiptune_setup_callback_functions(get_max_track, get_song_length, get_chunk_datum);
+}
+
+/**********************************************************************************/
 
 static TuneManager::songline* get_songlines(void)
 {
@@ -43,19 +61,6 @@ static TuneManager::instrument* get_instruments(void)
 	s_p_tune_manager->GetInstruments(&p_instruments, &number_of_instruments);
 	return p_instruments;
 }
-
-
-int get_max_track(void)
-{
-	return s_p_tune_manager->GetMaxTrack();
-}
-
-uint8_t * pack_into_chunks_ptr(void)
-{
-	return s_p_tune_manager->GetChunksPtr();
-}
-
-
 
 static void readsong(int pos, int ch, uint8_t *dest) {
 	TuneManager::songline *p_songines = get_songlines();
@@ -89,8 +94,7 @@ void setup_chiptune_raw_reader(void)
 	chiptune_setup_raw_data_reader(readsong, readtrack, readinstr);
 }
 
-
-
+/**********************************************************************************/
 
 /**********************************************************************************/
 

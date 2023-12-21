@@ -379,6 +379,7 @@ TuneManager::TuneManager(QObject *parent)
 					this, &TuneManager::InquireGeneratingState);
 
 	set_tune_mananger(this);
+	setup_chiptune_callback_functions();
 	setup_chiptune_raw_reader();
 }
 
@@ -527,10 +528,14 @@ int TuneManager::ExportChunkDataFile(QString filename_string, TuneManager::EXPOR
 		}
 		out_string += QString::asprintf("0x%02x \n};\n\n", p_chunks[chunk_size - 1]);
 
-		out_string += QString::asprintf("int get_max_track(void){ return s_max_track; }\n");
-		out_string += QString::asprintf("int get_song_length(void){ return s_song_length; }\n");
-		out_string += QString::asprintf("uint8_t * pack_into_chunks_ptr(void){ return &s_chunks[0]; }\n");
-
+		out_string += QString::asprintf("static int get_max_track(void){ return s_max_track; }\n");
+		out_string += QString::asprintf("static int get_song_length(void){ return s_song_length; }\n");
+		out_string += QString::asprintf("uint8_t get_chunk_datum(int index){ return s_chunks[index]; }\n");
+		out_string += QString::asprintf("void setup_chiptune_callback_functions(void)\n");
+		out_string += QString::asprintf("{\n");
+		out_string += QString::asprintf("chiptune_setup_callback_functions(get_max_track,"
+										" get_song_length, get_chunk_datum);\n");
+		out_string += QString::asprintf("}\n");
 		file.setFileName(filename_string);
 		if(false == file.open(QFile::WriteOnly|QFile::Text)){
 			return -1;
