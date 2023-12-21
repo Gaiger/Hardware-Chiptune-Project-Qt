@@ -17,7 +17,8 @@ SOURCES += \
         TrackPlainTextEdit.cpp \
         TuneManager.cpp \
         main.cpp \
-        song_manager.c
+        song_manager.c \
+        tune_manager.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -32,7 +33,8 @@ HEADERS += \
     SongPlainTextEdit.h \
     TrackPlainTextEdit.h \
     TuneManager.h \
-    song_manager.h
+    song_manager.h \
+    tune_manager.h
 
 FORMS += \
     HardwareChiptunePanelWidget.ui
