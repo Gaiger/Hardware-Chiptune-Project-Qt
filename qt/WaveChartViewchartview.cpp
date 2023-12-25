@@ -2,7 +2,7 @@
 #include <QDebug>
 #include "WaveChartView.h"
 
-#define FRAME_SAMPLINGS					180*5 //(180 * 5)
+#define FRAME_SAMPLINGS					(180 * 5)
 
 WaveChartView::WaveChartView(QChart *p_chart, QWidget *parent)
 	: QChartView(p_chart, parent)
@@ -50,18 +50,28 @@ WaveChartView::WaveChartView(QChart *p_chart, QWidget *parent)
 void WaveChartView::GiveWave(QByteArray wave_bytearray)
 {
 	m_remain_wave_bytearray += wave_bytearray;
-	if( m_remain_wave_bytearray.size() < FRAME_SAMPLINGS){
-		return ;
-	}
 
-	QList<QPointF> points_vector;
-	for(int i = 0; i < FRAME_SAMPLINGS ; i++){
-			points_vector.append( QPointF((double)i, (double)m_remain_wave_bytearray.at(i)) );
-	}
+	do
+	{
+		if(FRAME_SAMPLINGS > m_remain_wave_bytearray.size()){
+			break;
+		}
 
-	QXYSeries *p_series = (QXYSeries*)QChartView::chart()->series().first();
-	p_series->replace(points_vector);
-	m_remain_wave_bytearray.remove(0, FRAME_SAMPLINGS);
+		while( 2 * FRAME_SAMPLINGS < m_remain_wave_bytearray.size() )
+		{
+			m_remain_wave_bytearray.remove(0, FRAME_SAMPLINGS);
+			continue;
+		}
+
+		QList<QPointF> points_vector;
+		for(int i = 0; i < FRAME_SAMPLINGS ; i++){
+				points_vector.append( QPointF((double)i, (double)m_remain_wave_bytearray.at(i)) );
+		}
+
+		QXYSeries *p_series = (QXYSeries*)QChartView::chart()->series().first();
+		p_series->replace(points_vector);
+		m_remain_wave_bytearray.remove(0, FRAME_SAMPLINGS);
+	}while(0);
 }
 
 /**********************************************************************************/

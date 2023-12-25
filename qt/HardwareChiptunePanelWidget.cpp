@@ -100,8 +100,8 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingTrackStateChanged,
 					 this, &HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged, Qt::QueuedConnection);
 
-	QObject::connect(p_player, &AudioPlayer::WaveFetched,
-					 this, &HardwareChiptunePanelWidget::HandleWaveFetched);
+	QObject::connect(p_player, &AudioPlayer::AudioDataAppended,
+					 this, &HardwareChiptunePanelWidget::HandleAudioDataAppended);
 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::LightChanged,
 					 this, &HardwareChiptunePanelWidget::HandleLightChanged);
@@ -258,7 +258,7 @@ void HardwareChiptunePanelWidget::HandleLightChanged(int light_index, bool is_tu
 
 /**********************************************************************************/
 
-void HardwareChiptunePanelWidget::HandleWaveFetched(const QByteArray wave_bytearray)
+void HardwareChiptunePanelWidget::HandleAudioDataAppended(const QByteArray wave_bytearray)
 {
 	//qDebug() << Q_FUNC_INFO <<  wave_bytearray.size();
 	m_p_wave_chartview->GiveWave(wave_bytearray);

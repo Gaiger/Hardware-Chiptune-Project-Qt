@@ -141,7 +141,7 @@ void AudioPlayer::Play(int filling_buffer_time_interval,
 		QObject::connect(m_p_audio_output, &QAudioOutput::stateChanged, this, &AudioPlayer::HandleAudioStateChanged);
 		m_p_audio_output->setVolume(1.00);
 	}
-	int audio_buffer_size = 2 * filling_buffer_time_interval
+	int audio_buffer_size = 2.0 * filling_buffer_time_interval
 			* format.sampleRate() * format.channelCount() * format.sampleSize()/8/1000;
 	m_p_audio_output->setNotifyInterval(filling_buffer_time_interval);
 
@@ -150,19 +150,20 @@ void AudioPlayer::Play(int filling_buffer_time_interval,
 
 	m_p_audio_io_device = new AudioIODevice();
 	m_p_audio_io_device->open(QIODevice::ReadWrite);
-	AudioPlayer::AppendAudioData(m_p_tune_manager->FetchWave(audio_buffer_size));
+	AudioPlayer::AppendWave(m_p_tune_manager->FetchWave(audio_buffer_size));
 	m_p_audio_output->start(m_p_audio_io_device);
 }
 
 /**********************************************************************************/
 
-void AudioPlayer::AppendAudioData(QByteArray data_bytearray)
+void AudioPlayer::AppendWave(QByteArray audio_bytearray)
 {
 	QMutexLocker lock(&m_accessing_io_device_mutex);
 	if(nullptr == m_p_audio_io_device){
 		return ;
 	}
-	m_p_audio_io_device->write(data_bytearray);
+	m_p_audio_io_device->write(audio_bytearray);
+	emit AudioDataAppended(audio_bytearray);
 }
 
 /**********************************************************************************/
@@ -199,8 +200,7 @@ void AudioPlayer::HandleAudioNotify(void)
 
 	QByteArray fetched_bytearray
 			= m_p_tune_manager->FetchWave(remain_audio_buffer_size);
-	AudioPlayer::AppendAudioData(fetched_bytearray);
-	emit WaveFetched(fetched_bytearray);
+	AudioPlayer::AppendWave(fetched_bytearray);
 }
 
 /**********************************************************************************/

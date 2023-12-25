@@ -41,7 +41,7 @@ public:
 	TuneManager * const GetTuneManager(void);
 public :
 	signals:
-	void WaveFetched(const QByteArray wave_bytearray);
+	void AudioDataAppended(const QByteArray wave_bytearray);
 
 private slots:
 	void HandleAudioNotify(void);
@@ -50,7 +50,7 @@ private slots:
 private :
 	void Play(int fill_audio_buffer_interval,
 			  int const sampling_rate = 16000, int const sampling_size = 1, int const channel_counts = 1);
-	void AppendAudioData(QByteArray data_bytearray);
+	void AppendWave(QByteArray wave_bytearray);
 	void Clean();
 private:
 	QAudioOutput * m_p_audio_output;

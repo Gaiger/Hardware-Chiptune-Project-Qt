@@ -48,7 +48,7 @@ private slots:
 	void HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index);
 	void HandleGeneratingTrackStateChanged(bool is_generating, int generating_track_index, int generating_line_index);
 	void HandleLightChanged(int light_index, bool is_turn_on);
-	void HandleWaveFetched(const QByteArray wave_bytearray);
+	void HandleAudioDataAppended(const QByteArray wave_bytearray);
 private:
 	void UpdateContents(void);
 private:
