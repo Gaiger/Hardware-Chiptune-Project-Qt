@@ -9,6 +9,7 @@
 #include "TrackPlainTextEdit.h"
 #include "InstrumentPlainTextEdit.h"
 
+#include "WaveChartView.h"
 
 namespace Ui {
 class HardwareChiptunePanelWidget;
@@ -55,7 +56,7 @@ private:
 	TrackPlainTextEdit *m_p_track_plaintextedit;
 	InstrumentPlainTextEdit *m_p_instrument_plaintextedit;
 private:
-
+	WaveChartView *m_p_wave_chartview;
 private:
 	AudioPlayer *m_p_player;
 private:

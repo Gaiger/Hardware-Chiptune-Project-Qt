@@ -87,8 +87,9 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 
 	do
 	{
-
-
+		QChart *p_chart = new QChart();
+		m_p_wave_chartview = new WaveChartView(p_chart, this);
+		ReplaceWidget(m_p_wave_chartview, ui->WaveWidget);
 	}while(0);
 
 	ui->ErrorMessageLabel->setFont(font20);
@@ -202,6 +203,7 @@ void HardwareChiptunePanelWidget::timerEvent(QTimerEvent *p_event)
 
 void HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index)
 {
+	m_p_wave_chartview->Clean();
 	do
 	{
 		if(true == is_generating){
@@ -223,7 +225,7 @@ void HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged(bool is_gene
 {
 	Q_UNUSED(generating_track_index);
 	Q_UNUSED(generating_line_index);
-
+	m_p_wave_chartview->Clean();
 	do
 	{
 		if(true == is_generating){
@@ -258,7 +260,8 @@ void HardwareChiptunePanelWidget::HandleLightChanged(int light_index, bool is_tu
 
 void HardwareChiptunePanelWidget::HandleWaveFetched(const QByteArray wave_bytearray)
 {
-	qDebug() << Q_FUNC_INFO <<  wave_bytearray.size();
+	//qDebug() << Q_FUNC_INFO <<  wave_bytearray.size();
+	m_p_wave_chartview->GiveWave(wave_bytearray);
 }
 
 /**********************************************************************************/

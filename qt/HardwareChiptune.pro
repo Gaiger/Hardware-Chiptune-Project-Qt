@@ -17,6 +17,7 @@ SOURCES += \
         SongPlainTextEdit.cpp \
         TrackPlainTextEdit.cpp \
         TuneManager.cpp \
+        WaveChartViewchartview.cpp \
         main.cpp \
         tune_manager.cpp
 
@@ -34,6 +35,7 @@ HEADERS += \
     SongPlainTextEdit.h \
     TrackPlainTextEdit.h \
     TuneManager.h \
+    WaveChartView.h \
     tune_manager.h
 
 FORMS += \
