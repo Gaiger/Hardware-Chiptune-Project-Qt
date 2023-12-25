@@ -39,6 +39,9 @@ public:
 	void Stop(void);
 
 	TuneManager * const GetTuneManager(void);
+public :
+	signals:
+	void WaveFetched(const QByteArray wave_bytearray);
 
 private slots:
 	void HandleAudioNotify(void);

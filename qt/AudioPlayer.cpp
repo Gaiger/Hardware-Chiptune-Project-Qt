@@ -139,7 +139,7 @@ void AudioPlayer::Play(int filling_buffer_time_interval,
 		m_p_audio_output = new QAudioOutput(info, format);
 		QObject::connect(m_p_audio_output, &QAudioOutput::notify, this, &AudioPlayer::HandleAudioNotify);
 		QObject::connect(m_p_audio_output, &QAudioOutput::stateChanged, this, &AudioPlayer::HandleAudioStateChanged);
-		m_p_audio_output->setVolume(0.40);
+		m_p_audio_output->setVolume(1.00);
 	}
 	int audio_buffer_size = 2 * filling_buffer_time_interval
 			* format.sampleRate() * format.channelCount() * format.sampleSize()/8/1000;
@@ -197,9 +197,10 @@ void AudioPlayer::HandleAudioNotify(void)
 		return ;
 	}
 
-	QByteArray append_bytearray
+	QByteArray fetched_bytearray
 			= m_p_tune_manager->FetchWave(remain_audio_buffer_size);
-	AudioPlayer::AppendAudioData(append_bytearray);
+	AudioPlayer::AppendAudioData(fetched_bytearray);
+	emit WaveFetched(fetched_bytearray);
 }
 
 /**********************************************************************************/

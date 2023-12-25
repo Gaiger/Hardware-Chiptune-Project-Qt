@@ -85,6 +85,12 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 						 ui->ErrorMessageLabel, &QLabel::setText);
 	}while(0);
 
+	do
+	{
+
+
+	}while(0);
+
 	ui->ErrorMessageLabel->setFont(font20);
 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingSongStateChanged,
@@ -92,6 +98,9 @@ HardwareChiptunePanelWidget::HardwareChiptunePanelWidget(AudioPlayer *p_player, 
 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::GeneratingTrackStateChanged,
 					 this, &HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged, Qt::QueuedConnection);
+
+	QObject::connect(p_player, &AudioPlayer::WaveFetched,
+					 this, &HardwareChiptunePanelWidget::HandleWaveFetched);
 
 	QObject::connect(p_player->GetTuneManager(), &TuneManager::LightChanged,
 					 this, &HardwareChiptunePanelWidget::HandleLightChanged);
@@ -243,6 +252,13 @@ void HardwareChiptunePanelWidget::HandleLightChanged(int light_index, bool is_tu
 		}
 		ui->LightWidget1->setStyleSheet(text_string);
 	}while(0);
+}
+
+/**********************************************************************************/
+
+void HardwareChiptunePanelWidget::HandleWaveFetched(const QByteArray wave_bytearray)
+{
+	qDebug() << Q_FUNC_INFO <<  wave_bytearray.size();
 }
 
 /**********************************************************************************/

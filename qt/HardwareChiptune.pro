@@ -1,4 +1,5 @@
 QT += widgets
+QT += charts
 QT += multimedia
 
 CONFIG += c++11 #console

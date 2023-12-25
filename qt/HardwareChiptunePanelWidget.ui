@@ -483,6 +483,16 @@ background-color: rgb(36, 36, 36);
 }</string>
    </property>
   </widget>
+  <widget class="QWidget" name="WaveWidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>18</y>
+     <width>272</width>
+     <height>52</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>
