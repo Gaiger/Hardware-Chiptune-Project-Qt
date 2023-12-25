@@ -12,6 +12,7 @@ public:
 
 	void GiveWave(QByteArray wave_bytearray);
 	void CleanUndrawnWave(void);
+	void Reset(void);
 private :
 	QByteArray m_remain_wave_bytearray;
 };

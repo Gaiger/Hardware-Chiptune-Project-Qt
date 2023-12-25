@@ -146,9 +146,12 @@ void HardwareChiptunePanelWidget::UpdateContents(void)
 		TuneManager::songline *p_songlines;
 		int number_of_songlines;
 		m_p_player->GetTuneManager()->GetSongLines(&p_songlines, &number_of_songlines);
+
+		ui->SongIndexSpinBox->blockSignals(true);
 		ui->SongIndexSpinBox->setRange(0, number_of_songlines - 1);
 		ui->SongIndexSpinBox->setValue(0);
 		ui->SongIndexSpinBox->setEnabled(true);
+		ui->SongIndexSpinBox->blockSignals(false);
 
 		m_p_song_plaintextedit->ShowSong();
 	}while(0);
@@ -187,6 +190,8 @@ void HardwareChiptunePanelWidget::UpdateContents(void)
 
 		m_p_instrument_plaintextedit->ShowInstrument(spinbox_value);
 	}while(0);
+
+	m_p_wave_chartview->Reset();
 }
 
 /**********************************************************************************/
@@ -203,13 +208,16 @@ void HardwareChiptunePanelWidget::timerEvent(QTimerEvent *p_event)
 
 void HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index)
 {
+
 	do
 	{
 		if(true == is_generating){
 			ui->SongPlayPushButton->setText(QString(UNICODE_STOP_ICON));
+			ui->SongIndexSpinBox->blockSignals(true);
 			ui->SongIndexSpinBox->setEnabled(false);
 			int playing_song_index = generating_song_index - 1;
 			ui->SongIndexSpinBox->setValue(playing_song_index);
+			ui->SongIndexSpinBox->blockSignals(false);
 			break;
 		}
 
@@ -217,6 +225,7 @@ void HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged(bool is_gener
 		ui->SongIndexSpinBox->setEnabled(true);
 		m_p_wave_chartview->CleanUndrawnWave();
 	}while(0);
+
 }
 
 /**********************************************************************************/
@@ -447,6 +456,13 @@ void HardwareChiptunePanelWidget::on_ExportChunkDataPushButton_released(void)
 
 /**********************************************************************************/
 
+void HardwareChiptunePanelWidget::on_SongIndexSpinBox_valueChanged(int i)
+{
+	m_p_wave_chartview->Reset();
+}
+
+/**********************************************************************************/
+
 void HardwareChiptunePanelWidget::on_SongPlayPushButton_released(void)
 {
 	do
@@ -488,6 +504,7 @@ void HardwareChiptunePanelWidget::on_TrackIndexSpinBox_valueChanged(int i)
 	}
 
 	m_p_track_plaintextedit->ShowTrack(i);
+	m_p_wave_chartview->Reset();
 }
 
 /**********************************************************************************/

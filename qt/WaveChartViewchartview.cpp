@@ -24,11 +24,6 @@ WaveChartView::WaveChartView(QChart *p_chart, QWidget *parent)
 	p_chart->addAxis(p_axis_y, Qt::AlignLeft);
 
 	QLineSeries *p_series = new QLineSeries();
-
-	for(int i = 0; i < FRAME_SAMPLINGS; i++){
-		p_series->append((double)i, (double)0);
-	}
-
 	p_chart->addSeries(p_series);
 	p_series->attachAxis(p_axis_x);
 	p_series->attachAxis(p_axis_y);
@@ -43,6 +38,7 @@ WaveChartView::WaveChartView(QChart *p_chart, QWidget *parent)
 	p_chart->axes(Qt::Vertical).at(0)->setVisible(false);
 
 	QChartView::setRenderHint(QPainter::Antialiasing);
+	WaveChartView::Reset();
 }
 
 /**********************************************************************************/
@@ -79,4 +75,18 @@ void WaveChartView::GiveWave(QByteArray wave_bytearray)
 void WaveChartView::CleanUndrawnWave(void)
 {
 	m_remain_wave_bytearray.clear();
+}
+
+/**********************************************************************************/
+
+void WaveChartView::Reset(void)
+{
+	CleanUndrawnWave();
+	QList<QPointF> points_vector;
+	for(int i = 0; i < FRAME_SAMPLINGS ; i++){
+		points_vector.append( QPointF((double)i, (double)0.0) );
+	}
+
+	QXYSeries *p_series = (QXYSeries*)QChartView::chart()->series().first();
+	p_series->replace(points_vector);
 }

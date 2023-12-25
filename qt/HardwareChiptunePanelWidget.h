@@ -30,6 +30,7 @@ private slots:
 	void on_ImportChunkDataPushButton_released(void);
 	void on_ExportChunkDataPushButton_released(void);
 
+	void on_SongIndexSpinBox_valueChanged(int i);
 	void on_SongPlayPushButton_released(void);
 	void on_SongApplyPushButton_released(void);
 
