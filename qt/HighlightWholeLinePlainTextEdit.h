@@ -9,32 +9,21 @@ class HighlightWholeLinePlainTextEdit : public QPlainTextEdit
 {
 	Q_OBJECT
 protected:
-	HighlightWholeLinePlainTextEdit(QWidget *parent) : QPlainTextEdit(parent){}
+	HighlightWholeLinePlainTextEdit(QWidget *parent) : QPlainTextEdit(parent)
+	{
+		QObject::connect(this, &QPlainTextEdit::textChanged,
+						 this, &HighlightWholeLinePlainTextEdit::HandleTextChanged);
+	}
 
 	void HighlightWholeLine(int index)
 	{
-		do{
-			QTextBlockFormat fmt;
-			fmt.setProperty(QTextFormat::FullWidthSelection, true);
-			fmt.setBackground( QPlainTextEdit::palette().base().color());
-			QTextCursor cursor(QPlainTextEdit::document());
-			for(int i = 0; i < QPlainTextEdit::document()->blockCount(); i++){
-				QTextBlock textblock = QPlainTextEdit::document()->findBlockByNumber(i);
-				if( QPlainTextEdit::palette().base().color() == textblock.blockFormat().background().color()){
-					continue;
-				}
-				cursor.setPosition(textblock.position(), QTextCursor::MoveAnchor);
-				QPlainTextEdit::blockSignals(true);
-				cursor.setBlockFormat(fmt);
-				QPlainTextEdit::blockSignals(false);
-			}
-		}while(0);
-
 		if(-1 == index){
 			QPlainTextEdit::document()->clearUndoRedoStacks();
 			QPlainTextEdit::document()->setModified(false);
 			return ;
 		}
+
+		CleanHightlight();
 
 		if( 0 > index || index > QPlainTextEdit::document()->blockCount() - 1){
 			return ;
@@ -70,6 +59,35 @@ protected:
 			}
 
 			QPlainTextEdit::verticalScrollBar()->setValue(scrolling_value);
+		}while(0);
+	}
+
+private slots:
+	void HandleTextChanged(void)
+	{
+		blockSignals(true);
+		CleanHightlight();
+		blockSignals(true);
+	}
+
+private:
+	void CleanHightlight(void)
+	{
+		do{
+			QTextBlockFormat fmt;
+			fmt.setProperty(QTextFormat::FullWidthSelection, true);
+			fmt.setBackground( QPlainTextEdit::palette().base().color());
+			QTextCursor cursor(QPlainTextEdit::document());
+			for(int i = 0; i < QPlainTextEdit::document()->blockCount(); i++){
+				QTextBlock textblock = QPlainTextEdit::document()->findBlockByNumber(i);
+				if( QPlainTextEdit::palette().base().color() == textblock.blockFormat().background().color()){
+					continue;
+				}
+				cursor.setPosition(textblock.position(), QTextCursor::MoveAnchor);
+				QPlainTextEdit::blockSignals(true);
+				cursor.setBlockFormat(fmt);
+				QPlainTextEdit::blockSignals(false);
+			}
 		}while(0);
 	}
 };

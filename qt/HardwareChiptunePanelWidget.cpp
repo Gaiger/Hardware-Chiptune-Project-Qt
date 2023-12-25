@@ -203,7 +203,6 @@ void HardwareChiptunePanelWidget::timerEvent(QTimerEvent *p_event)
 
 void HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged(bool is_generating, int generating_song_index)
 {
-	m_p_wave_chartview->Clean();
 	do
 	{
 		if(true == is_generating){
@@ -216,6 +215,7 @@ void HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged(bool is_gener
 
 		ui->SongPlayPushButton->setText(QString(UNICODE_PLAY_ICON));
 		ui->SongIndexSpinBox->setEnabled(true);
+		m_p_wave_chartview->CleanBuffer();
 	}while(0);
 }
 
@@ -225,7 +225,6 @@ void HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged(bool is_gene
 {
 	Q_UNUSED(generating_track_index);
 	Q_UNUSED(generating_line_index);
-	m_p_wave_chartview->Clean();
 	do
 	{
 		if(true == is_generating){
@@ -233,6 +232,7 @@ void HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged(bool is_gene
 			break;
 		}
 		ui->TrackPlayPushButton->setText(QString(UNICODE_PLAY_ICON));
+		m_p_wave_chartview->CleanBuffer();
 	}while(0);
 }
 
