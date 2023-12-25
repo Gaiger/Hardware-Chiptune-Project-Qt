@@ -458,6 +458,7 @@ void HardwareChiptunePanelWidget::on_ExportChunkDataPushButton_released(void)
 
 void HardwareChiptunePanelWidget::on_SongIndexSpinBox_valueChanged(int i)
 {
+	Q_UNUSED(i);
 	m_p_wave_chartview->Reset();
 }
 
