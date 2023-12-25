@@ -11,7 +11,7 @@ public:
 	WaveChartView(QChart *chart, QWidget *parent = nullptr);
 
 	void GiveWave(QByteArray wave_bytearray);
-	void CleanBuffer(void);
+	void CleanUndrawnWave(void);
 private :
 	QByteArray m_remain_wave_bytearray;
 };

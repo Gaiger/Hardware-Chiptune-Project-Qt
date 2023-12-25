@@ -215,7 +215,7 @@ void HardwareChiptunePanelWidget::HandleGeneratingSongStateChanged(bool is_gener
 
 		ui->SongPlayPushButton->setText(QString(UNICODE_PLAY_ICON));
 		ui->SongIndexSpinBox->setEnabled(true);
-		m_p_wave_chartview->CleanBuffer();
+		m_p_wave_chartview->CleanUndrawnWave();
 	}while(0);
 }
 
@@ -232,7 +232,7 @@ void HardwareChiptunePanelWidget::HandleGeneratingTrackStateChanged(bool is_gene
 			break;
 		}
 		ui->TrackPlayPushButton->setText(QString(UNICODE_PLAY_ICON));
-		m_p_wave_chartview->CleanBuffer();
+		m_p_wave_chartview->CleanUndrawnWave();
 	}while(0);
 }
 

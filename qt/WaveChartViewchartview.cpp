@@ -66,7 +66,7 @@ void WaveChartView::GiveWave(QByteArray wave_bytearray)
 
 /**********************************************************************************/
 
-void WaveChartView::CleanBuffer(void)
+void WaveChartView::CleanUndrawnWave(void)
 {
 	m_remain_wave_bytearray.clear();
 }
