@@ -7,35 +7,26 @@
 WaveChartView::WaveChartView(QChart *p_chart, QWidget *parent)
 	: QChartView(p_chart, parent)
 {
-	p_chart->setBackgroundVisible(false);
+	p_chart->setTheme(QChart::ChartThemeDark);
+	//p_chart->setBackgroundVisible(false);
 	p_chart->legend()->hide();
 
-		//p_chart->setTitle("Simple line chart example");
 	p_chart->layout()->setContentsMargins(0, 0, 0, 0);
 	p_chart->setMargins(QMargins(0,0,0,0));
 	p_chart->setBackgroundRoundness(0);
 
-	QValueAxis *p_axis_x = new QValueAxis();
-	p_axis_x->setRange(0, FRAME_SAMPLINGS);
-	p_chart->addAxis(p_axis_x, Qt::AlignBottom);
+	p_chart->addAxis(new QValueAxis(), Qt::AlignBottom);
+	p_chart->axes(Qt::Horizontal).first()->setRange(0, FRAME_SAMPLINGS);
+	p_chart->axes(Qt::Horizontal).at(0)->setVisible(false);
 
-	QValueAxis *p_axis_y = new QValueAxis();
-	p_axis_y->setRange(-160, 160);
-	p_chart->addAxis(p_axis_y, Qt::AlignLeft);
+	p_chart->addAxis( new QValueAxis(), Qt::AlignLeft);
+	p_chart->axes(Qt::Vertical).at(0)->setRange(-10, UINT8_MAX + 10);
+	p_chart->axes(Qt::Vertical).at(0)->setVisible(false);
 
 	QLineSeries *p_series = new QLineSeries();
 	p_chart->addSeries(p_series);
-	p_series->attachAxis(p_axis_x);
-	p_series->attachAxis(p_axis_y);
-
-	QPen pen(10);
-	pen.setColor(QColor(Qt::darkGray).lighter(115));
-	p_series->setPen(pen);
-
-	p_chart->axes(Qt::Horizontal).first()->setRange(0, FRAME_SAMPLINGS);
-	p_chart->axes(Qt::Vertical).first()->setRange(-10, 256 + 10);
-	p_chart->axes(Qt::Horizontal).at(0)->setVisible(false);
-	p_chart->axes(Qt::Vertical).at(0)->setVisible(false);
+	p_series->attachAxis(p_chart->axes(Qt::Horizontal).at(0));
+	p_series->attachAxis(p_chart->axes(Qt::Vertical).at(0));
 
 	QChartView::setRenderHint(QPainter::Antialiasing);
 	WaveChartView::Reset();
