@@ -65,9 +65,7 @@ protected:
 private slots:
 	void HandleTextChanged(void)
 	{
-		blockSignals(true);
 		CleanHightlight();
-		blockSignals(true);
 	}
 
 private:
