@@ -163,7 +163,6 @@ void AudioPlayer::AppendWave(QByteArray audio_bytearray)
 		return ;
 	}
 	m_p_audio_io_device->write(audio_bytearray);
-	emit AudioDataAppended(audio_bytearray);
 }
 
 /**********************************************************************************/

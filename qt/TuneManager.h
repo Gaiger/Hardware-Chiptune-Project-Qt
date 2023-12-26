@@ -82,6 +82,8 @@ public:
 	void GeneratingSongStateChanged(bool is_generating_song, int generating_song_index);
 	void GeneratingTrackStateChanged(bool is_generating_track, int generating_track_index, int generating_line_index);
 	void LightChanged(int light_index, bool is_turn_on);
+	void WaveFetched(QByteArray wave_bytearray);
+
 private slots:
 	void InquireGeneratingState(void);
 
