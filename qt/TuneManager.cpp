@@ -64,6 +64,9 @@ public:
 		m_is_generating_track = false;
 		m_is_B_note_as_H_note = false;
 		m_lights_bits = 0;
+		memset(&m_songlines[0], 0, sizeof(m_songlines));
+		memset(&m_tracks[0], 0, sizeof(m_tracks));
+		memset(&m_instruments[0], 0, sizeof(m_instruments));
 	}
 
 	bool IsGeneratingSongStateChanged(void)
@@ -719,7 +722,6 @@ QByteArray TuneManager::FetchWave(int const length)
 	}
 
 	emit WaveFetched(fetched_wave_bytearray);
-
 	return fetched_wave_bytearray;
 }
 
