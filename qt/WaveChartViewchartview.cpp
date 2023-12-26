@@ -33,7 +33,7 @@ WaveChartView::WaveChartView(QChart *p_chart, QWidget *parent)
 	p_series->setPen(pen);
 
 	p_chart->axes(Qt::Horizontal).first()->setRange(0, FRAME_SAMPLINGS);
-	p_chart->axes(Qt::Vertical).first()->setRange(-160, 160);
+	p_chart->axes(Qt::Vertical).first()->setRange(-10, 256 + 10);
 	p_chart->axes(Qt::Horizontal).at(0)->setVisible(false);
 	p_chart->axes(Qt::Vertical).at(0)->setVisible(false);
 
@@ -61,7 +61,8 @@ void WaveChartView::GiveWave(QByteArray wave_bytearray)
 
 		QList<QPointF> points_vector;
 		for(int i = 0; i < FRAME_SAMPLINGS ; i++){
-				points_vector.append( QPointF((double)i, (double)m_remain_wave_bytearray.at(i)) );
+			uint8_t value = (uint8_t)m_remain_wave_bytearray.at(i);
+			points_vector.append( QPointF((double)i, (double)value) );
 		}
 
 		QXYSeries *p_series = (QXYSeries*)QChartView::chart()->series().first();
@@ -84,7 +85,7 @@ void WaveChartView::Reset(void)
 	CleanUndrawnWave();
 	QList<QPointF> points_vector;
 	for(int i = 0; i < FRAME_SAMPLINGS ; i++){
-		points_vector.append( QPointF((double)i, (double)0.0) );
+		points_vector.append( QPointF((double)i, (double)128) );
 	}
 
 	QXYSeries *p_series = (QXYSeries*)QChartView::chart()->series().first();

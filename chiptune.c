@@ -598,7 +598,7 @@ void chiptune_initialize(bool is_read_raw)
 	}while(0);
 }
 
-static uint32_t noiseseed = 1;
+static uint32_t s_noiseseed = 1;
 
 uint8_t chiptune_interrupthandler()
 {
@@ -607,11 +607,19 @@ uint8_t chiptune_interrupthandler()
 	uint8_t newbit;
 
 	newbit = 0;
-	if(noiseseed & 0x80000000L) newbit ^= 1;
-	if(noiseseed & 0x01000000L) newbit ^= 1;
-	if(noiseseed & 0x00000040L) newbit ^= 1;
-	if(noiseseed & 0x00000200L) newbit ^= 1;
-	noiseseed = (noiseseed << 1) | newbit;
+	if(0x80000000L & s_noiseseed){
+		newbit ^= 1;
+	}
+	if(0x01000000L & s_noiseseed){
+		newbit ^= 1;
+	}
+	if(0x00000040L & s_noiseseed){
+		newbit ^= 1;
+	}
+	if(0x00000200L & s_noiseseed){
+		newbit ^= 1;
+	}
+	s_noiseseed = (s_noiseseed << 1) | newbit;
 
 	if(callbackwait) {
 		callbackwait--;
@@ -639,15 +647,15 @@ uint8_t chiptune_interrupthandler()
 				value = (osc[i].phase > osc[i].duty)? -32 : 31;
 				break;
 			case WF_NOI:
-				value = (noiseseed & 63) - 32;
+				value = (s_noiseseed & 63) - 32;
 				break;
 			default:
 				value = 0;
 				break;
 		}
-		osc[i].phase += osc[i].freq;
-
 		acc += value * osc[i].volume; // rhs = [-8160,7905]
+
+		osc[i].phase += osc[i].freq;
 	}
 	// acc [-32640,31620]
 	return 128 + (acc >> 8);	// [1,251]
